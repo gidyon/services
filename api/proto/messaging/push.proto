@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package gidyon.messaging.push;
+
+option go_package="github.com/gidyon/services/pkg/api/messaging/push";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+message PushMessage {
+    repeated string device_tokens = 2;
+    string title = 1;
+    string message = 3;
+    map<string, string> details = 4;
+}
+
+service PushMessaging {
+    rpc SendPushMessage (PushMessage) returns (google.protobuf.Empty);
+}

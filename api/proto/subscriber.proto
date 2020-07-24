@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+option go_package="github.com/gidyon/services/pkg/api/subscriber";
+
+package gidyon.subscriber;
+
+import "google/protobuf/empty.proto";
+import "google/api/field_behaviour.proto";
+import "google/api/annotations.proto";
+import "google/api/resource.proto";
+import "google/api/client.proto";
+
+// Subscriber represent an entity that can subscribes to channels
+message Subscriber {
+    string subscriber_id = 1;
+    string email = 2;
+    string phone = 3;
+    string external_id = 4;
+    string device_token = 5;
+    repeated Channel channels = 6;
+}
+
+// Channel is a channel a subscriber subscribes to
+message Channel {
+    string name = 1;
+    string channel_id = 2;
+}
+
+// SubscriberRequest is request to subscribes an entity to a channel
+message SubscriberRequest {
+    string subscriber_id = 1 [
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          child_type: "emrs.subscriber/Subscriber"
+        }];
+    string channel_id = 2 [
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          child_type: "emrs.channel/Channel"
+        }];
+    string channel_name = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ListSubscribersRequest is request to list subscribers for a particular channel
+message ListSubscribersRequest {
+    repeated string channels = 1 [
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          child_type: "emrs.subscriber/Subscriber"
+        }];
+    string page_token = 2;
+    int32 page_size = 3;
+}
+
+// ListSubscribersResponse is response containing collection of subscribers
+message ListSubscribersResponse {
+    repeated Subscriber subscribers = 1;
+    string next_page_token = 2;
+}
+
+// GetSubscriberRequest is request to retrieve a subscriber
+message GetSubscriberRequest {
+    string subscriber_id = 1 [
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          type: "emrs.subscriber/Subscriber"
+        }];
+}
+
+// Manages subscribers for a channel
+service SubscriberAPI {
+    // Subscribes a user to a channel
+    rpc Subscribe (SubscriberRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/subscribers/subscribe",
+            body: "*"
+        };
+        option (google.api.method_signature) = "channel_id,subscriber_id";
+    }
+
+    // Unsubscribes a user from a channel
+    rpc Unsubscribe (SubscriberRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/subscribers/unsubscribe",
+            body: "*"
+        };
+        option (google.api.method_signature) = "channel_id,subscriber_id";
+    }
+
+    // Lists subscribers for a channel
+    rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {
+        option (google.api.http) = {
+            get: "/api/subscribers",
+        };
+        option (google.api.method_signature) = "channels";
+    }
+
+    // GetSubscriber retrieves information about a single subscriber
+    rpc GetSubscriber(GetSubscriberRequest) returns (Subscriber) {
+        option (google.api.http) = {
+            get: "/api/subscribers/{subscriber_id}",
+        };  
+        option (google.api.method_signature) = "subscriber_id";
+    };
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package gidyon.messaging.emailing;
+
+option go_package="github.com/gidyon/services/pkg/api/messaging/emailing";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+message Email {
+    repeated string destinations = 2;
+    string from = 1;
+    string subject = 3;
+    string body_content_type = 4;
+    string body = 5;
+}
+
+service Emailing {
+    rpc SendEmail (Email) returns (google.protobuf.Empty);
+}

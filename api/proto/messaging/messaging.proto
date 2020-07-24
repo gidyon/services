@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package gidyon.messaging;
+
+option go_package="github.com/gidyon/services/pkg/api/messaging";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+// import "protoc-gen-swagger/options/annotations.proto";
+
+// MessageType is category of a message
+enum MessageType {
+    ALL = 0;
+    PROMOTIONAL = 1;
+    REMINDER = 2;
+    WARNING = 3;
+    ALERT = 4;
+    INFO = 5;
+}
+
+// SendMethod is the method used to send the message
+enum SendMethod {
+    SEND_METHOD_UNSPECIFIED = 0;
+    EMAIL = 1;
+    SMS = 2;
+    CALL = 3;
+    PUSH = 4;
+}
+
+// Message is a message payload
+message Message {
+    string message_id = 1;
+    string user_id = 2;
+    string title = 3;
+    string data = 4;
+    string link = 5;
+    int64 create_time_seconds = 6;
+    bool seen = 7;
+    bool save = 9;
+    MessageType type = 10;
+    repeated SendMethod send_methods = 11;
+    map<string, string> details = 12;
+}
+
+// BroadCastMessageRequest is request to broadcast message to users
+message BroadCastMessageRequest {
+    repeated string channels = 1;
+    Message message = 2;
+}
+
+// SendMessageResponse is response after sending message contains message id
+message SendMessageResponse {
+    string message_id = 1;
+}
+
+// ListMessagesRequest is request to get user messages
+message ListMessagesRequest {
+    string user_id = 1;
+    string page_token = 2;
+    int32 page_size = 3;
+    repeated MessageType type_filters = 4;
+}
+
+// Messages is a collection of user messages
+message Messages {
+    repeated Message messages = 1;
+    string next_page_token = 2;
+}
+
+// MessageRequest is request to fetch or perform action to messages owned by user
+message MessageRequest {
+    string user_id = 1;
+}
+
+// NewMessagesCount contains the count of new messages
+message NewMessagesCount {
+    int32 count = 1;
+}
+
+// Sends messages to devices and destinations
+service Messaging {
+    // Broadcasts a message
+    rpc BroadCastMessage (BroadCastMessageRequest) returns (google.protobuf.Empty) {
+        // Maps to HTTP POST
+        // Everything maps to the body of the request
+        option (google.api.http) = {
+            post: "/api/messaging/broadcast"
+            body: "*"
+        };
+    };
+
+    // Sends message to a single destination
+    rpc SendMessage (Message) returns (SendMessageResponse) {
+        // Maps to HTTP POST
+        // Everything maps to the body of the request
+        option (google.api.http) = {
+            post: "/api/messaging/send"
+            body: "*"
+        };
+    };
+
+    // Retrieves user messages
+    rpc ListMessages (ListMessagesRequest) returns (Messages) {
+        // Maps to HTTP GET
+        // Everything maps to the body of the request
+        option (google.api.http) = {
+            get: "/api/messaging/messages/{user_id}"
+        };
+    };
+
+    // Updates all messages status as read
+    rpc ReadAll (MessageRequest) returns (google.protobuf.Empty) {
+        // // Maps to HTTP PATCH
+        option (google.api.http) = {
+            patch: "/api/messaging/messages/{user_id}/readall"
+        };
+    };
+
+    // Fetches count of new messages
+    rpc GetNewMessagesCount (MessageRequest) returns (NewMessagesCount) {
+        // Maps to HTTP GET
+        option (google.api.http) = {
+            get: "/api/messaging/messages/{user_id}/newcount"
+        };
+    };
+}

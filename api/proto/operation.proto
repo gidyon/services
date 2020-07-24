@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option go_package="github.com/gidyon/services/pkg/api/operation";
+
+// OperationStatus is the status of a long running operation
+enum OperationStatus {
+    OPERATION_STATUS_UNSPECIFIED = 0;
+    PENDING = 1;
+    COMPLETED = 2;
+    FAILED = 3;
+}
+
+// Operation represents a long running action
+message Operation {
+    string id = 1;
+    string user_id = 2;
+    string details = 3;
+    string result = 4;
+    OperationStatus status = 5;
+    int64 timestamp_sec = 6;
+}
+
+message CreateOperationRequest {
+    Operation operation = 1;
+}
+
+message UpdateOperationRequest {
+    string operation_id = 1;
+    string result = 2;
+    OperationStatus status = 3;
+}
+
+message DeleteOperationRequest {
+    string user_id = 1;
+    string operation_id = 2;
+}
+
+message ListOperationsRequest {
+    string user_id = 1;
+    string page_token = 2;
+    int32 page_size = 3;
+}
+
+message ListOperationsResponse {
+    repeated Operation operations = 1;
+    string next_page_token = 2;
+}
+
+message GetOperationRequest {
+    string operation_id = 1;
+}
+
+// Manages operations
+service OperationAPI {
+    rpc CreateOperation (CreateOperationRequest) returns (Operation);
+    rpc UpdateOperation (UpdateOperationRequest) returns (Operation);
+    rpc DeleteOperation (DeleteOperationRequest) returns (google.protobuf.Empty);
+    rpc ListOperations (ListOperationsRequest) returns (ListOperationsResponse);
+    rpc GetOperation (GetOperationRequest) returns (Operation);
+}

@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+option go_package="github.com/gidyon/services/pkg/api/channel";
+
+package gidyon.channel;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+// Channel is a publisher network with subscribers
+message Channel {
+    string id = 1;
+    string title = 2;
+    string description = 3;
+    string owner_id = 4;
+    int32 create_time_seconds = 5;
+    int32 subscribers = 6;
+}
+
+// CreateChannelRequest is request to create a new channel
+message CreateChannelRequest {
+    Channel channel = 1;
+}
+
+// CreateChannelResponse is response after creating a channel
+message CreateChannelResponse {
+    string id = 1;
+}
+
+// UpdateChannelRequest request to update a channel resource
+message UpdateChannelRequest {
+    string owner_id = 1;
+    Channel channel = 2;
+}
+
+// DeleteChannelRequest is request to delete a channel resource
+message DeleteChannelRequest {
+    string id = 1;   
+    string owner_id = 2; 
+}
+
+// ListChannelsRequest is request to retrieve a collection of channels resource
+message ListChannelsRequest {
+    string page_token = 1;
+    int32 page_size = 2;
+}
+
+// ListChannelsResponse is response containing collection of channel resource
+message ListChannelsResponse {
+    repeated Channel channels = 1;
+    string next_page_token = 2;
+}
+
+// GetChannelRequest is request to retrieve a channel resource
+message GetChannelRequest {
+    string id = 1;  
+}
+
+// SubscribersRequest is request to increment r decrement a subscriber
+message SubscribersRequest {
+    string id = 1;
+}
+
+// Manages channels in a network
+service ChannelAPI {
+    // Creates a new subscriber channel
+    rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse) {
+        // CreateChannel maps to HTTP POST method
+        // channel maps to the body of the request
+        option (google.api.http) = {
+            post: "/api/channels",
+            body: "*"
+        };
+    }
+
+    // Updates an existing channel resource
+    rpc UpdateChannel (UpdateChannelRequest) returns (google.protobuf.Empty) {
+        // UpdateChannel maps to HTTP PUT method.
+        // channel maps to the body of the request
+        // id maps to URL path parameters
+        option (google.api.http) = {
+            patch: "/api/channels/{channel.id}",
+            body: "*"
+        };
+    }
+
+    // Removes a subscribers channel
+    rpc DeleteChannel (DeleteChannelRequest) returns (google.protobuf.Empty) {
+        // DeleteChannel maps to HTTP DELETE method
+        // id maps to URL path parameters
+        option (google.api.http) = {
+            delete: "/api/channels/{id}"
+        };
+    }
+
+    // Retrieves a collection of channels resource
+    rpc ListChannels (ListChannelsRequest) returns (ListChannelsResponse) {
+        // ListChannels maps to HTTP GET method
+        // page_token and page_size maps to URL query parameters
+        option (google.api.http) = {
+            get: "/api/channels"
+        };
+    }
+
+    // Retrieves a single channel resource
+    rpc GetChannel (GetChannelRequest) returns (Channel) {
+        // GetChannel maps to HTTP GET method
+        // id maps to URL path parameters
+        option (google.api.http) = {
+            get: "/api/channels/{id}"
+        };
+    }
+
+    // Increment subscribers by one. No RESTful endpoint
+    rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty);
+
+    // Decrement subscribers by one. No RESTful endpoint
+    rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty);
+}

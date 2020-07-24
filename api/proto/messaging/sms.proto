@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package gidyon.messaging.sms;
+
+option go_package="github.com/gidyon/services/pkg/api/messaging/sms";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+message SMS {
+    repeated string destination_phones = 2;
+    string keyword = 1;
+    string message = 3;
+}
+
+service SMSAPI {
+    rpc SendSMS (SMS) returns (google.protobuf.Empty);
+}

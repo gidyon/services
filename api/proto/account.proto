@@ -1,0 +1,364 @@
+syntax = "proto3";
+
+package gidyon.account;
+
+option go_package="github.com/gidyon/services/pkg/api/account";
+
+import "google/protobuf/empty.proto";
+// import "protoc-gen-swagger/options/annotations.proto";
+import "google/api/field_behaviour.proto";
+import "google/api/annotations.proto";
+import "google/api/resource.proto";
+import "google/api/client.proto";
+import "messaging/messaging.proto";
+ 
+// Account contains information about user entity. Can be a user or admin
+message Account {
+    string account_id = 1;
+    string external_id = 2;
+    string email = 3;
+    string phone = 4;
+    string device_token = 5;
+    string names = 6;
+    string birth_date = 8;
+    string gender = 9;
+    string nationality = 10;
+    string profile_url = 11;
+    string group = 12;
+    string label = 13;
+    string linked_account_a = 15;
+    string linked_account_b = 16;
+    AccountState state = 17;
+}
+
+// PrivateAccount contains account sensitive information such as password and security QA
+message PrivateAccount {
+    string password = 1; 
+    string confirm_password = 2;
+    string security_question = 3;
+    string security_answer = 4;
+}
+
+// AccountState represent the state of an account at any point
+enum AccountState {
+    BLOCKED = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+}
+
+// SignInRequest is request to login to an account
+message SignInRequest {
+    string username = 1 [(google.api.field_behavior) = REQUIRED];
+    string group = 2 [(google.api.field_behavior) = REQUIRED];
+    string password = 3;
+}
+
+
+// SignInExternalRequest logins a user using external authentication provider
+message SignInExternalRequest {
+    Account account = 1;
+    string auth_token = 2;
+}
+
+// SignInResponse is response after login
+message SignInResponse {
+    string token = 1;
+    string account_id = 2;
+    string group = 3;
+    AccountState state = 4;
+}
+
+// CreateAccountRequest is request to create an account
+message CreateAccountRequest {
+    Account account = 1 [(google.api.field_behavior) = REQUIRED];
+    PrivateAccount private_account = 2 [(google.api.field_behavior) = OPTIONAL];
+    bool update_only = 3;
+    bool by_admin = 4;
+    string admin_id = 5;
+}
+
+// CreateAccountResponse is response after creating an account
+message CreateAccountResponse {
+    string account_id = 1;
+}
+
+// ActivateAccountRequest is request to activate an account
+message ActivateAccountRequest {
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+    string token = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ActivateAccountResponse is response after activating an account
+message ActivateAccountResponse {}
+
+// UpdateAccountRequest is request to update an account
+message UpdateAccountRequest {
+    Account account = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RequestChangePrivateAccountRequest is request to change private account
+message RequestChangePrivateAccountRequest {
+    string payload = 1 [(google.api.field_behavior) = REQUIRED];
+    string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
+    gidyon.messaging.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// RequestChangePrivateAccountResponse is response after changing private account
+message RequestChangePrivateAccountResponse {
+    string response_message = 1;
+}
+
+// UpdatePrivateAccountRequest is request to update an account private information
+message UpdatePrivateAccountRequest {
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+    PrivateAccount private_account = 2 [(google.api.field_behavior) = REQUIRED];
+    string change_token = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DeleteAccountRequest is request to delete an account
+message DeleteAccountRequest {
+    string account_id = 1  [
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          type: "emrs.account/Account"
+        }];
+    
+}
+
+// AccountView returns only subset of account information
+enum AccountView {
+    FULL_VIEW = 0;
+    LIST_VIEW = 1; // account_id, email, first name and last name
+    SEARCH_VIEW = 2; // account_id, email, first name and last name
+    BASIC_VIEW = 3; // account_id, email, first name and last name
+}
+
+// GetAccountRequest is request to retrieve an account information
+message GetAccountRequest {
+    string account_id = 1[
+        (google.api.field_behavior) = REQUIRED,
+        (google.api.resource_reference) = {
+          type: "emrs.account/Account"
+        }];
+    AccountView view = 2 [(google.api.field_behavior) = OPTIONAL];
+    bool priviledge = 3;
+}
+
+// BatchGetAccountsRequest is request to get multiple accounts
+message BatchGetAccountsRequest {
+    repeated string account_ids = 1;
+}
+
+// BatchGetAccountsResponse is response after calling batch get
+message BatchGetAccountsResponse {
+    repeated Account accounts = 1;
+}
+
+// GetLinkedAccountsRequest is request to retrieve linked accounts
+message GetLinkedAccountsRequest {
+    string account_id = 1;
+}
+
+// GetLinkedAccountsResponse is response with linked accounts
+message GetLinkedAccountsResponse {
+    repeated Account accounts = 1;
+}
+
+// ExistAccountRequest is request to check if an account exists
+message ExistAccountRequest {
+    string email = 1 [(google.api.field_behavior) = OPTIONAL];
+    string phone = 2 [(google.api.field_behavior) = OPTIONAL];
+    string external_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ExistAccountResponse is response after checking whether account exist
+message ExistAccountResponse {
+    bool exists = 1;
+}
+
+// Accounts is a collection of accounts
+message Accounts {
+    string next_page_token = 1;
+    repeated Account accounts = 2;
+}
+
+// UpdateOperation is operation kind
+enum UpdateOperation {
+    UPDATE_OPERATION_INSPECIFIED = 0;
+    UNDELETE = 1;
+    DELETE = 2;
+    UNBLOCK = 3;
+    BLOCK = 4;
+    CHANGE_GROUP = 5;
+    ADMIN_ACTIVATE = 6;
+}
+
+// AdminUpdateAccountRequest is request to mutate an account by administrator
+message AdminUpdateAccountRequest {
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+    string admin_id = 2 [(google.api.field_behavior) = REQUIRED];
+    UpdateOperation update_operation = 3 [(google.api.field_behavior) = REQUIRED];
+    string reason = 4 [(google.api.field_behavior) = OPTIONAL];
+    repeated string payload = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Criteria contains filter criteria filtering colections of accounts
+message Criteria {
+    bool filter = 1;
+    bool show_active_accounts = 2;
+    bool show_inactive_accounts = 3;
+    bool show_blocked_accounts = 4;
+    bool show_males = 5;
+    bool show_females = 6;
+    bool filter_creation_date = 7;
+    int64 created_from = 8;
+    int64 created_until = 9;
+    bool filter_account_groups = 10;
+    repeated string groups = 11;
+}
+
+// ListAccountsRequest is request to retrieve collection of accounts
+message ListAccountsRequest {
+    string page_token = 1;
+    int32 page_size = 2;
+    Criteria list_criteria = 3;
+    AccountView view = 4;
+    bool priviledge = 5;
+}
+
+// SearchAccountsRequest is request to search for accounts
+message SearchAccountsRequest {
+    string page_token = 1;
+    int32 page_size = 2;
+    Criteria search_criteria = 3;
+    string query = 4;
+    AccountView view = 5;
+}
+
+// Manages account activities
+service AccountAPI {
+    // Signs in a user into their account
+    rpc SignIn (SignInRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+            post: "/api/accounts/login"
+            body: "*"
+        };
+        option (google.api.method_signature) = "username,group,password";
+    };
+
+     // Signs in a user from third party
+     rpc SignInExternal (SignInExternalRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+            post: "/api/antibug/accounts/login/external"
+            body: "*"
+        };
+    };
+
+    // Creates an account for a new user
+    rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+        option (google.api.http) = {
+            post: "/api/accounts"
+            body: "*"
+        };
+        // option (google.api.method_signature) = "account";
+    };
+
+    // ActivateAccounts a created account
+    rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
+        option (google.api.http) = {
+            get: "/api/accounts/action/activate"
+        };
+        // option (google.api.method_signature) = "account_id,token";
+    };
+
+    // Updates a user account
+    rpc UpdateAccount (UpdateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/{account.account_id}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "account_id,account";
+    };
+
+    // Request to change private account
+    rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
+        option (google.api.http) = {
+            get: "/api/accounts/{payload}/action/change-private"
+        };
+        option (google.api.method_signature) = "payload,fallback_url";
+    };
+
+    // Updates user private profile  account information
+    rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/{account_id}/private"
+            body: "*"
+        };
+        option (google.api.method_signature) = "account_id,private_account";
+    };
+
+    // Deletes a user account
+    rpc DeleteAccount (DeleteAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/accounts/{account_id}"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    // Retrieves a user account
+    rpc GetAccount (GetAccountRequest) returns (Account) {
+        option (google.api.http) = {
+            get: "/api/accounts/{account_id}"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    //  Retrieves multiple user accounts
+    rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
+        option (google.api.http) = {
+            get: "/api/accounts:batchGet"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    //  Retrieves deeply linked accounts
+    rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
+        option (google.api.http) = {
+            get: "/api/accounts/{account_id}:related"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    // Checks if an account exists
+    rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
+        option (google.api.http) = {
+            get: "/api/accounts/action/exists"
+        };
+        option (google.api.method_signature) = "email,phone,huduma_id";
+    };
+
+    // Updates account
+    rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/{account_id}/byadmin"
+            body: "*"
+        };
+        option (google.api.method_signature) = "admin_id,account_id";
+    };
+
+    // Fetches collection of accounts
+    rpc ListAccounts (ListAccountsRequest) returns (Accounts) {
+        option (google.api.http) = {
+            get: "/api/accounts"
+        };
+        option (google.api.method_signature) = "parent";
+    };
+
+    // Searches accounts
+    rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
+        option (google.api.http) = {
+            get: "/api/accounts:search"
+        };
+        option (google.api.method_signature) = "query";
+    };
+}
