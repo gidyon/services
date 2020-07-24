@@ -1,0 +1,270 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "ledger.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "ledgerActor": {
+      "type": "string",
+      "enum": [
+        "ACTOR_UNSPECIFIED",
+        "PATIENT",
+        "ADMIN",
+        "INSURANCE",
+        "HOSPITAL",
+        "GOVERNMENT",
+        "THIRD_PARTY"
+      ],
+      "default": "ACTOR_UNSPECIFIED",
+      "title": "Actor represents the actor group performing a given operation"
+    },
+    "ledgerActorPayload": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "$ref": "#/definitions/ledgerActor"
+        },
+        "names": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "title": "ActorPayload contains payload for an actor"
+    },
+    "ledgerAddLogResponse": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "title": "AddLogResponse is response after a transaction log has been added to the ledger"
+    },
+    "ledgerFilter": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "by_date": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "start_date_seconds": {
+          "type": "string",
+          "format": "int64"
+        },
+        "end_date_seconds": {
+          "type": "string",
+          "format": "int64"
+        },
+        "by_operation": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerOperation"
+          }
+        },
+        "by_creator_actor": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "creator_actors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerActor"
+          }
+        },
+        "by_creator_id": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "creator_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_patient_id": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "patient_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_organization_id": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "organization_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Filter contains information for querying ledger"
+    },
+    "ledgerLedgerStats": {
+      "type": "object",
+      "properties": {
+        "total_tx_logs": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_updated_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_verified_timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_insert_hash": {
+          "type": "string"
+        },
+        "valid": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "LedgerStats is ledger statistics"
+    },
+    "ledgerLog": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "prev_hash": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/definitions/ledgerTransaction"
+        },
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "title": "Log contains a timestamp, hashes and transaction(s)"
+    },
+    "ledgerLogs": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerLog"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      },
+      "title": "Logs is a collection of logs"
+    },
+    "ledgerOperation": {
+      "type": "string",
+      "enum": [
+        "OPERATION_UNSPECIFIED",
+        "ADD_PATIENT_TREATMENT_RECORD",
+        "ADD_PATIENT_MEDICAL_DATA",
+        "ADD_INSURANCE",
+        "ADD_HOSPITAL",
+        "UPDATE_PATIENT_TREATMENT_RECORD",
+        "UPDATE_PATIENT_MEDICAL_DATA",
+        "UPDATE_INSURANCE",
+        "UPDATE_HOSPITAL",
+        "DELETE_PATIENT_TREATMENT_RECORD",
+        "DELETE_PATIENT_MEDICAL_DATA",
+        "DELETE_INSURANCE",
+        "DELETE_HOSPITAL",
+        "GRANT_PERMISSION",
+        "REPORT_ISSUE",
+        "GENERIC",
+        "ASSIGN_PATIENT_PROCEDURE",
+        "REMOVE_PATIENT_PROCEDURE",
+        "ADD_PATIENT_INSURANCE",
+        "DELETE_PATIENT_INSURANCE"
+      ],
+      "default": "OPERATION_UNSPECIFIED",
+      "title": "Operation is the kind of operation being perfomed on the ledger"
+    },
+    "ledgerTransaction": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/definitions/ledgerOperation"
+        },
+        "creator": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "patient": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "organization": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "details": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "Transaction represent a log's payload that is added to the ledger"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "subscriber.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/subscribers": {
+      "get": {
+        "summary": "Lists subscribers for a channel",
+        "operationId": "SubscriberAPI_ListSubscribers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/subscriberListSubscribersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "channels",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/subscribe": {
+      "post": {
+        "summary": "Subscribes a user to a channel",
+        "operationId": "SubscriberAPI_Subscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/subscriberSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes a user from a channel",
+        "operationId": "SubscriberAPI_Unsubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/subscriberSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/{subscriber_id}": {
+      "get": {
+        "summary": "GetSubscriber retrieves information about a single subscriber",
+        "operationId": "SubscriberAPI_GetSubscriber",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/subscriberSubscriber"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subscriber_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "subscriberChannel": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "channel_id": {
+          "type": "string"
+        }
+      },
+      "title": "Channel is a channel a subscriber subscribes to"
+    },
+    "subscriberListSubscribersResponse": {
+      "type": "object",
+      "properties": {
+        "subscribers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/subscriberSubscriber"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      },
+      "title": "ListSubscribersResponse is response containing collection of subscribers"
+    },
+    "subscriberSubscriber": {
+      "type": "object",
+      "properties": {
+        "subscriber_id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "device_token": {
+          "type": "string"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/subscriberChannel"
+          }
+        }
+      },
+      "title": "Subscriber represent an entity that can subscribes to channels"
+    },
+    "subscriberSubscriberRequest": {
+      "type": "object",
+      "properties": {
+        "subscriber_id": {
+          "type": "string"
+        },
+        "channel_id": {
+          "type": "string"
+        },
+        "channel_name": {
+          "type": "string"
+        }
+      },
+      "title": "SubscriberRequest is request to subscribes an entity to a channel"
+    }
+  }
+}

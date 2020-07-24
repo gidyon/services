@@ -1,0 +1,424 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "employment.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/employments/accounts/{account_id}": {
+      "get": {
+        "summary": "Retrieve list of employments",
+        "operationId": "GetEmployments",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Employments"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    },
+    "/api/emrs/employments/accounts/{account_id}/check": {
+      "get": {
+        "summary": "Checks whether the user account is employed",
+        "operationId": "CheckEmploymentStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/CheckEmploymentStatusResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.actor",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    },
+    "/api/emrs/employments/accounts/{account_id}/recent": {
+      "get": {
+        "summary": "Retrieve most recent employment",
+        "operationId": "GetRecentEmployment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Employment"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.actor",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    },
+    "/api/emrs/employments/accounts/{employment.account_id}": {
+      "post": {
+        "summary": "Adds a new employment for a employee",
+        "operationId": "AddEmployment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AddEmploymentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employment.account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddEmploymentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    },
+    "/api/emrs/employments/{employment.employment_id}": {
+      "put": {
+        "summary": "Updates an existing employment for an employer",
+        "operationId": "UpdateEmployment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employment.employment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateEmploymentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    },
+    "/api/emrs/employments/{employment_id}": {
+      "get": {
+        "summary": "Retrieve a single employment",
+        "operationId": "GetEmployment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/Employment"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.actor",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Removes an employment data",
+        "operationId": "DeleteEmployment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "employment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.actor",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.actor_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "EmploymentAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "Actor": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "actor_id": {
+          "type": "string"
+        }
+      },
+      "title": "Actor represent an actor performing an action"
+    },
+    "AddEmploymentRequest": {
+      "type": "object",
+      "properties": {
+        "employment": {
+          "$ref": "#/definitions/Employment"
+        },
+        "actor": {
+          "$ref": "#/definitions/Actor"
+        }
+      },
+      "title": "AddEmploymentRequest is request to add new employment information"
+    },
+    "AddEmploymentResponse": {
+      "type": "object",
+      "properties": {
+        "employment_id": {
+          "type": "string"
+        }
+      },
+      "title": "AddEmploymentResponse is response after adding an employment"
+    },
+    "CheckEmploymentStatusResponse": {
+      "type": "object",
+      "properties": {
+        "is_employed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "is_verified": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "CheckEmploymentStatusResponse is response after checking if an employee is employed"
+    },
+    "Employment": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "profile_thumb_url": {
+          "type": "string"
+        },
+        "employment_id": {
+          "type": "string"
+        },
+        "employment_type": {
+          "$ref": "#/definitions/EmploymentType"
+        },
+        "joined_date": {
+          "type": "string"
+        },
+        "organization_type": {
+          "type": "string"
+        },
+        "organization_name": {
+          "type": "string"
+        },
+        "organization_id": {
+          "type": "string"
+        },
+        "role_at_organization": {
+          "type": "string"
+        },
+        "work_email": {
+          "type": "string"
+        },
+        "employment_verified": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "still_employed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "is_recent": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "Employment contains employment information"
+    },
+    "EmploymentType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "PERMANENT",
+        "CASUAL",
+        "APPRENTICE",
+        "CONTRACTUAL"
+      ],
+      "default": "UNKNOWN",
+      "title": "EmploymentType represent the type of an employment"
+    },
+    "Employments": {
+      "type": "object",
+      "properties": {
+        "employments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Employment"
+          }
+        },
+        "next_page_number": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Employments is a collection of employments"
+    },
+    "UpdateEmploymentRequest": {
+      "type": "object",
+      "properties": {
+        "employment": {
+          "$ref": "#/definitions/Employment"
+        },
+        "actor": {
+          "$ref": "#/definitions/Actor"
+        }
+      },
+      "title": "UpdateEmploymentRequest is request to update employment"
+    }
+  }
+}

@@ -1,0 +1,334 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "insurance.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/insurances/action/list": {
+      "get": {
+        "summary": "Fetches a collection of insurances",
+        "operationId": "ListInsurances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceInsurances"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      }
+    },
+    "/api/emrs/insurances/action/search": {
+      "get": {
+        "summary": "Searches for insurances resources",
+        "operationId": "SearchInsurances",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceInsurances"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      }
+    },
+    "/api/emrs/insurances/action/suspended/{insurance_id}": {
+      "get": {
+        "summary": "Checks whether a insurance is suspended",
+        "operationId": "CheckSuspension",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceCheckSuspensionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "insurance_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      }
+    },
+    "/api/emrs/insurances/add": {
+      "post": {
+        "summary": "Adds an insurance into network of insurances",
+        "operationId": "AddInsurance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/insuranceAddInsuranceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      }
+    },
+    "/api/emrs/insurances/{insurance_id}": {
+      "get": {
+        "summary": "Retrives a single insurance company",
+        "operationId": "GetInsurance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceInsurance"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "insurance_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Remove an insurance from network of insurances",
+        "operationId": "DeleteInsurance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "insurance_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "insurance_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      },
+      "put": {
+        "summary": "Updates a insurance resource",
+        "operationId": "UpdateInsurance",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/insuranceHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "insurance_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/insuranceUpdateInsuranceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "InsuranceAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "insuranceAddInsuranceRequest": {
+      "type": "object",
+      "properties": {
+        "insurance": {
+          "$ref": "#/definitions/insuranceInsurance"
+        }
+      },
+      "title": "AddInsuranceRequest is request to add a new insurance"
+    },
+    "insuranceCheckSuspensionResponse": {
+      "type": "object",
+      "properties": {
+        "suspended": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "CheckSuspensionResponse is result after checking whether an insurance is suspended"
+    },
+    "insuranceHashResponse": {
+      "type": "object",
+      "properties": {
+        "insurance_id": {
+          "type": "string"
+        },
+        "operation_hash": {
+          "type": "string"
+        }
+      },
+      "title": "HashResponse is response after adding a new insurance"
+    },
+    "insuranceInsurance": {
+      "type": "object",
+      "properties": {
+        "insurance_id": {
+          "type": "string"
+        },
+        "insurance_name": {
+          "type": "string"
+        },
+        "website_url": {
+          "type": "string"
+        },
+        "logo_url": {
+          "type": "string"
+        },
+        "about": {
+          "type": "string"
+        },
+        "support_email": {
+          "type": "string"
+        },
+        "support_tel_number": {
+          "type": "string"
+        },
+        "admin_emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "permission": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "Insurance is an insurance company"
+    },
+    "insuranceInsurances": {
+      "type": "object",
+      "properties": {
+        "insurances": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/insuranceInsurance"
+          }
+        },
+        "next_page_number": {
+          "type": "string"
+        }
+      },
+      "title": "Insurances is a collection of insurances"
+    },
+    "insuranceUpdateInsuranceRequest": {
+      "type": "object",
+      "properties": {
+        "insurance_id": {
+          "type": "string"
+        },
+        "insurance": {
+          "$ref": "#/definitions/insuranceInsurance"
+        },
+        "suspend": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "title": "UpdateInsuranceRequest is request to update a insurance resource"
+    }
+  }
+}

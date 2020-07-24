@@ -1,0 +1,331 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "hospital.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/hospitals/action/list": {
+      "get": {
+        "summary": "Fetches a collection of hospitals",
+        "operationId": "ListHospitals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalHospitals"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      }
+    },
+    "/api/emrs/hospitals/action/search": {
+      "get": {
+        "summary": "Searches for hospitals resource",
+        "operationId": "SearchHospitals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalHospitals"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      }
+    },
+    "/api/emrs/hospitals/action/suspended/{hospital_id}": {
+      "get": {
+        "summary": "Checks whether a hospital is suspended",
+        "operationId": "CheckSuspension",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalCheckSuspensionResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hospital_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      }
+    },
+    "/api/emrs/hospitals/add": {
+      "post": {
+        "summary": "Adds a hospital to the network of hospitals",
+        "operationId": "AddHospital",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/hospitalAddHospitalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      }
+    },
+    "/api/emrs/hospitals/{hospital_id}": {
+      "get": {
+        "summary": "Retrieves a single hospital resource",
+        "operationId": "GetHospital",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalHospital"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hospital_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Removes a hospital from network of hospitals",
+        "operationId": "DeleteHospital",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hospital_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "hospital_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      },
+      "put": {
+        "summary": "Updates a hospital resource",
+        "operationId": "UpdateHospital",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/hospitalHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hospital_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/hospitalUpdateHospitalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "HospitalAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "hospitalAddHospitalRequest": {
+      "type": "object",
+      "properties": {
+        "hospital": {
+          "$ref": "#/definitions/hospitalHospital"
+        }
+      },
+      "title": "AddHospitalRequest is request to add a new hospital"
+    },
+    "hospitalCheckSuspensionResponse": {
+      "type": "object",
+      "properties": {
+        "suspended": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "CheckSuspensionResponse is result after checking whether a hospital is suspended"
+    },
+    "hospitalHashResponse": {
+      "type": "object",
+      "properties": {
+        "hospital_id": {
+          "type": "string"
+        },
+        "operation_hash": {
+          "type": "string"
+        }
+      },
+      "title": "HashResponse is response after mutating a hospital"
+    },
+    "hospitalHospital": {
+      "type": "object",
+      "properties": {
+        "hospital_id": {
+          "type": "string"
+        },
+        "hospital_name": {
+          "type": "string"
+        },
+        "website_url": {
+          "type": "string"
+        },
+        "logo_url": {
+          "type": "string"
+        },
+        "county": {
+          "type": "string"
+        },
+        "sub_county": {
+          "type": "string"
+        },
+        "admin_emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "permission": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "Hospital is a health facility"
+    },
+    "hospitalHospitals": {
+      "type": "object",
+      "properties": {
+        "hospitals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hospitalHospital"
+          }
+        },
+        "next_page_number": {
+          "type": "string"
+        }
+      },
+      "title": "Hospitals is collection of hospitals"
+    },
+    "hospitalUpdateHospitalRequest": {
+      "type": "object",
+      "properties": {
+        "hospital_id": {
+          "type": "string"
+        },
+        "hospital": {
+          "$ref": "#/definitions/hospitalHospital"
+        },
+        "suspend": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "title": "UpdateHospitalRequest is request to update a hospital resource"
+    }
+  }
+}

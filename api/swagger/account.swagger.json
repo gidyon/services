@@ -1,0 +1,1171 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "account.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/accounts": {
+      "get": {
+        "summary": "Fetches collection of accounts",
+        "operationId": "AccountAPI_ListAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountAccounts"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_criteria.filter",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.show_active_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.show_inactive_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.show_blocked_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.show_males",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.show_females",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.filter_creation_date",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.created_from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "list_criteria.created_until",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "list_criteria.filter_account_groups",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "list_criteria.groups",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "FULL_VIEW",
+              "LIST_VIEW",
+              "SEARCH_VIEW",
+              "BASIC_VIEW"
+            ],
+            "default": "FULL_VIEW"
+          },
+          {
+            "name": "priviledge",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      },
+      "post": {
+        "summary": "Creates an account for a new user",
+        "operationId": "AccountAPI_CreateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountCreateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountCreateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/activate": {
+      "get": {
+        "summary": "ActivateAccounts a created account",
+        "operationId": "AccountAPI_ActivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountActivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/exists": {
+      "get": {
+        "summary": "Checks if an account exists",
+        "operationId": "AccountAPI_ExistAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountExistAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "external_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/login": {
+      "post": {
+        "summary": "Signs in a user into their account",
+        "operationId": "AccountAPI_SignIn",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountSignInRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account.account_id}": {
+      "patch": {
+        "summary": "Updates a user account",
+        "operationId": "AccountAPI_UpdateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account.account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountUpdateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account_id}": {
+      "get": {
+        "summary": "Retrieves a user account",
+        "operationId": "AccountAPI_GetAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountAccount"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "FULL_VIEW",
+              "LIST_VIEW",
+              "SEARCH_VIEW",
+              "BASIC_VIEW"
+            ],
+            "default": "FULL_VIEW"
+          },
+          {
+            "name": "priviledge",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Deletes a user account",
+        "operationId": "AccountAPI_DeleteAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account_id}/byadmin": {
+      "patch": {
+        "summary": "Updates account",
+        "operationId": "AccountAPI_AdminUpdateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountAdminUpdateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account_id}/private": {
+      "patch": {
+        "summary": "Updates user private profile  account information",
+        "operationId": "AccountAPI_UpdatePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountUpdatePrivateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account_id}:related": {
+      "get": {
+        "summary": "Retrieves deeply linked accounts",
+        "operationId": "AccountAPI_GetLinkedAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountGetLinkedAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{payload}/action/change-private": {
+      "get": {
+        "summary": "Request to change private account",
+        "operationId": "AccountAPI_RequestChangePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountRequestChangePrivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fallback_url",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "send_method",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SEND_METHOD_UNSPECIFIED",
+              "EMAIL",
+              "SMS",
+              "CALL",
+              "PUSH"
+            ],
+            "default": "SEND_METHOD_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:batchGet": {
+      "get": {
+        "summary": "Retrieves multiple user accounts",
+        "operationId": "AccountAPI_BatchGetAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountBatchGetAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:search": {
+      "get": {
+        "summary": "Searches accounts",
+        "operationId": "AccountAPI_SearchAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountAccounts"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "search_criteria.filter",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_active_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_inactive_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_blocked_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_males",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_females",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.filter_creation_date",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.created_from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "search_criteria.created_until",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "search_criteria.filter_account_groups",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.groups",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "FULL_VIEW",
+              "LIST_VIEW",
+              "SEARCH_VIEW",
+              "BASIC_VIEW"
+            ],
+            "default": "FULL_VIEW"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/antibug/accounts/login/external": {
+      "post": {
+        "summary": "Signs in a user from third party",
+        "operationId": "AccountAPI_SignInExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountSignInExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "accountAccount": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "external_id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "device_token": {
+          "type": "string"
+        },
+        "names": {
+          "type": "string"
+        },
+        "birth_date": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "nationality": {
+          "type": "string"
+        },
+        "profile_url": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "linked_account_a": {
+          "type": "string"
+        },
+        "linked_account_b": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/accountAccountState"
+        }
+      },
+      "title": "Account contains information about user entity. Can be a user or admin"
+    },
+    "accountAccountState": {
+      "type": "string",
+      "enum": [
+        "BLOCKED",
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "default": "BLOCKED",
+      "title": "AccountState represent the state of an account at any point"
+    },
+    "accountAccountView": {
+      "type": "string",
+      "enum": [
+        "FULL_VIEW",
+        "LIST_VIEW",
+        "SEARCH_VIEW",
+        "BASIC_VIEW"
+      ],
+      "default": "FULL_VIEW",
+      "title": "AccountView returns only subset of account information"
+    },
+    "accountAccounts": {
+      "type": "object",
+      "properties": {
+        "next_page_token": {
+          "type": "string"
+        },
+        "accounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/accountAccount"
+          }
+        }
+      },
+      "title": "Accounts is a collection of accounts"
+    },
+    "accountActivateAccountResponse": {
+      "type": "object",
+      "title": "ActivateAccountResponse is response after activating an account"
+    },
+    "accountAdminUpdateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "admin_id": {
+          "type": "string"
+        },
+        "update_operation": {
+          "$ref": "#/definitions/accountUpdateOperation"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "AdminUpdateAccountRequest is request to mutate an account by administrator"
+    },
+    "accountBatchGetAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/accountAccount"
+          }
+        }
+      },
+      "title": "BatchGetAccountsResponse is response after calling batch get"
+    },
+    "accountCreateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/accountAccount"
+        },
+        "private_account": {
+          "$ref": "#/definitions/accountPrivateAccount"
+        },
+        "update_only": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "by_admin": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "admin_id": {
+          "type": "string"
+        }
+      },
+      "title": "CreateAccountRequest is request to create an account"
+    },
+    "accountCreateAccountResponse": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        }
+      },
+      "title": "CreateAccountResponse is response after creating an account"
+    },
+    "accountCriteria": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "show_active_accounts": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "show_inactive_accounts": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "show_blocked_accounts": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "show_males": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "show_females": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "filter_creation_date": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "created_from": {
+          "type": "string",
+          "format": "int64"
+        },
+        "created_until": {
+          "type": "string",
+          "format": "int64"
+        },
+        "filter_account_groups": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Criteria contains filter criteria filtering colections of accounts"
+    },
+    "accountExistAccountResponse": {
+      "type": "object",
+      "properties": {
+        "exists": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "ExistAccountResponse is response after checking whether account exist"
+    },
+    "accountGetLinkedAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/accountAccount"
+          }
+        }
+      },
+      "title": "GetLinkedAccountsResponse is response with linked accounts"
+    },
+    "accountPrivateAccount": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "confirm_password": {
+          "type": "string"
+        },
+        "security_question": {
+          "type": "string"
+        },
+        "security_answer": {
+          "type": "string"
+        }
+      },
+      "title": "PrivateAccount contains account sensitive information such as password and security QA"
+    },
+    "accountRequestChangePrivateAccountResponse": {
+      "type": "object",
+      "properties": {
+        "response_message": {
+          "type": "string"
+        }
+      },
+      "title": "RequestChangePrivateAccountResponse is response after changing private account"
+    },
+    "accountSignInExternalRequest": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/accountAccount"
+        },
+        "auth_token": {
+          "type": "string"
+        }
+      },
+      "title": "SignInExternalRequest logins a user using external authentication provider"
+    },
+    "accountSignInRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "title": "SignInRequest is request to login to an account"
+    },
+    "accountSignInResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "account_id": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/accountAccountState"
+        }
+      },
+      "title": "SignInResponse is response after login"
+    },
+    "accountUpdateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/accountAccount"
+        }
+      },
+      "title": "UpdateAccountRequest is request to update an account"
+    },
+    "accountUpdateOperation": {
+      "type": "string",
+      "enum": [
+        "UPDATE_OPERATION_INSPECIFIED",
+        "UNDELETE",
+        "DELETE",
+        "UNBLOCK",
+        "BLOCK",
+        "CHANGE_GROUP",
+        "ADMIN_ACTIVATE"
+      ],
+      "default": "UPDATE_OPERATION_INSPECIFIED",
+      "title": "UpdateOperation is operation kind"
+    },
+    "accountUpdatePrivateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "private_account": {
+          "$ref": "#/definitions/accountPrivateAccount"
+        },
+        "change_token": {
+          "type": "string"
+        }
+      },
+      "title": "UpdatePrivateAccountRequest is request to update an account private information"
+    },
+    "messagingSendMethod": {
+      "type": "string",
+      "enum": [
+        "SEND_METHOD_UNSPECIFIED",
+        "EMAIL",
+        "SMS",
+        "CALL",
+        "PUSH"
+      ],
+      "default": "SEND_METHOD_UNSPECIFIED",
+      "title": "SendMethod is the method used to send the message"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

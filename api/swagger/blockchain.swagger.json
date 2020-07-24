@@ -1,0 +1,244 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "ledger.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "ledgerActor": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "PATIENT",
+        "ADMIN",
+        "INSURANCE",
+        "HOSPITAL",
+        "GOVERNMENT"
+      ],
+      "default": "UNKNOWN",
+      "title": "Actor represents the actor group performing a given operation"
+    },
+    "ledgerActorPayload": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "$ref": "#/definitions/ledgerActor"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "actor_full_name": {
+          "type": "string"
+        }
+      },
+      "title": "ActorPayload contains payload for an actor"
+    },
+    "ledgerAddBlockResponse": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
+        }
+      },
+      "title": "AddBlockResponse is response after a new block has been added to the ledger"
+    },
+    "ledgerBlock": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "prev_hash": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/definitions/ledgerTransaction"
+        }
+      },
+      "title": "Block contains a timestamp, hashes and transaction(s)"
+    },
+    "ledgerBlocks": {
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerBlock"
+          }
+        },
+        "next_page_number": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Blocks is a collection of blocks"
+    },
+    "ledgerFilter": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "by_date": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "by_operation": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerOperation"
+          }
+        },
+        "by_creator_actor": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ledgerActor"
+          }
+        },
+        "by_creator": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "creator_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_patient": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "patient_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_organization": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "organization_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Filter contains information for querying blocks"
+    },
+    "ledgerGetStatResponse": {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string"
+        },
+        "total_peers": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "total_blocks": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "transactions_per_block": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "total_transactions": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "last_insert_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "last_updated_time": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "title": "GetStatResponse is response containing statistics of a peer in ledger network"
+    },
+    "ledgerOperation": {
+      "type": "string",
+      "enum": [
+        "UKNOWN",
+        "ADD_PATIENT_TREATMENT_RECORD",
+        "ADD_PATIENT_MEDICAL_DATA",
+        "ADD_INSURANCE",
+        "ADD_HOSPITAL",
+        "UPDATE_PATIENT_TREATMENT_RECORD",
+        "UPDATE_PATIENT_MEDICAL_DATA",
+        "UPDATE_INSURANCE",
+        "UPDATE_HOSPITAL",
+        "DELETE_PATIENT_MEDICAL_RECORD",
+        "DELETE_PATIENT_MEDICAL_DATA",
+        "DELETE_INSURANCE",
+        "DELETE_HOSPITAL",
+        "GRANT_PERMISSION",
+        "REPORT_ISSUE"
+      ],
+      "default": "UKNOWN",
+      "title": "Operation is the kind of operation being perfomed"
+    },
+    "ledgerRegisterContractResponse": {
+      "type": "object",
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        }
+      },
+      "title": "RegisterContractResponse is response after registering smart contract"
+    },
+    "ledgerTransaction": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "$ref": "#/definitions/ledgerOperation"
+        },
+        "creator": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "patient": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "organization": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "details": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "Transaction represent a block's payload that is added to the ledger"
+    }
+  }
+}

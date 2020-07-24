@@ -1,0 +1,663 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "patient.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/patients/{patient_id}/history": {
+      "get": {
+        "summary": "Fetches history of patient treatments from ledger",
+        "operationId": "GetMedicalHistory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/patientMedicalHistory"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page_number",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.filter",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.by_date",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.start_date",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.end_date",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.by_operation",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.operations",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UKNOWN",
+                "ADD_PATIENT_TREATMENT_RECORD",
+                "ADD_PATIENT_MEDICAL_DATA",
+                "ADD_INSURANCE",
+                "ADD_HOSPITAL",
+                "UPDATE_PATIENT_TREATMENT_RECORD",
+                "UPDATE_PATIENT_MEDICAL_DATA",
+                "UPDATE_INSURANCE",
+                "UPDATE_HOSPITAL",
+                "DELETE_PATIENT_MEDICAL_RECORD",
+                "DELETE_PATIENT_MEDICAL_DATA",
+                "DELETE_INSURANCE",
+                "DELETE_HOSPITAL",
+                "GRANT_PERMISSION",
+                "REPORT_ISSUE"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.by_creator_actor",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.actors",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNKNOWN",
+                "PATIENT",
+                "ADMIN",
+                "INSURANCE",
+                "HOSPITAL",
+                "GOVERNMENT"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.by_creator",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.creator_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.by_patient",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.patient_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "filter.by_organization",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "filter.organization_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "is_owner",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "access_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientAPI"
+        ]
+      }
+    },
+    "/api/emrs/patients/{patient_id}/medicaldata": {
+      "get": {
+        "summary": "Retrieves a single patients medical data",
+        "operationId": "GetPatientMedData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/patientMedicalData"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "is_owner",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "access_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientAPI"
+        ]
+      },
+      "post": {
+        "summary": "Adds patient medical data like blood group, skin color, allergies to the database",
+        "operationId": "AddPatientMedData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/umrspatientHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/patientAddPatientMedDataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PatientAPI"
+        ]
+      },
+      "put": {
+        "summary": "Updates an existing patient medical data",
+        "operationId": "UpdatePatientMedData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/umrspatientHashResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/patientAddPatientMedDataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PatientAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ledgerActorPayload": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "$ref": "#/definitions/umrsledgerActor"
+        },
+        "actor_id": {
+          "type": "string"
+        },
+        "actor_full_name": {
+          "type": "string"
+        }
+      },
+      "title": "ActorPayload contains payload for an actor"
+    },
+    "ledgerFilter": {
+      "type": "object",
+      "properties": {
+        "filter": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "by_date": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "start_date": {
+          "type": "string"
+        },
+        "end_date": {
+          "type": "string"
+        },
+        "by_operation": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/umrsledgerOperation"
+          }
+        },
+        "by_creator_actor": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "actors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/umrsledgerActor"
+          }
+        },
+        "by_creator": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "creator_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_patient": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "patient_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_organization": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "organization_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Filter contains information for querying blocks"
+    },
+    "umrsledgerActor": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "PATIENT",
+        "ADMIN",
+        "INSURANCE",
+        "HOSPITAL",
+        "GOVERNMENT"
+      ],
+      "default": "UNKNOWN",
+      "title": "Actor represents the actor group performing a given operation"
+    },
+    "umrsledgerOperation": {
+      "type": "string",
+      "enum": [
+        "UKNOWN",
+        "ADD_PATIENT_TREATMENT_RECORD",
+        "ADD_PATIENT_MEDICAL_DATA",
+        "ADD_INSURANCE",
+        "ADD_HOSPITAL",
+        "UPDATE_PATIENT_TREATMENT_RECORD",
+        "UPDATE_PATIENT_MEDICAL_DATA",
+        "UPDATE_INSURANCE",
+        "UPDATE_HOSPITAL",
+        "DELETE_PATIENT_MEDICAL_RECORD",
+        "DELETE_PATIENT_MEDICAL_DATA",
+        "DELETE_INSURANCE",
+        "DELETE_HOSPITAL",
+        "GRANT_PERMISSION",
+        "REPORT_ISSUE"
+      ],
+      "default": "UKNOWN",
+      "title": "Operation is the kind of operation being perfomed"
+    },
+    "umrspatientHashResponse": {
+      "type": "object",
+      "properties": {
+        "operation_hash": {
+          "type": "string"
+        },
+        "patient_id": {
+          "type": "string"
+        }
+      },
+      "title": "HashResponse is response for operations that add items to the ledger"
+    },
+    "patientAddPatientMedDataRequest": {
+      "type": "object",
+      "properties": {
+        "patient_id": {
+          "type": "string"
+        },
+        "medical_data": {
+          "$ref": "#/definitions/patientMedicalData"
+        },
+        "actor": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        }
+      },
+      "title": "AddPatientMedDataRequest is request to add patient medical data to database and ledger"
+    },
+    "patientDetails": {
+      "type": "object",
+      "properties": {
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "patientMedicalActivity": {
+      "type": "object",
+      "properties": {
+        "block_hash": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "operation": {
+          "$ref": "#/definitions/umrsledgerOperation"
+        },
+        "patient": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "creator": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "organization": {
+          "$ref": "#/definitions/ledgerActorPayload"
+        },
+        "medical_data": {
+          "$ref": "#/definitions/patientMedicalData"
+        },
+        "treatment": {
+          "$ref": "#/definitions/treatmentTreatmentData"
+        },
+        "operation_payload": {
+          "$ref": "#/definitions/patientOperationPayload"
+        }
+      },
+      "title": "MedicalActivity contains history of a patient"
+    },
+    "patientMedicalData": {
+      "type": "object",
+      "properties": {
+        "hospital_id": {
+          "type": "string"
+        },
+        "hospital_name": {
+          "type": "string"
+        },
+        "patient_name": {
+          "type": "string"
+        },
+        "patient_state": {
+          "$ref": "#/definitions/patientState"
+        },
+        "details": {
+          "$ref": "#/definitions/patientDetails"
+        }
+      },
+      "title": "MedicalData contains medical information for a patient"
+    },
+    "patientMedicalHistory": {
+      "type": "object",
+      "properties": {
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/patientMedicalActivity"
+          }
+        },
+        "next_page_number": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "MedicalHistory is a collection of patient medical history"
+    },
+    "patientOperationPayload": {
+      "type": "object",
+      "properties": {
+        "details": {
+          "$ref": "#/definitions/patientDetails"
+        }
+      },
+      "title": "OperationPayload contains payload for other operation"
+    },
+    "patientState": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "ALIVE",
+        "DEAD"
+      ],
+      "default": "UNKNOWN",
+      "title": "State is patient state at a given time"
+    },
+    "treatmentPrescription": {
+      "type": "object",
+      "properties": {
+        "drug": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "Prescription is a drug prescription"
+    },
+    "treatmentTest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "number",
+          "format": "float"
+        },
+        "images_url": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Test is labaratory or radiology test on a patient"
+    },
+    "treatmentTreatmentData": {
+      "type": "object",
+      "properties": {
+        "treatment_hash": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "entry_fee": {
+          "type": "number",
+          "format": "float"
+        },
+        "triage_details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "symptoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "observations": {
+          "type": "string"
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/treatmentTest"
+          }
+        },
+        "diagnosis": {
+          "type": "string"
+        },
+        "prescriptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/treatmentPrescription"
+          }
+        },
+        "hospitalized": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "referrals": {
+          "type": "string"
+        },
+        "additional_comments": {
+          "type": "string"
+        },
+        "additional_details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "TreatmentData contains treatment information for a patient"
+    }
+  }
+}

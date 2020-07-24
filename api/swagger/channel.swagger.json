@@ -1,0 +1,295 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "channel.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/channels": {
+      "get": {
+        "summary": "Retrieves a collection of channels resource",
+        "operationId": "ChannelAPI_ListChannels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/channelListChannelsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      },
+      "post": {
+        "summary": "Creates a new subscriber channel",
+        "operationId": "ChannelAPI_CreateChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/channelCreateChannelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/channelCreateChannelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/{channel.id}": {
+      "patch": {
+        "summary": "Updates an existing channel resource",
+        "operationId": "ChannelAPI_UpdateChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "channel.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/channelUpdateChannelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/{id}": {
+      "get": {
+        "summary": "Retrieves a single channel resource",
+        "operationId": "ChannelAPI_GetChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/channelChannel"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Removes a subscribers channel",
+        "operationId": "ChannelAPI_DeleteChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "owner_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "channelChannel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "owner_id": {
+          "type": "string"
+        },
+        "create_time_seconds": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "subscribers": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Channel is a publisher network with subscribers"
+    },
+    "channelCreateChannelRequest": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "$ref": "#/definitions/channelChannel"
+        }
+      },
+      "title": "CreateChannelRequest is request to create a new channel"
+    },
+    "channelCreateChannelResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "title": "CreateChannelResponse is response after creating a channel"
+    },
+    "channelListChannelsResponse": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/channelChannel"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      },
+      "title": "ListChannelsResponse is response containing collection of channel resource"
+    },
+    "channelUpdateChannelRequest": {
+      "type": "object",
+      "properties": {
+        "owner_id": {
+          "type": "string"
+        },
+        "channel": {
+          "$ref": "#/definitions/channelChannel"
+        }
+      },
+      "title": "UpdateChannelRequest request to update a channel resource"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

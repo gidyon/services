@@ -1,0 +1,239 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "medicare.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/medicare": {
+      "post": {
+        "operationId": "MedicareAPI_CreateMedicare",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/medicareCreateMedicareRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MedicareAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "medicareBilling": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "float"
+        },
+        "payment_mode": {
+          "$ref": "#/definitions/medicarePaymentMode"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Billing refers to the charges for administering a health service"
+    },
+    "medicareCreateMedicareRequest": {
+      "type": "object",
+      "properties": {
+        "medicare": {
+          "$ref": "#/definitions/medicareMedicare"
+        }
+      }
+    },
+    "medicareGender": {
+      "type": "string",
+      "enum": [
+        "GENDER_UNSPECIFIED",
+        "MALE",
+        "FEMALE"
+      ],
+      "default": "GENDER_UNSPECIFIED"
+    },
+    "medicareHospital": {
+      "type": "object",
+      "properties": {
+        "hospital_id": {
+          "type": "string"
+        },
+        "hospital_name": {
+          "type": "string"
+        }
+      },
+      "title": "Hospital is the organization a patient receives medicare service"
+    },
+    "medicareMedicare": {
+      "type": "object",
+      "properties": {
+        "medicare_id": {
+          "type": "string"
+        },
+        "department": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hospital": {
+          "$ref": "#/definitions/medicareHospital"
+        },
+        "patient": {
+          "$ref": "#/definitions/medicarePatient"
+        },
+        "treatment_category": {
+          "$ref": "#/definitions/medicareTreatmentCategory"
+        },
+        "bill": {
+          "$ref": "#/definitions/medicareBilling"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "date_seconds": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "approved": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "Medicare is a health care service administered to a patient"
+    },
+    "medicarePatient": {
+      "type": "object",
+      "properties": {
+        "patient_name": {
+          "type": "string"
+        },
+        "patient_id": {
+          "type": "string"
+        },
+        "huduma_number": {
+          "type": "string"
+        },
+        "phone_number": {
+          "type": "string"
+        },
+        "patient_email": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/medicarePatientType"
+        },
+        "birth_year": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "gender": {
+          "$ref": "#/definitions/medicareGender"
+        }
+      },
+      "title": "Patient is a person receiving health care service"
+    },
+    "medicarePatientType": {
+      "type": "string",
+      "enum": [
+        "PATIENT_TYPE_UNSPECIFIED",
+        "ADULT",
+        "CHILD"
+      ],
+      "default": "PATIENT_TYPE_UNSPECIFIED"
+    },
+    "medicarePaymentMode": {
+      "type": "string",
+      "enum": [
+        "PAYMENT_MODE_UNSPECIFIED",
+        "INSURANCE_COVER",
+        "PROMOTIONAL",
+        "CASH",
+        "FREE"
+      ],
+      "default": "PAYMENT_MODE_UNSPECIFIED",
+      "title": "PaymentMode represents the manner in which payment is made"
+    },
+    "medicareTreatmentCategory": {
+      "type": "string",
+      "enum": [
+        "TREATMENR_CATEGORYY_UNSPECIFIED",
+        "CONSULTATION",
+        "LABARATORY",
+        "RADIOLOGY",
+        "PHARMACY",
+        "PRESCRIPTON",
+        "HOSPITALIZATION",
+        "OPERATION",
+        "FOLLOW_UP"
+      ],
+      "default": "TREATMENR_CATEGORYY_UNSPECIFIED",
+      "title": "TreatmentCategory represent the type of health service administered to a patient"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,420 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "permission.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/emrs/permissions/patient/{patient.id}/grants/{requester.id}": {
+      "get": {
+        "summary": "Grant permission to an actor requesting medical data",
+        "operationId": "GrantPermissionToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/permissionGrantPermissionTokenResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "requester.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "requester.group",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "requester.full_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "organization.group",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "organization.full_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "patient.group",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "patient.full_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.reason",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.account_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.full_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.profile_thumb_url",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.role_at_organization",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.organization_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.organization_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "payload.requester_profile.work_email",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "authorization_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientPermissionAPI"
+        ]
+      }
+    },
+    "/api/emrs/permissions/patient/{patient_id}/allowed": {
+      "get": {
+        "summary": "Get list of actor allowed access",
+        "operationId": "GetActivePermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/permissionGetActivePermissionsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientPermissionAPI"
+        ]
+      }
+    },
+    "/api/emrs/permissions/patient/{patient_id}/revokes/{requester_id}": {
+      "get": {
+        "summary": "Revokes a permission token",
+        "operationId": "RevokePermissionToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/permissionRevokePermissionTokenResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "requester_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientPermissionAPI"
+        ]
+      }
+    },
+    "/api/emrs/permissions/patient/{patient_id}/token/{actor.id}": {
+      "get": {
+        "summary": "Fetches permission token",
+        "operationId": "GetPermissionToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/permissionGetPermissionTokenResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "patient_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actor.group",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "actor.full_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PatientPermissionAPI"
+        ]
+      }
+    },
+    "/api/emrs/permissions/request": {
+      "post": {
+        "summary": "Request to access medical data of patient",
+        "operationId": "RequestPermissionToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/permissionRequestPermissionTokenResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/permissionRequestPermissionTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PatientPermissionAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "permissionActor": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "id": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        }
+      },
+      "title": "Actor performs or is affected by an action"
+    },
+    "permissionBasicProfile": {
+      "type": "object",
+      "properties": {
+        "account_id": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "profile_thumb_url": {
+          "type": "string"
+        },
+        "role_at_organization": {
+          "type": "string"
+        },
+        "organization_name": {
+          "type": "string"
+        },
+        "organization_id": {
+          "type": "string"
+        },
+        "work_email": {
+          "type": "string"
+        }
+      },
+      "title": "BasicProfile contains basic profile information of the requester"
+    },
+    "permissionGetActivePermissionsResponse": {
+      "type": "object",
+      "properties": {
+        "active_profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/permissionBasicProfile"
+          }
+        }
+      },
+      "title": "GetActivePermissionsResponse is a collection of active permissions profiles"
+    },
+    "permissionGetPermissionTokenResponse": {
+      "type": "object",
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "allowed": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      },
+      "title": "GetPermissionTokenResponse is response after requesting for permission token"
+    },
+    "permissionGrantPermissionTokenPayload": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "requester_profile": {
+          "$ref": "#/definitions/permissionBasicProfile"
+        }
+      }
+    },
+    "permissionGrantPermissionTokenResponse": {
+      "type": "object",
+      "properties": {
+        "allowed_message": {
+          "type": "string"
+        },
+        "operation_hash": {
+          "type": "string"
+        }
+      },
+      "title": "GrantPermissionTokenResponse is response after granting permission to a patient data"
+    },
+    "permissionPermissionMethod": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "$ref": "#/definitions/permissionRequestPermissionMethod"
+        },
+        "payload": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PermissionMethod is payload for method used to request permission"
+    },
+    "permissionRequestPermissionMethod": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "EMAIL",
+        "SMS",
+        "USSD",
+        "FINGERPRINT",
+        "VOICE",
+        "FACIAL"
+      ],
+      "default": "UNKNOWN",
+      "title": "RequestPermissionMethod is the different ways of requesting for permission token"
+    },
+    "permissionRequestPermissionTokenRequest": {
+      "type": "object",
+      "properties": {
+        "requester_profile": {
+          "$ref": "#/definitions/permissionBasicProfile"
+        },
+        "permission_method": {
+          "$ref": "#/definitions/permissionPermissionMethod"
+        },
+        "requester": {
+          "$ref": "#/definitions/permissionActor"
+        },
+        "patient": {
+          "$ref": "#/definitions/permissionActor"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "title": "RequestPermissionTokenRequest is request message to get permission token"
+    },
+    "permissionRequestPermissionTokenResponse": {
+      "type": "object",
+      "title": "RequestPermissionTokenResponse is response after requesting for permission token"
+    },
+    "permissionRevokePermissionTokenResponse": {
+      "type": "object",
+      "title": "RevokePermissionTokenResponse is response after revoking permission"
+    }
+  }
+}

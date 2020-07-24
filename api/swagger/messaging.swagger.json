@@ -1,0 +1,362 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "messaging.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/messaging/broadcast": {
+      "post": {
+        "summary": "Broadcasts a message",
+        "operationId": "Messaging_BroadCastMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/messagingBroadCastMessageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/messages/{user_id}": {
+      "get": {
+        "summary": "Retrieves user messages",
+        "operationId": "Messaging_ListMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/messagingMessages"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "type_filters",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PROMOTIONAL",
+                "REMINDER",
+                "WARNING",
+                "ALERT",
+                "INFO"
+              ]
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/messages/{user_id}/newcount": {
+      "get": {
+        "summary": "Fetches count of new messages",
+        "operationId": "Messaging_GetNewMessagesCount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/messagingNewMessagesCount"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/messages/{user_id}/readall": {
+      "patch": {
+        "summary": "Updates all messages status as read",
+        "operationId": "Messaging_ReadAll",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/send": {
+      "post": {
+        "summary": "Sends message to a single destination",
+        "operationId": "Messaging_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/messagingSendMessageResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/messagingMessage"
+            }
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "messagingBroadCastMessageRequest": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "$ref": "#/definitions/messagingMessage"
+        }
+      },
+      "title": "BroadCastMessageRequest is request to broadcast message to users"
+    },
+    "messagingMessage": {
+      "type": "object",
+      "properties": {
+        "message_id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "create_time_seconds": {
+          "type": "string",
+          "format": "int64"
+        },
+        "seen": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "save": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "type": {
+          "$ref": "#/definitions/messagingMessageType"
+        },
+        "send_methods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/messagingSendMethod"
+          }
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Message is a message payload"
+    },
+    "messagingMessageType": {
+      "type": "string",
+      "enum": [
+        "ALL",
+        "PROMOTIONAL",
+        "REMINDER",
+        "WARNING",
+        "ALERT",
+        "INFO"
+      ],
+      "default": "ALL",
+      "title": "MessageType is category of a message"
+    },
+    "messagingMessages": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/messagingMessage"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        }
+      },
+      "title": "Messages is a collection of user messages"
+    },
+    "messagingNewMessagesCount": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "NewMessagesCount contains the count of new messages"
+    },
+    "messagingSendMessageResponse": {
+      "type": "object",
+      "properties": {
+        "message_id": {
+          "type": "string"
+        }
+      },
+      "title": "SendMessageResponse is response after sending message contains message id"
+    },
+    "messagingSendMethod": {
+      "type": "string",
+      "enum": [
+        "SEND_METHOD_UNSPECIFIED",
+        "EMAIL",
+        "SMS",
+        "CALL",
+        "PUSH"
+      ],
+      "default": "SEND_METHOD_UNSPECIFIED",
+      "title": "SendMethod is the method used to send the message"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
