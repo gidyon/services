@@ -1,0 +1,16 @@
+{{define "delete"}}
+<main>
+    <h1>Account Deleted</h1>
+    <div style="font-size: 14px;" class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>. Your account <span class="fw-600">{{.AppName}}</span> account was deleted. Contact our administrators or help for further assistance.
+            <br>
+        </p>
+    </div>
+    <div>
+        <div class="reason">Reason</div>
+        <div>{{.Reason}}</div>
+    </div>
+    <br>
+</main>
+{{end}}

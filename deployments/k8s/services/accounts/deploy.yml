@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: account
+  labels:
+    app: emrs-account
+spec:
+  selector:
+    app: emrs-account
+  ports:
+  - port: 443
+    name: https
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emrs-account
+  labels:
+    app: emrs-account
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emrs-account
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: emrs-account
+        version: v1
+    spec:
+      containers:
+      - name: emrs-account
+        image: gidyon/emrs-account:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+        env:
+        - name: APP_NAME
+          value: EMRS
+        - name: TEMPLATES_DIR
+          value: /app/templates/
+        - name: ACTIVATION_URL
+          value: https://ldaddress/activate 
+        - name: MODE
+          value: development
+        - name: API_HASH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-hash-key
+        - name: API_BLOCK_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-block-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /health/ready
+            scheme: HTTPS
+            port: 443
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /health/live
+            scheme: HTTPS
+            port: 443
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-tls
+            mountPath: /app/secrets/keys/
+            readOnly: true
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+          - name: mysql-creds
+            mountPath: /app/secrets/mysql/
+            readOnly: true
+          - name: templates
+            mountPath: /app/templates/
+            readOnly: true
+      volumes:
+      - name: app-tls
+        secret:
+          secretName: localhost-certs
+      - name: app-config
+        configMap:
+          name: account-v1
+      - name: templates
+        configMap:
+          name: account-templates-v1
+      - name: mysql-creds
+        secret:
+          secretName: mysql-creds
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "emrs-account-hpa"
+  labels:
+    app: "emrs-account"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "emrs-account"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80

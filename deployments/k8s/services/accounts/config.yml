@@ -1,0 +1,42 @@
+serviceVersion: v1/beta
+serviceName: account_service
+servicePort: 443
+startupSleepSeconds: 5
+logging:
+  level: -1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+security:
+  tlsCert: /app/secrets/keys/cert
+  tlsKey: /app/secrets/keys/key
+  serverName: localhost
+databases:
+  sqlDatabase:
+    required: true
+    address: mysqldb:3306
+    host: mysqldb
+    port: 3306
+    userFile: /app/secrets/mysql/user
+    passwordFile: /app/secrets/mysql/password
+    schemaFile: /app/secrets/mysql/schema
+    metadata:
+      name: mysql
+      dialect: mysql
+      orm: gorm
+  redisDatabase:
+    required: true
+    address: redisdb:6379
+    host: redisdb
+    port: 6379
+    metadata:
+      name: redis
+      useRediSearch: false
+externalServices:
+- name: messaging
+  type: Messaging
+  required: true
+  address: messaging:443
+  host: messaging
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost

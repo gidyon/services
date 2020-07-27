@@ -1,0 +1,22 @@
+{{define "reset"}}
+<main>
+    <h1>Reset Account Password</h1>
+    <div style="font-size: 14px;" class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>. Your request to reset <span class="fw-600">{{.AppName}}</span> account password was granted. Use the following URL to reset your password.
+            <br>
+            Click the reset button below in order to reset your account password.
+        </p>
+    </div>
+    <div class="fluid">
+        <p style="font-style: italic;font-size: 14px;">The link will expire after 6 hours</p>
+    </div>
+    <br>
+    <div class="fluid">
+        <a href="{{.Link}}">
+            <button class="btn fluid">Click To Reset Account Password</button>
+        </a>
+    </div>
+    <br>
+</main>
+{{end}}

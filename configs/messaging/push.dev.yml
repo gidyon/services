@@ -1,0 +1,23 @@
+serviceVersion: v1/beta
+serviceName: push
+servicePort: 8060
+startupSleepSeconds: 5
+logging:
+  level: 1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+  disabled: true
+security:
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  serverName: localhost
+databases:
+  sqlDatabase:
+    required: true
+    address: localhost:3306
+    host: localhost
+    port: 3306
+    user: root
+    password: hakty11
+    schema: services
+    metadata:
+      orm: gorm

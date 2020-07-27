@@ -1,0 +1,35 @@
+serviceVersion: v1/beta
+serviceName: umrs_hospital
+servicePort: 443
+logging:
+  level: -1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+  disabled: true
+security:
+  tlsCert: /app/certs/cert.pem
+  tlsKey: /app/certs/key.pem
+  serverName: hospitals.emrs.net
+databases:
+  sqlDatabase:
+    required: true
+    address: emrs-mysql
+    host: emrs-mysql
+    port: 3306
+    userFile: /app/secrets/mysql/user
+    passwordFile: /app/secrets/mysql/password
+    schemaFile: /app/secrets/mysql/schema
+    metadata:
+      name: mysql
+      dialect: mysql
+      orm: gorm
+  redisDatabase:
+    required: false
+externalServices:
+- name: ledger
+  type: ledger
+  required: true
+  address: emrs-ledger
+  host: emrs-ledger
+  port: 443
+  tlsCert: /app/certs/ledger/cert
+  serverName: ledger.emrs.net

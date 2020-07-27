@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  mysqldb:
+    image: mysql:8.0.18
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - frontend-bridge
+    volumes:
+      - /Users/jessegitaka/mysql-storage/services:/var/lib/mysql
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_USER: gidyon
+      MYSQL_PASSWORD: hakty11
+      MYSQL_ROOT_PASSWORD: hakty11
+      MYSQL_DATABASE: services
+  
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - frontend-bridge
+
+networks:
+  frontend-bridge:
+    external: true

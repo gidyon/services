@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb
+  labels:
+    app: mysql
+spec:
+  selector:
+    app: mysql
+  ports:
+  - port: 3306
+    name: mysql
+    targetPort: mysql
+    protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+    version: v8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+      version: v8
+  template:
+    metadata:
+      labels:
+        app: mysql
+        version: v8
+    spec:
+      containers:
+      - name: mysqldb
+        image: mysql:8.0.18
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-creds
+              key: password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-creds
+              key: schema
+        livenessProbe:
+          tcpSocket:
+            port: 3306
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: database
+          mountPath: "/var/lib/mysql"
+      volumes:
+      - name: database
+        persistentVolumeClaim:
+         claimName: mysql-pvc

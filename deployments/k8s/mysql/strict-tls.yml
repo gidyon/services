@@ -1,0 +1,20 @@
+apiVersion: "authentication.istio.io/v1alpha1"
+kind: "Policy"
+metadata:
+  name: mysql-mtls-authn
+spec:
+  targets:
+  - name: mysqldb     # The name of *your* K8s Service
+  peers:
+  - mtls:
+      mode: STRICT
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: mysql-mtls-dr
+spec:
+  host: mysqldb     # The name of *your* K8s Service
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL

@@ -1,0 +1,47 @@
+serviceVersion: v1/beta
+serviceName: subscriber
+servicePort: 9090
+logging:
+  level: 1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+security:
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  serverName: localhost
+databases:
+  sqlDatabase:
+    required: true
+    address: localhost:3306
+    host: localhost
+    port: 3306
+    user: root
+    password: hakty11
+    schema: emrs
+    metadata:
+      name: mysql
+      dialect: mysql
+      orm: gorm
+  redisDatabase:
+    required: true
+    address: localhost:6379
+    host: localhost
+    port: 6379
+externalServices:
+- name: channel
+  type: Channel
+  required: true
+  address: localhost:8080
+  host: localhost
+  port: 8080
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  serverName: localhost
+  # insecure: true
+- name: accounts
+  type: Account
+  required: true
+  address: localhost:7070
+  host: localhost
+  port: 7070
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  serverName: localhost
+  # insecure: true

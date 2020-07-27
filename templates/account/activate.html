@@ -1,0 +1,22 @@
+{{define "activate"}}
+<div id="main">
+    <h1>Activate Account</h1>
+    <div style="font-size: 14px;" class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>, you are almost there. You have created your  <span class="fw-600">{{.AppName}}</span> account successfully. To unlock all features, you'll need to confirm your account.
+            <br>
+            Click the button below in order to activate your account.
+        </p>
+    </div>
+    <div class="fluid">
+        <p style="font-style: italic;font-size: 14px;">The link will expire after 6 hours</p>
+    </div>
+    <br>
+    <div class="fluid">
+        <a href="{{.Link}}">
+            <button class="btn fluid">ACTIVATE ACCOUNT</button>
+        </a>
+    </div>
+    <br>
+</div>
+{{end}}

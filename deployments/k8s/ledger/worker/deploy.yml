@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledgerworker
+  labels:
+    app: emrs-ledgerworker
+spec:
+  selector:
+    app: emrs-ledgerworker
+  ports:
+  - port: 443
+    name: https
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emrs-ledgerworker
+  labels:
+    app: emrs-ledgerworker
+    version: v1
+spec:
+
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emrs-ledgerworker
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: emrs-ledgerworker
+        version: v1
+    spec:
+      containers:
+      - name: emrs-ledgerworker
+        image: gidyon/emrs-ledgerworker:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+        env:
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /health/ready
+            scheme: HTTPS
+            port: 443
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /health/live
+            scheme: HTTPS
+            port: 443
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-tls
+            mountPath: /app/secrets/keys/
+            readOnly: true
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+          - name: mysql-creds
+            mountPath: /app/secrets/mysql/
+            readOnly: true
+      volumes:
+      - name: app-tls
+        secret:
+          secretName: localhost-certs
+      - name: app-config
+        configMap:
+          name: ledgerworker-v1
+      - name: mysql-creds
+        secret:
+          secretName: mysql-creds
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "emrs-ledgerworker-hpa"
+  labels:
+    app: "emrs-ledgerworker"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "emrs-ledgerworker"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80

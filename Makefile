@@ -97,5 +97,33 @@ run_sms_service:
 
 run_apps: run_channel_service run_call_service run_email_service run_push_service run_push_service run_subscriber_service run_account_service run_messaging_service
 
+
+build_account:
+	cd cmd/services/account && make build
+
+build_channel:
+	cd cmd/services/channel && make build
+
+build_messaging:
+	cd cmd/services/messaging && make build
+
+build_operation:
+	cd cmd/services/operation && make build
+
+build_subscriber:
+	cd cmd/services/subscriber && make build
+
+build_messaging_email:
+	cd cmd/services/messaging/cmd/email && make build
+
+build_messaging_sms:
+	cd cmd/services/messaging/cmd/sms && make build
+
+build_messaging_pusher:
+	cd cmd/services/messaging/cmd/push && make build
+
+build_messaging_call:
+	cd cmd/services/messaging/cmd/call && make build
+
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

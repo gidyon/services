@@ -14,7 +14,7 @@ func ParseQuery(query string, stopWords ...string) string {
 		}
 		parsedQueries = append(parsedQueries, queryToken+"*")
 	}
-	return ">" + strings.Join(parsedQueries, " ")
+	return "+" + strings.Join(parsedQueries, " ")
 }
 
 func containStopWord(token string, stopWords []string) bool {

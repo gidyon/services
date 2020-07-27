@@ -1,0 +1,78 @@
+serviceVersion: v1/beta
+serviceName: messaging_service
+servicePort: 443
+startupSleepSeconds: 5
+logging:
+  level: -1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+security:
+  tlsCert: /app/secrets/keys/cert
+  tlsKey: /app/secrets/keys/key
+  serverName: localhost
+databases:
+  sqlDatabase:
+    required: true
+    address: mysqldb:3306
+    host: mysqldb
+    port: 3306
+    userFile: /app/secrets/mysql/user
+    passwordFile: /app/secrets/mysql/password
+    schemaFile: /app/secrets/mysql/schema
+    metadata:
+      name: mysql
+      dialect: mysql
+      orm: gorm
+  redisDatabase:
+    required: false
+    address: redisdb:6379
+    host: redisdb
+    port: 6379
+    metadata:
+      name: redis
+      useRediSearch: false
+externalServices:
+- name: call
+  type: Call
+  required: true
+  address: call:443
+  host: call
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost
+- name: emailing
+  type: Emailing
+  required: true
+  address: emailing:443
+  host: emailing
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost
+- name: pusher
+  type: Pusher
+  required: true
+  address: pusher:443
+  host: pusher
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost
+- name: sms
+  type: SMS
+  required: true
+  address: sms:443
+  host: sms
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost
+- name: subscriber
+  type: Subscriber
+  required: true
+  address: subscriber:443
+  host: subscriber
+  port: 443
+  k8service: true
+  tlsCert: /app/secrets/keys/cert
+  serverName: localhost

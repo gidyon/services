@@ -1,0 +1,16 @@
+{{define "unblock"}}
+<main>
+    <h1>Your Account Was UnBlocked</h1>
+    <div class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>. Your account <span class="fw-600">{{.AppName}}</span> account was unblocked. Contact our administrators or help for further assistance.
+            <br>
+        </p>
+    </div>
+    <div>
+        <div class="reason">Reason</div>
+        <div>{{.Reason}}</div>
+    </div>
+    <br>
+</main>
+{{end}}

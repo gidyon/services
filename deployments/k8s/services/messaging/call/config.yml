@@ -1,0 +1,11 @@
+serviceVersion: v1/beta
+serviceName: call_service
+servicePort: 443
+startupSleepSeconds: 5
+logging:
+  level: -1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+security:
+  tlsCert: /app/secrets/keys/cert
+  tlsKey: /app/secrets/keys/key
+  serverName: localhost

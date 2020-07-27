@@ -1,0 +1,10 @@
+serviceVersion: v1/beta
+serviceName: call
+servicePort: 5040
+logging:
+  level: 1
+  timeFormat: 2006-01-02T15:04:05Z07:00
+security:
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  serverName: localhost

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisdb
+  labels:
+    app: redisdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redisdb
+  template:
+    metadata:
+      labels:
+        app: redisdb
+    spec:
+      containers:
+      - name: redisdb
+        image: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redisdb
+  labels:
+    app: redisdb
+spec:
+  ports:
+  - port: 6379
+    name: redis
+    targetPort: redis
+    protocol: TCP
+  selector:
+    app: redisdb

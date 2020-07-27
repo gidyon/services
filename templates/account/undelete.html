@@ -1,0 +1,16 @@
+{{define "undelete"}}
+<main>
+    <h1>Account Was Restored</h1>
+    <div style="font-size: 14px;" class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>. Your account <span class="fw-600">{{.AppName}}</span> account was restored. You can now login to your account.
+            <br>
+        </p>
+    </div>
+    <div>
+        <div class="reason">Reason</div>
+        <div>{{.Reason}}</div>
+    </div>
+    <br>
+</main>
+{{end}}
