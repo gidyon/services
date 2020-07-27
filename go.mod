@@ -9,7 +9,7 @@ require (
 	github.com/RediSearch/redisearch-go v1.0.1 // indirect
 	github.com/appleboy/go-fcm v0.1.5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/gidyon/micro v1.0.3
+	github.com/gidyon/micro v1.0.4
 	github.com/gidyon/micros v3.1.1+incompatible
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-sql-driver/mysql v1.5.0

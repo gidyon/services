@@ -68,6 +68,8 @@ github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gidyon/micro v1.0.3 h1:dVgDchvkVbljwalz8IwNhmi9g+B895aA18csoCS/SuQ=
 github.com/gidyon/micro v1.0.3/go.mod h1:wwlkGrTO/+rv4NUkqya/V8WxIG6S2ZpddISFbbi5gLM=
+github.com/gidyon/micro v1.0.4 h1:L96WsVpKA92+DDjYYuc+eFTsfC/ZBSa10ytml3xhJA4=
+github.com/gidyon/micro v1.0.4/go.mod h1:wwlkGrTO/+rv4NUkqya/V8WxIG6S2ZpddISFbbi5gLM=
 github.com/gidyon/micros v3.1.1+incompatible h1:DfwApveK3xjTiYRwq8mm2vhjs5lDS4e81eMFIpPpppc=
 github.com/gidyon/micros v3.1.1+incompatible/go.mod h1:fKbKboi929IhFfoVXyO9OqgwTeUjPBNAsQBh2kusJ8Y=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
