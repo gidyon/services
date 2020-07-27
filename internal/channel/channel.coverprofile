@@ -1,4 +1,7 @@
 mode: atomic
+github.com/gidyon/services/internal/channel/model.go:22.36,24.2 1 49
+github.com/gidyon/services/internal/channel/model.go:27.65,37.2 2 36
+github.com/gidyon/services/internal/channel/model.go:40.65,49.2 2 10
 github.com/gidyon/services/internal/channel/channel.go:38.54,44.2 4 2
 github.com/gidyon/services/internal/channel/channel.go:49.37,52.9 2 7
 github.com/gidyon/services/internal/channel/channel.go:64.2,64.16 1 7
@@ -116,6 +119,3 @@ github.com/gidyon/services/internal/channel/channel.go:392.23,393.46 1 1
 github.com/gidyon/services/internal/channel/channel.go:394.10,396.17 2 11
 github.com/gidyon/services/internal/channel/channel.go:396.17,398.4 1 1
 github.com/gidyon/services/internal/channel/channel.go:404.16,406.3 1 0
-github.com/gidyon/services/internal/channel/model.go:22.36,24.2 1 49
-github.com/gidyon/services/internal/channel/model.go:27.65,37.2 2 36
-github.com/gidyon/services/internal/channel/model.go:40.65,49.2 2 10

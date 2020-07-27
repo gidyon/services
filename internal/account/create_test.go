@@ -86,14 +86,14 @@ var _ = Describe("Creating Account @create", func() {
 						createReq.Account.Email = email
 						createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 						Expect(err).Should(HaveOccurred())
-						Expect(status.Code(err)).Should(Equal(codes.ResourceExhausted))
+						Expect(status.Code(err)).Should(Equal(codes.AlreadyExists))
 						Expect(createRes).Should(BeNil())
 					})
 					It("should fail when phone is already registered", func() {
 						createReq.Account.Phone = phone
 						createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 						Expect(err).Should(HaveOccurred())
-						Expect(status.Code(err)).Should(Equal(codes.ResourceExhausted))
+						Expect(status.Code(err)).Should(Equal(codes.AlreadyExists))
 						Expect(createRes).Should(BeNil())
 					})
 				})
