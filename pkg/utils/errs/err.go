@@ -34,7 +34,7 @@ func MissingField(field string) error {
 
 // DuplicateField returns a status error for a duplicate field
 func DuplicateField(fieldName, fieldValue string) error {
-	return status.Errorf(codes.ResourceExhausted, "%s with value %s exists", fieldName, fieldValue)
+	return status.Errorf(codes.AlreadyExists, "%s with value %s exists", fieldName, fieldValue)
 }
 
 // NilObject is error resulting from using nil references to objects
@@ -52,27 +52,27 @@ func IncorrectVal(val string) error {
 	return status.Errorf(codes.InvalidArgument, "incorrect value for %q", val)
 }
 
-// WriteFailed returns a status error for a write op error
+// WriteFailed returns a status error for a write operation error
 func WriteFailed(err error) error {
 	return status.Errorf(codes.Internal, "write operation failed: %v", err)
 }
 
-// ReadFailed returns a status error for a read op error
+// ReadFailed returns a status error for a read operation error
 func ReadFailed(err error) error {
 	return status.Errorf(codes.Internal, "read operation failed: %v", err)
 }
 
-// SQLQueryFailed wraps sql error to a status error
+// SQLQueryFailed wraps a sql query error to a status error
 func SQLQueryFailed(err error, queryType string) error {
 	return status.Errorf(codes.Internal, "failed to execute %s query: %v", queryType, err)
 }
 
-// DoesNotExist returns status error for a resource that does not exist
+// DoesNotExist returns status error indicating that the resource does not exist
 func DoesNotExist(resource, id string) error {
 	return status.Errorf(codes.NotFound, "%s with id %s does not exist", resource, id)
 }
 
-// DoesExist returns status error for a resource that does not exist
+// DoesExist returns status error indicating the resource does exist
 func DoesExist(resource, id string) error {
 	return status.Errorf(codes.AlreadyExists, "%s with id %s already exists", resource, id)
 }
@@ -82,34 +82,34 @@ func FailedToSave(resource string, err error) error {
 	return status.Errorf(codes.Internal, "failed to save %s: %v", resource, err)
 }
 
-// FailedToUpdate is status error returned from failed update operation
+// FailedToUpdate wraps error returned from failed update operation to a status error
 func FailedToUpdate(resource string, err error) error {
 	return status.Errorf(codes.Internal, "failed to update %s: %v", resource, err)
 }
 
-// FailedToDelete is status error returned from failed delete operation
+// FailedToDelete wraps error returned from failed delete operation to a status error
 func FailedToDelete(resource string, err error) error {
 	return status.Errorf(codes.Internal, "failed to delete %s: %v", resource, err)
 }
 
-// FailedToBeginTx wraps error returned from failed transaction to status error
+// FailedToFind wraps error returned from failed find operation to a status error
+func FailedToFind(resource string, err error) error {
+	return status.Errorf(codes.Internal, "failed to find %s: %v", resource, err)
+}
+
+// FailedToBeginTx wraps error returned from failed transaction to a status error
 func FailedToBeginTx(err error) error {
 	return status.Errorf(codes.Internal, "failed to begin db transaction: %v", err)
 }
 
-// FailedToCommitTx wraps error returned from failed commit of transaction to status error
+// FailedToCommitTx wraps error returned from failed commit of transaction to a status error
 func FailedToCommitTx(err error) error {
 	return status.Errorf(codes.Internal, "failed to commit transaction: %v", err)
 }
 
-// FailedToRollbackTx wraps error returned from failed rollback of transaction to status error
+// FailedToRollbackTx wraps error returned from failed rollback of transaction to a status error
 func FailedToRollbackTx(err error) error {
 	return status.Errorf(codes.Internal, "failed to rollback transaction: %v", err)
-}
-
-// FailedToFind is status error returned from failed find operation
-func FailedToFind(resource string, err error) error {
-	return status.Errorf(codes.Internal, "failed to find %s: %v", resource, err)
 }
 
 // TokenCredentialNotMatching creates a status error caused by mismatch in token credential
@@ -117,17 +117,17 @@ func TokenCredentialNotMatching(cred string) error {
 	return status.Errorf(codes.PermissionDenied, "token credential %v do not match", cred)
 }
 
-// FailedToEncrypt is status error from failed encryption
+// FailedToEncrypt is status error from failed encryption operation
 func FailedToEncrypt(err error) error {
 	return status.Errorf(codes.Internal, "failed to encrypt data: %v", err)
 }
 
-// FailedToDecrypt is status error from failed decryption
+// FailedToDecrypt is status error from failed decryption operation
 func FailedToDecrypt(err error) error {
 	return status.Errorf(codes.Internal, "failed to decrypt data: %v", err)
 }
 
-// RedisCmdFailed wraps error returned when redis command fails to a status error
+// RedisCmdFailed wraps error returned from a failed redis command to a status error
 func RedisCmdFailed(err error, command string) error {
 	return status.Errorf(codes.Internal, "failed to execute %s command: %v", command, err)
 }
@@ -142,17 +142,17 @@ func FailedToGetToken(err error) error {
 	return status.Errorf(codes.Internal, "failed to get token: %v", err)
 }
 
-// WrapErrorWithCode is a wraps generic error to status error with provided code
+// WrapErrorWithCode is a wraps generic error to a status error with provided code
 func WrapErrorWithCode(code codes.Code, err error) error {
 	return status.Error(code, err.Error())
 }
 
-// WrapError is a wraps generic error to status error
+// WrapError is a wraps generic error to a status error
 func WrapError(err error) error {
 	return status.Error(status.Code(err), err.Error())
 }
 
-// WrapErrorWithCodeAndMsg wraps generic error to status error with provided code and msg
+// WrapErrorWithCodeAndMsg wraps generic error to a status error with provided code and msg
 func WrapErrorWithCodeAndMsg(code codes.Code, err error, msg string) error {
 	return status.Errorf(code, "%s: %v", msg, err.Error())
 }
@@ -167,7 +167,7 @@ func WrapErrorWithCodeAndMsgFunc(msg string) func(codes.Code, error) error {
 	}
 }
 
-// WrapErrorWithMsg is a wraps generic error to status error with code and msg formt
+// WrapErrorWithMsg is a wraps generic error to a status error with code and msg formt
 func WrapErrorWithMsg(err error, msg string) error {
 	return status.Errorf(status.Code(err), "%s: %v", msg, err.Error())
 }
@@ -182,12 +182,12 @@ func WrapErrorWithMsgFunc(msg string) func(error) error {
 	}
 }
 
-// WrapMessage is a wraps message provided to status error
+// WrapMessage is a wraps message provided to a status error
 func WrapMessage(code codes.Code, msg string) error {
 	return status.Error(code, msg)
 }
 
-// WrapMessagef is a wraps message provided to status error
+// WrapMessagef is a wraps message provided to a status error
 func WrapMessagef(code codes.Code, format string, args ...interface{}) error {
 	return status.Error(code, fmt.Sprintf(format, args...))
 }
