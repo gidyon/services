@@ -38,14 +38,14 @@ type redisLocker struct {
 func NewRedisLocker(ctx context.Context, client *redis.Client, lockID string) Locker {
 	return &redisLocker{
 		client:  client,
-		channel: client.Subscribe(ctx, lockID).Channel(),
+		channel: client.Subscribe(lockID).Channel(),
 		lockID:  lockID,
 		set:     uuid.New().String(),
 	}
 }
 
 func (rl *redisLocker) acquireLock(ctx context.Context) error {
-	v, err := rl.client.SAdd(ctx, rl.set, rl.lockID).Result()
+	v, err := rl.client.SAdd(rl.set, rl.lockID).Result()
 	if err != nil {
 		return fmt.Errorf("failed to acquire token: %w", err)
 	}
@@ -84,7 +84,7 @@ func (rl *redisLocker) Acquire(ctx context.Context) error {
 func (rl *redisLocker) Release(ctx context.Context) error {
 	pipeliner := rl.client.Pipeline()
 
-	v, err := pipeliner.SRem(ctx, rl.set, rl.lockID).Result()
+	v, err := pipeliner.SRem(rl.set, rl.lockID).Result()
 	if err != nil {
 		return fmt.Errorf("failed to release lock: %w", err)
 	}
@@ -93,12 +93,12 @@ func (rl *redisLocker) Release(ctx context.Context) error {
 		return ErrLockNotHeld
 	}
 
-	err = pipeliner.Publish(ctx, rl.lockID, "RELEASED").Err()
+	err = pipeliner.Publish(rl.lockID, "RELEASED").Err()
 	if err != nil {
 		return fmt.Errorf("failed to publish lock release: %v", err)
 	}
 
-	_, err = pipeliner.Exec(ctx)
+	_, err = pipeliner.Exec()
 	if err != nil {
 		return fmt.Errorf("failed to execute lock release: %v", err)
 	}
