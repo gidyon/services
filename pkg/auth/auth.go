@@ -236,7 +236,8 @@ func (api *authAPI) genToken(
 		Payload: payload,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expires,
-			Issuer:    "emrs",
+			Issuer:    "gidyon",
+			Audience:  "users,apis",
 		},
 	})
 
