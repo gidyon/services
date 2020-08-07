@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/services/pkg/utils/errs"
@@ -26,7 +27,7 @@ func Groups() []string {
 
 // User are ordinary app users
 func User() string {
-	return "USERS"
+	return "USER"
 }
 
 // AdminGroup is group for admin users
@@ -46,16 +47,18 @@ type Interface interface {
 	AuthorizeGroup(ctx context.Context, allowedGroups ...string) (*Payload, error)
 	AuthorizeStrict(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error)
 	AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error)
-	GenToken(context.Context, *Payload, int64) (string, error)
+	GenToken(context.Context, *Payload, time.Time) (string, error)
 }
 
 type authAPI struct {
 	signingKey []byte
+	issuer     string
+	audience   string
 }
 
 // NewAPI creates new auth API with given signing key
-func NewAPI(signingKey []byte) (Interface, error) {
-	api := &authAPI{signingKey: signingKey}
+func NewAPI(signingKey []byte, issuer, audience string) (Interface, error) {
+	api := &authAPI{signingKey: signingKey, issuer: issuer, audience: audience}
 	return api, nil
 }
 
@@ -139,8 +142,8 @@ func (api *authAPI) AuthorizeActorOrGroup(
 	return claims.Payload, nil
 }
 
-func (api *authAPI) GenToken(ctx context.Context, payload *Payload, expires int64) (string, error) {
-	return api.genToken(ctx, payload, expires)
+func (api *authAPI) GenToken(ctx context.Context, payload *Payload, expirationTime time.Time) (string, error) {
+	return api.genToken(ctx, payload, expirationTime.Unix())
 }
 
 // AddMD adds metadata to token
@@ -182,7 +185,7 @@ func (api *authAPI) ParseToken(tokenString string) (claims *Claims, err error) {
 	}
 	claims, ok := token.Claims.(*Claims)
 	if !ok || !token.Valid {
-		return nil, status.Error(codes.Unauthenticated, "the jwt is not valid")
+		return nil, status.Error(codes.Unauthenticated, "JWT is not valid")
 	}
 	return claims, nil
 }
@@ -192,7 +195,7 @@ func (api *authAPI) ParseFromCtx(ctx context.Context) (*Claims, error) {
 	token, err := grpc_auth.AuthFromMD(ctx, "Bearer")
 	if err != nil {
 		return nil, status.Errorf(
-			codes.Internal, "failed to get Bearer token from authorization header: %v", err,
+			codes.PermissionDenied, "failed to get Bearer token from authorization header: %v", err,
 		)
 	}
 

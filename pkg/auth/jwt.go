@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -10,7 +11,9 @@ import (
 var (
 	signingKey                      = []byte(os.Getenv("JWT_TOKEN"))
 	signingMethod jwt.SigningMethod = jwt.SigningMethodHS256
-	defaultAPI                      = &authAPI{signingKey}
+	issuer                          = "gideon"
+	audience                        = "anyone"
+	defaultAPI                      = &authAPI{signingKey: signingKey, audience: audience, issuer: issuer}
 )
 
 // Payload contains jwt payload
@@ -54,8 +57,8 @@ func AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ..
 }
 
 // GenToken generates jwt
-func GenToken(ctx context.Context, payload *Payload, expires int64) (string, error) {
-	return defaultAPI.GenToken(ctx, payload, expires)
+func GenToken(ctx context.Context, payload *Payload, expirationTime time.Time) (string, error) {
+	return defaultAPI.GenToken(ctx, payload, expirationTime)
 }
 
 // AddMD adds metadata to token
