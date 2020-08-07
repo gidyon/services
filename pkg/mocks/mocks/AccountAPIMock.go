@@ -289,8 +289,8 @@ func (_m *AccountAPIMock) ListAccounts(ctx context.Context, in *account.ListAcco
 	return r0, r1
 }
 
-// SignIn provides a mock function with given fields: ctx, in, opts
-func (_m *AccountAPIMock) SignIn(ctx context.Context, in *account.SignInRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
+// RefreshJWT provides a mock function with given fields: ctx, in, opts
+func (_m *AccountAPIMock) RefreshJWT(ctx context.Context, in *account.RefreshJWTRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -301,7 +301,7 @@ func (_m *AccountAPIMock) SignIn(ctx context.Context, in *account.SignInRequest,
 	ret := _m.Called(_ca...)
 
 	var r0 *account.SignInResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *account.SignInRequest, ...grpc.CallOption) *account.SignInResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *account.RefreshJWTRequest, ...grpc.CallOption) *account.SignInResponse); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -310,7 +310,7 @@ func (_m *AccountAPIMock) SignIn(ctx context.Context, in *account.SignInRequest,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *account.SignInRequest, ...grpc.CallOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *account.RefreshJWTRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
@@ -371,6 +371,36 @@ func (_m *AccountAPIMock) SearchAccounts(ctx context.Context, in *account.Search
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *account.SearchAccountsRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SignIn provides a mock function with given fields: ctx, in, opts
+func (_m *AccountAPIMock) SignIn(ctx context.Context, in *account.SignInRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *account.SignInResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *account.SignInRequest, ...grpc.CallOption) *account.SignInResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*account.SignInResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *account.SignInRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
