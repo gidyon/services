@@ -99,6 +99,39 @@ func local_request_AccountAPI_SignInExternal_0(ctx context.Context, marshaler ru
 
 }
 
+var (
+	filter_AccountAPI_RefreshJWT_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_AccountAPI_RefreshJWT_0(ctx context.Context, marshaler runtime.Marshaler, client AccountAPIClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq RefreshJWTRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_AccountAPI_RefreshJWT_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.RefreshJWT(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_AccountAPI_RefreshJWT_0(ctx context.Context, marshaler runtime.Marshaler, server AccountAPIServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq RefreshJWTRequest
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_AccountAPI_RefreshJWT_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.RefreshJWT(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_AccountAPI_CreateAccount_0(ctx context.Context, marshaler runtime.Marshaler, client AccountAPIClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateAccountRequest
 	var metadata runtime.ServerMetadata
@@ -237,30 +270,12 @@ func local_request_AccountAPI_UpdateAccount_0(ctx context.Context, marshaler run
 }
 
 var (
-	filter_AccountAPI_RequestChangePrivateAccount_0 = &utilities.DoubleArray{Encoding: map[string]int{"payload": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_AccountAPI_RequestChangePrivateAccount_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
 func request_AccountAPI_RequestChangePrivateAccount_0(ctx context.Context, marshaler runtime.Marshaler, client AccountAPIClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq RequestChangePrivateAccountRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["payload"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "payload")
-	}
-
-	protoReq.Payload, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "payload", err)
-	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -277,24 +292,6 @@ func request_AccountAPI_RequestChangePrivateAccount_0(ctx context.Context, marsh
 func local_request_AccountAPI_RequestChangePrivateAccount_0(ctx context.Context, marshaler runtime.Marshaler, server AccountAPIServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq RequestChangePrivateAccountRequest
 	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["payload"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "payload")
-	}
-
-	protoReq.Payload, err = runtime.String(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "payload", err)
-	}
 
 	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_AccountAPI_RequestChangePrivateAccount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -799,6 +796,26 @@ func RegisterAccountAPIHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
+	mux.Handle("GET", pattern_AccountAPI_RefreshJWT_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AccountAPI_RefreshJWT_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_AccountAPI_RefreshJWT_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_AccountAPI_CreateAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1140,6 +1157,26 @@ func RegisterAccountAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
+	mux.Handle("GET", pattern_AccountAPI_RefreshJWT_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_AccountAPI_RefreshJWT_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_AccountAPI_RefreshJWT_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_AccountAPI_CreateAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1406,7 +1443,9 @@ func RegisterAccountAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 var (
 	pattern_AccountAPI_SignIn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "login"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_SignInExternal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"api", "antibug", "accounts", "login", "external"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_SignInExternal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "login", "external"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_AccountAPI_RefreshJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "login", "refresh"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_AccountAPI_CreateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "accounts"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -1414,7 +1453,7 @@ var (
 
 	pattern_AccountAPI_UpdateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account.account_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_RequestChangePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 2, 4}, []string{"api", "accounts", "payload", "action", "change-private"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_RequestChangePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "action", "change-private"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_AccountAPI_UpdatePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "accounts", "account_id", "private"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -1439,6 +1478,8 @@ var (
 	forward_AccountAPI_SignIn_0 = runtime.ForwardResponseMessage
 
 	forward_AccountAPI_SignInExternal_0 = runtime.ForwardResponseMessage
+
+	forward_AccountAPI_RefreshJWT_0 = runtime.ForwardResponseMessage
 
 	forward_AccountAPI_CreateAccount_0 = runtime.ForwardResponseMessage
 
