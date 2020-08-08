@@ -73,3 +73,18 @@ func createGCM(key []byte) (cipher.AEAD, error) {
 
 	return gcm, nil
 }
+
+// ParseKey parses an encryption key truncating it to the nearest 16 or 24 or 32 bit. If key is less 16 returns error
+func ParseKey(key []byte) ([]byte, error) {
+	keyLen := len(key)
+	switch {
+	case keyLen < 16:
+		return nil, errors.New("key length less that 16")
+	case keyLen < 24:
+		return key[:16], nil
+	case keyLen < 32:
+		return key[:24], nil
+	default:
+		return key[:32], nil
+	}
+}
