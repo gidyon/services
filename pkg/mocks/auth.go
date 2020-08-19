@@ -21,13 +21,13 @@ func init() {
 		Return(nil)
 	AuthAPI.On("AuthorizeActor", mock.Anything, mock.Anything).
 		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
-	AuthAPI.On("AuthorizeGroup",
+	AuthAPI.On("AuthorizeGroups",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
 	AuthAPI.On("AuthorizeStrict",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
-	AuthAPI.On("AuthorizeActorOrGroup",
+	AuthAPI.On("AuthorizeActorOrGroups",
 		mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
 
