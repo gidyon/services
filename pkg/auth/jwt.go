@@ -43,7 +43,7 @@ func AuthenticateActor(ctx context.Context, actorID string) (*Payload, error) {
 
 // AuthorizeGroup authorizes an actor group against allowed groups
 func AuthorizeGroup(ctx context.Context, allowedGroups ...string) (*Payload, error) {
-	return defaultAPI.AuthorizeGroup(ctx, allowedGroups...)
+	return defaultAPI.AuthorizeGroups(ctx, allowedGroups...)
 }
 
 // AuthorizeStrict authenticates and authorizes an actor and group against allowed groups
@@ -53,7 +53,7 @@ func AuthorizeStrict(ctx context.Context, actorID string, allowedGroups ...strin
 
 // AuthorizeActorOrGroup authorizes the actor or whether they belong to list of allowed groups
 func AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error) {
-	return defaultAPI.AuthorizeActorOrGroup(ctx, actorID, allowedGroups...)
+	return defaultAPI.AuthorizeActorOrGroups(ctx, actorID, allowedGroups...)
 }
 
 // GenToken generates jwt

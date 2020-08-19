@@ -43,10 +43,11 @@ func SuperAdminGroup() string {
 // Interface is a generic authentication and authorization API
 type Interface interface {
 	AuthenticateRequest(context.Context) error
+	AuthenticateRequestV2(context.Context) (*Payload, error)
 	AuthorizeActor(ctx context.Context, actorID string) (*Payload, error)
-	AuthorizeGroup(ctx context.Context, allowedGroups ...string) (*Payload, error)
+	AuthorizeGroups(ctx context.Context, allowedGroups ...string) (*Payload, error)
 	AuthorizeStrict(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error)
-	AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error)
+	AuthorizeActorOrGroups(ctx context.Context, actorID string, allowedGroups ...string) (*Payload, error)
 	GenToken(context.Context, *Payload, time.Time) (string, error)
 }
 
@@ -60,6 +61,14 @@ type authAPI struct {
 func NewAPI(signingKey []byte, issuer, audience string) (Interface, error) {
 	api := &authAPI{signingKey: signingKey, issuer: issuer, audience: audience}
 	return api, nil
+}
+
+func (api *authAPI) AuthenticateRequestV2(ctx context.Context) (*Payload, error) {
+	claims, err := api.ParseFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return claims.Payload, nil
 }
 
 func (api *authAPI) AuthenticateRequest(ctx context.Context) error {
@@ -83,7 +92,7 @@ func (api *authAPI) AuthorizeActor(ctx context.Context, actorID string) (*Payloa
 	return claims.Payload, nil
 }
 
-func (api *authAPI) AuthorizeGroup(ctx context.Context, allowedGroups ...string) (*Payload, error) {
+func (api *authAPI) AuthorizeGroups(ctx context.Context, allowedGroups ...string) (*Payload, error) {
 	claims, err := api.ParseFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -115,7 +124,7 @@ func (api *authAPI) AuthorizeStrict(ctx context.Context, actorID string, allowed
 	return claims.Payload, nil
 }
 
-func (api *authAPI) AuthorizeActorOrGroup(
+func (api *authAPI) AuthorizeActorOrGroups(
 	ctx context.Context, actorID string, allowedGroups ...string,
 ) (*Payload, error) {
 	claims, err := api.ParseFromCtx(ctx)
