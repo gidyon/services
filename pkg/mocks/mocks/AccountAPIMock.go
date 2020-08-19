@@ -289,8 +289,8 @@ func (_m *AccountAPIMock) ListAccounts(ctx context.Context, in *account.ListAcco
 	return r0, r1
 }
 
-// RefreshJWT provides a mock function with given fields: ctx, in, opts
-func (_m *AccountAPIMock) RefreshJWT(ctx context.Context, in *account.RefreshJWTRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
+// RefreshSession provides a mock function with given fields: ctx, in, opts
+func (_m *AccountAPIMock) RefreshSession(ctx context.Context, in *account.RefreshSessionRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -301,7 +301,7 @@ func (_m *AccountAPIMock) RefreshJWT(ctx context.Context, in *account.RefreshJWT
 	ret := _m.Called(_ca...)
 
 	var r0 *account.SignInResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *account.RefreshJWTRequest, ...grpc.CallOption) *account.SignInResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *account.RefreshSessionRequest, ...grpc.CallOption) *account.SignInResponse); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -310,7 +310,7 @@ func (_m *AccountAPIMock) RefreshJWT(ctx context.Context, in *account.RefreshJWT
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *account.RefreshJWTRequest, ...grpc.CallOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *account.RefreshSessionRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)

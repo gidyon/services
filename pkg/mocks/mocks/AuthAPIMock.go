@@ -31,6 +31,29 @@ func (_m *AuthAPIMock) AuthenticateRequest(_a0 context.Context) error {
 	return r0
 }
 
+// AuthenticateRequestV2 provides a mock function with given fields: _a0
+func (_m *AuthAPIMock) AuthenticateRequestV2(_a0 context.Context) (*auth.Payload, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *auth.Payload
+	if rf, ok := ret.Get(0).(func(context.Context) *auth.Payload); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*auth.Payload)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AuthorizeActor provides a mock function with given fields: ctx, actorID
 func (_m *AuthAPIMock) AuthorizeActor(ctx context.Context, actorID string) (*auth.Payload, error) {
 	ret := _m.Called(ctx, actorID)
@@ -54,8 +77,8 @@ func (_m *AuthAPIMock) AuthorizeActor(ctx context.Context, actorID string) (*aut
 	return r0, r1
 }
 
-// AuthorizeActorOrGroup provides a mock function with given fields: ctx, actorID, allowedGroups
-func (_m *AuthAPIMock) AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ...string) (*auth.Payload, error) {
+// AuthorizeActorOrGroups provides a mock function with given fields: ctx, actorID, allowedGroups
+func (_m *AuthAPIMock) AuthorizeActorOrGroups(ctx context.Context, actorID string, allowedGroups ...string) (*auth.Payload, error) {
 	_va := make([]interface{}, len(allowedGroups))
 	for _i := range allowedGroups {
 		_va[_i] = allowedGroups[_i]
@@ -84,8 +107,8 @@ func (_m *AuthAPIMock) AuthorizeActorOrGroup(ctx context.Context, actorID string
 	return r0, r1
 }
 
-// AuthorizeGroup provides a mock function with given fields: ctx, allowedGroups
-func (_m *AuthAPIMock) AuthorizeGroup(ctx context.Context, allowedGroups ...string) (*auth.Payload, error) {
+// AuthorizeGroups provides a mock function with given fields: ctx, allowedGroups
+func (_m *AuthAPIMock) AuthorizeGroups(ctx context.Context, allowedGroups ...string) (*auth.Payload, error) {
 	_va := make([]interface{}, len(allowedGroups))
 	for _i := range allowedGroups {
 		_va[_i] = allowedGroups[_i]
