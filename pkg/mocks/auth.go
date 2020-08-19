@@ -15,9 +15,9 @@ type AuthAPIMock interface {
 var AuthAPI = &mocks.AuthAPIMock{}
 
 func init() {
-	AuthAPI.On("AuthenticateRequest", mock.Anything).
-		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
 	AuthAPI.On("AuthenticateRequestV2", mock.Anything).
+		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
+	AuthAPI.On("AuthenticateRequest", mock.Anything).
 		Return(nil)
 	AuthAPI.On("AuthorizeActor", mock.Anything, mock.Anything).
 		Return(&auth.Payload{Group: auth.AdminGroup()}, nil)
