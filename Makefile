@@ -99,31 +99,31 @@ run_apps: run_channel_service run_call_service run_email_service run_push_servic
 
 
 build_account:
-	cd cmd/services/account && make build
+	cd cmd/services/account && sudo make build
 
 build_channel:
-	cd cmd/services/channel && make build
+	cd cmd/services/channel && sudo make build
 
 build_messaging:
-	cd cmd/services/messaging && make build
+	cd cmd/services/messaging && sudo make build
 
 build_operation:
-	cd cmd/services/operation && make build
+	cd cmd/services/operation && sudo make build
 
 build_subscriber:
-	cd cmd/services/subscriber && make build
+	cd cmd/services/subscriber && sudo make build
 
 build_messaging_email:
-	cd cmd/services/messaging/cmd/email && make build
+	cd cmd/services/messaging/cmd/email && sudo make build
 
 build_messaging_sms:
-	cd cmd/services/messaging/cmd/sms && make build
+	cd cmd/services/messaging/cmd/sms && sudo make build
 
 build_messaging_pusher:
-	cd cmd/services/messaging/cmd/push && make build
+	cd cmd/services/messaging/cmd/push && sudo make build
 
 build_messaging_call:
-	cd cmd/services/messaging/cmd/call && make build
+	cd cmd/services/messaging/cmd/call && sudo make build
 
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
