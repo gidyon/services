@@ -3,16 +3,14 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"github.com/Pallinder/go-randomdata"
 	"google.golang.org/api/option"
-	"google.golang.org/grpc"
 
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -27,6 +25,8 @@ import (
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
+	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -35,17 +35,17 @@ import (
 func main() {
 	ctx := context.Background()
 
-	apiHashKey, err := parseKeySize([]byte(os.Getenv("API_HASH_KEY")))
-	handleErr(err)
+	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
+	errs.Panic(err)
 
-	apiBlockKey, err := parseKeySize([]byte(os.Getenv("API_BLOCK_KEY")))
-	handleErr(err)
+	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
+	errs.Panic(err)
 
 	cfg, err := config.New(config.FromFile)
-	handleErr(err)
+	errs.Panic(err)
 
 	app, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -79,14 +79,14 @@ func main() {
 		SecureCookie: sc,
 		AuthHeader:   auth.Header(),
 		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.CookieName(),
+		CookieName:   auth.JWTCookie(),
 	}))
 
 	// Grpc Gateway options
 	app.AddServeMuxOptions(
 		runtime.WithOutgoingHeaderMatcher(func(key string) (string, bool) {
 			switch key {
-			case "Set-Cookie", "set-cookie":
+			case "set-cookie", "access-control-expose-headers":
 				return key, true
 			default:
 				return "", false
@@ -95,7 +95,7 @@ func main() {
 	)
 
 	app.AddEndpointFunc("/api/accounts/token/admin", func(w http.ResponseWriter, r *http.Request) {
-		authAPI, err := auth.NewAPI([]byte(os.Getenv("JWT_SIGNING_KEY")))
+		authAPI, err := auth.NewAPI([]byte(os.Getenv("JWT_SIGNING_KEY")), "me", "me")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -105,7 +105,8 @@ func main() {
 			ID:          fmt.Sprint(1),
 			Names:       randomdata.SillyName(),
 			PhoneNumber: randomdata.PhoneNumber(),
-		}, 0)
+			Group:       auth.AdminGroup(),
+		}, time.Now().Add(6*time.Hour))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -123,16 +124,16 @@ func main() {
 	// 5. Bootstrapping service
 	app.Start(ctx, func() error {
 		// Connect to messaging service
-		messagingCC, err := app.DialExternalService(ctx, "messaging", grpc.WithBlock())
-		handleErr(err)
+		messagingCC, err := app.DialExternalService(ctx, "messaging")
+		errs.Panic(err)
 		app.Logger().Infoln("connected to messaging service")
 
 		opt := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
 		firebaseApp, err := firebase.NewApp(ctx, nil, opt)
-		handleErr(err)
+		errs.Panic(err)
 
 		firebaseAuth, err := firebaseApp.Auth(ctx)
-		handleErr(err)
+		errs.Panic(err)
 
 		// Create account API instance
 		accountAPI, err := account_app.NewAccountAPI(ctx, &account_app.Options{
@@ -147,31 +148,11 @@ func main() {
 			MessagingClient: messaging.NewMessagingClient(messagingCC),
 			FirebaseAuth:    firebaseAuth,
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		account.RegisterAccountAPIServer(app.GRPCServer(), accountAPI)
-		handleErr(account.RegisterAccountAPIHandler(ctx, app.RuntimeMux(), app.ClientConn()))
+		errs.Panic(account.RegisterAccountAPIHandler(ctx, app.RuntimeMux(), app.ClientConn()))
 
 		return nil
 	})
-}
-
-func parseKeySize(key []byte) ([]byte, error) {
-	keyLen := len(key)
-	switch {
-	case keyLen < 16:
-		return nil, errors.New("key length less that 16")
-	case keyLen < 24:
-		return key[:16], nil
-	case keyLen < 32:
-		return key[:24], nil
-	default:
-		return key[:32], nil
-	}
-}
-
-func handleErr(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
 }

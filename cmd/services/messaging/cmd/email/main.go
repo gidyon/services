@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/utils/healthcheck"
@@ -12,6 +11,7 @@ import (
 	emailing_app "github.com/gidyon/services/internal/messaging/emailing"
 
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
+	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -22,11 +22,11 @@ func main() {
 
 	// Read config
 	cfg, err := config.New()
-	handleErr(err)
+	errs.Panic(err)
 
 	// Create service instance
 	app, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -50,7 +50,7 @@ func main() {
 	// Start service
 	app.Start(ctx, func() error {
 		port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
-		handleErr(err)
+		errs.Panic(err)
 
 		// Create emailing API
 		emailingAPI, err := emailing_app.NewEmailingAPIServer(ctx, &emailing_app.Options{
@@ -61,29 +61,10 @@ func main() {
 			SMTPUsername:  os.Getenv("SMTP_USERNAME"),
 			SMTPPassword:  os.Getenv("SMTP_PASSWORD"),
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		emailing.RegisterEmailingServer(app.GRPCServer(), emailingAPI)
 
 		return nil
 	})
-}
-
-func setIfempty(val1, val2 string, swap ...bool) string {
-	if len(swap) > 0 && swap[0] {
-		if strings.TrimSpace(val2) == "" {
-			return val1
-		}
-		return val2
-	}
-	if strings.TrimSpace(val1) == "" {
-		return val2
-	}
-	return val1
-}
-
-func handleErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

@@ -5,8 +5,13 @@ import (
 	"os"
 
 	"github.com/gidyon/micro"
+	httpmiddleware "github.com/gidyon/micro/pkg/http"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/subscriber"
+	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
+	"github.com/gidyon/services/pkg/utils/errs"
+	"github.com/gorilla/securecookie"
 
 	"github.com/gidyon/services/pkg/api/messaging/sms"
 
@@ -29,13 +34,19 @@ import (
 func main() {
 	ctx := context.Background()
 
+	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
+	errs.Panic(err)
+
+	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
+	errs.Panic(err)
+
 	// Read config
 	cfg, err := config.New()
-	handleErr(err)
+	errs.Panic(err)
 
 	// Create service toolkit
 	app, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -56,26 +67,36 @@ func main() {
 		AutoMigrator: func() error { return nil },
 	}))
 
+	sc := securecookie.New(apiHashKey, apiBlockKey)
+
+	// Cookie based authentication
+	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
+		SecureCookie: sc,
+		AuthHeader:   auth.Header(),
+		AuthScheme:   auth.Scheme(),
+		CookieName:   auth.JWTCookie(),
+	}))
+
 	// Start service
 	app.Start(ctx, func() error {
 		emailConn, err := app.DialExternalService(ctx, "emailing", grpc.WithBlock())
-		handleErr(err)
+		errs.Panic(err)
 		app.Logger().Infoln("connected to emailing service")
 
 		pusherConn, err := app.DialExternalService(ctx, "pusher", grpc.WithBlock())
-		handleErr(err)
+		errs.Panic(err)
 		app.Logger().Infoln("connected to pusher service")
 
 		smsConn, err := app.DialExternalService(ctx, "sms", grpc.WithBlock())
-		handleErr(err)
+		errs.Panic(err)
 		app.Logger().Infoln("connected to sms service")
 
 		callConn, err := app.DialExternalService(ctx, "call", grpc.WithBlock())
-		handleErr(err)
+		errs.Panic(err)
 		app.Logger().Infoln("connected to call service")
 
 		subscriberConn, err := app.DialExternalService(ctx, "subscriber", grpc.WithBlock())
-		handleErr(err)
+		errs.Panic(err)
 		app.Logger().Infoln("connected to subscriber service")
 
 		app.Logger().Infoln("connected to all services")
@@ -92,17 +113,11 @@ func main() {
 			CallClient:       call.NewCallAPIClient(callConn),
 			SubscriberClient: subscriber.NewSubscriberAPIClient(subscriberConn),
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		messaging.RegisterMessagingServer(app.GRPCServer(), messagingAPI)
-		handleErr(messaging.RegisterMessagingHandler(ctx, app.RuntimeMux(), app.ClientConn()))
+		errs.Panic(messaging.RegisterMessagingHandler(ctx, app.RuntimeMux(), app.ClientConn()))
 
 		return nil
 	})
-}
-
-func handleErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

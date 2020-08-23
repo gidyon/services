@@ -10,6 +10,7 @@ import (
 	sms_app "github.com/gidyon/services/internal/messaging/sms"
 
 	"github.com/gidyon/services/pkg/api/messaging/sms"
+	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -20,11 +21,11 @@ func main() {
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Create service instance
 	app, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -57,16 +58,10 @@ func main() {
 			APIPassword:   os.Getenv("SMS_API_PASSWORD"),
 			APIURL:        os.Getenv("SMS_API_URL"),
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		sms.RegisterSMSAPIServer(app.GRPCServer(), smsAPI)
 
 		return nil
 	})
-}
-
-func handleErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

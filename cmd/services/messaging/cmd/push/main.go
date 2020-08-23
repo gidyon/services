@@ -10,6 +10,7 @@ import (
 	push_app "github.com/gidyon/services/internal/messaging/push"
 
 	"github.com/gidyon/services/pkg/api/messaging/push"
+	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -20,11 +21,11 @@ func main() {
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Create service instance
 	app, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -52,16 +53,10 @@ func main() {
 			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
 			FCMServerKey:  os.Getenv("FCM_SERVER_KEY"),
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		push.RegisterPushMessagingServer(app.GRPCServer(), pushAPI)
 
 		return nil
 	})
-}
-
-func handleErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

@@ -10,6 +10,7 @@ import (
 	call_app "github.com/gidyon/services/internal/messaging/call"
 
 	"github.com/gidyon/services/pkg/api/messaging/call"
+	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -20,11 +21,11 @@ func main() {
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Create service
 	callSrv, err := micro.NewService(ctx, cfg, nil)
-	handleErr(err)
+	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
@@ -51,16 +52,10 @@ func main() {
 			Logger:        callSrv.Logger(),
 			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
 		})
-		handleErr(err)
+		errs.Panic(err)
 
 		call.RegisterCallAPIServer(callSrv.GRPCServer(), callAPI)
 
 		return nil
 	})
-}
-
-func handleErr(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
