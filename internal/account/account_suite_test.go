@@ -2,7 +2,6 @@ package account
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"os"
 	"testing"
@@ -12,12 +11,13 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/conn"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/mocks"
 	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -40,9 +40,14 @@ const (
 )
 
 func startDB() (*gorm.DB, error) {
-	param := "charset=utf8&parseTime=true"
-	dsn := fmt.Sprintf("root:hakty11@tcp(%s)/%s?%s", dbAddress, schema, param)
-	return gorm.Open("mysql", dsn)
+	return conn.OpenGormConn(&conn.DBOptions{
+		Dialect:  "mysql",
+		Host:     "localhost",
+		Port:     "3306",
+		User:     "root",
+		Password: "hakty11",
+		Schema:   schema,
+	})
 }
 
 var _ = BeforeSuite(func() {
@@ -61,7 +66,7 @@ var _ = BeforeSuite(func() {
 	})
 
 	// Logger
-	logger := micros.NewLogger("account service")
+	logger := micro.NewLogger("account service")
 
 	// Secure cookie
 	sc := securecookie.New([]byte(randomdata.RandStringRunes(32)), []byte(randomdata.RandStringRunes(32)))

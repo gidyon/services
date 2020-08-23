@@ -78,7 +78,7 @@ func NewSubscriberAPIServer(
 	}
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Subscriber API", "users")
 	if err != nil {
 		return nil, err
 	}

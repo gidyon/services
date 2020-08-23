@@ -22,7 +22,7 @@ func createAdmin(accountState account.AccountState) (string, error) {
 	accountPB.State = accountState
 
 	// Get admin model
-	accountDB, err := getAccountDB(accountPB)
+	accountDB, err := GetAccountDB(accountPB)
 	if err != nil {
 		return "", err
 	}

@@ -67,7 +67,7 @@ var _ = Describe("Sign in a user @signin", func() {
 	})
 
 	Describe("Signing a user with valid request", func() {
-		Describe("Signing user with missing request parts", func() {
+		Describe("Signing user", func() {
 			It("should succeed when email is missing but phone is not", func() {
 				signInReq.Account.Email = ""
 				signInRes, err := AccountAPI.SignInExternal(ctx, signInReq)

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 	"github.com/gidyon/services/pkg/mocks"
 
@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 
 	ctx := context.Background()
 
-	logger := micros.NewLogger("email")
+	logger := micro.NewLogger("email")
 
 	opt := &Options{
 		Logger:        logger,

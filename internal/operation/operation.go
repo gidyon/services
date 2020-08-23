@@ -63,7 +63,7 @@ func NewOperationAPIService(ctx context.Context, opt *Options) (operation.Operat
 		return nil, err
 	}
 
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Operation API", "users")
 	if err != nil {
 		return nil, err
 	}

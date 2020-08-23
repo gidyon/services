@@ -56,7 +56,7 @@ func NewPushMessagingServer(ctx context.Context, opt *Options) (push.PushMessagi
 	}
 
 	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Pusher API", "users")
 	if err != nil {
 		return nil, err
 	}

@@ -2,10 +2,10 @@ package account
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html/template"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/gorilla/securecookie"
+	"gorm.io/gorm"
 
 	"google.golang.org/grpc/grpclog"
 
@@ -28,7 +29,6 @@ import (
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/jinzhu/gorm"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -78,7 +78,7 @@ func newHasher(salt string) (*hashids.HashID, error) {
 	return hashids.NewWithData(hd)
 }
 
-// NewAccountAPI creates a singleton of an AccountAPIServer
+// NewAccountAPI creates an account API singleton
 func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer, error) {
 	// Validation
 	var err error
@@ -113,7 +113,7 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 	}
 
 	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Accounts Service", "users")
 	if err != nil {
 		return nil, err
 	}
@@ -137,9 +137,13 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		hasher:             hasher,
 		cookier:            opt.SecureCookie,
 		setCookie: func(ctx context.Context, cookie string) error {
-			err := grpc.SetHeader(ctx, metadata.Pairs("Set-Cookie", cookie))
+			err := grpc.SetHeader(ctx, metadata.Pairs("set-cookie", cookie))
 			if err != nil {
 				return errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set cookie")
+			}
+			err = grpc.SetHeader(ctx, metadata.Pairs("access-control-expose-headers", "set-cookie"))
+			if err != nil {
+				return errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to expose set-cookie header")
 			}
 			return nil
 		},
@@ -158,7 +162,7 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 	}
 
 	// Perform auto migration
-	err = accountAPI.sqlDB.AutoMigrate(&Account{}).Error
+	err = accountAPI.sqlDB.AutoMigrate(&Account{})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to automigrate accounts table")
 	}
@@ -199,12 +203,14 @@ func (accountAPI *accountAPIServer) SignInExternal(
 	// Verify ID token
 	_, err = accountAPI.firebaseAuthClient.VerifyIDToken(ctx, signInReq.AuthToken)
 	if err != nil {
-		return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to verify ID token")
+		return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to verify firebase ID token")
 	}
 
 	accountDB := &Account{}
 
 	shouldUpdateUser := true
+
+	var ID uint
 
 	// Get user
 	switch {
@@ -215,70 +221,89 @@ func (accountAPI *accountAPIServer) SignInExternal(
 	}
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+		ID = accountDB.ID
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Create user
-		accountDB, err = getAccountDB(signInReq.Account)
+		accountDB, err = GetAccountDB(signInReq.Account)
 		if err != nil {
 			return nil, err
 		}
-		accountDB.AccountState = 1
+		accountDB.AccountState = account.AccountState_ACTIVE.String()
 		err = accountAPI.sqlDB.Create(accountDB).Error
 		if err != nil {
-			return nil, errs.SQLQueryFailed(err, "create")
+			return nil, errs.FailedToSave("account", err)
 		}
 		shouldUpdateUser = false
+		ID = accountDB.ID
 	default:
-		return nil, errs.SQLQueryFailed(err, "select")
+		return nil, errs.FailedToSave("account", err)
 	}
 
 	if shouldUpdateUser {
-		switch {
-		case signInReq.Account.Email != "":
-			err = accountAPI.sqlDB.Table(accountsTable).Where("email = ?", signInReq.Account.Email).
-				Updates(accountDB).Error
-		case signInReq.Account.Phone != "":
-			err = accountAPI.sqlDB.Table(accountsTable).Where("phone = ?", signInReq.Account.Phone).
-				Updates(accountDB).Error
-		}
+		err = accountAPI.sqlDB.Table(accountsTable).Where("id = ?", ID).
+			Updates(accountDB).Error
 		if err != nil {
-			return nil, errs.SQLQueryFailed(err, "update")
+			return nil, errs.FailedToUpdate("account", err)
 		}
 	}
 
-	accountID := fmt.Sprint(accountDB.ID)
+	return accountAPI.updateSession(ctx, accountDB, "")
+}
 
-	// Generate jwt
-	token, err := accountAPI.authAPI.GenToken(ctx, &auth.Payload{
-		ID:    accountID,
-		Names: accountDB.Names,
-		Group: accountDB.PrimaryGroup,
-	}, 0)
-	if err != nil {
-		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
+func (accountAPI *accountAPIServer) RefreshSession(
+	ctx context.Context, req *account.RefreshSessionRequest,
+) (*account.SignInResponse, error) {
+	// Request must not be nil
+	if req == nil {
+		return nil, errs.NilObject("RefreshSessionRequest")
 	}
 
-	// Set Cookie in response header
-	encoded, err := accountAPI.cookier.Encode(auth.CookieName(), token)
-	if err == nil {
-		cookie := &http.Cookie{
-			Name:     auth.CookieName(),
-			Value:    encoded,
-			Path:     "/",
-			HttpOnly: true,
-		}
-		err = accountAPI.setCookie(ctx, cookie.String())
+	// Validation
+	var ID int
+	var err error
+	switch {
+	case req.RefreshToken == "":
+		return nil, errs.NilObject("refresh token")
+	case req.AccountId == "":
+		return nil, errs.NilObject("account id")
+	default:
+		ID, err = strconv.Atoi(req.AccountId)
 		if err != nil {
-			return nil, err
+			return nil, errs.IncorrectVal("account id")
 		}
 	}
 
-	// Populate response
-	return &account.SignInResponse{
-		Token:     token,
-		AccountId: accountID,
-		State:     account.AccountState(accountDB.AccountState),
-		Group:     accountDB.PrimaryGroup,
-	}, nil
+	// Ensure that refresh token already exists
+	ok, err := accountAPI.redisDB.SIsMember(refreshTokenSet(), req.RefreshToken).Result()
+	switch {
+	case err == nil:
+		if !ok {
+			return nil, errs.WrapMessage(codes.Unauthenticated, "not signed in")
+		}
+	case errors.Is(err, redis.Nil) || !ok:
+		return nil, errs.WrapMessage(codes.Unauthenticated, "not signed in")
+	default:
+		return nil, errs.RedisCmdFailed(err, "get")
+	}
+
+	accountDB := &Account{}
+	err = accountAPI.sqlDB.First(accountDB, "id=?", ID).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.DoesNotExist("account", req.AccountId)
+	default:
+		return nil, errs.FailedToFind("account", err)
+	}
+
+	switch {
+	case accountDB.AccountState == account.AccountState_BLOCKED.String():
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
+	case accountDB.AccountState == account.AccountState_DELETED.String():
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is deleted")
+	}
+
+	return accountAPI.updateSession(ctx, accountDB, req.AccountGroup)
 }
 
 func (accountAPI *accountAPIServer) ActivateAccount(
@@ -305,7 +330,7 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	}
 
 	// Retrieve token claims
-	payload, err := accountAPI.authAPI.AuthorizeActorOrGroup(
+	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(
 		auth.AddTokenMD(ctx, activateReq.Token), activateReq.Token, auth.AdminGroup(),
 	)
 	if err != nil {
@@ -336,16 +361,16 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	}
 
 	// Check that account exists
-	if notFound := accountAPI.sqlDB.Select("account_state").
-		First(&Account{}, "id=?", ID).RecordNotFound(); notFound {
+	if errors.Is(accountAPI.sqlDB.Select("account_state").
+		First(&Account{}, "id=?", ID).Error, gorm.ErrRecordNotFound) {
 		return nil, errs.DoesNotExist("account", activateReq.AccountId)
 	}
 
 	// Update the model of the user to activate their account
 	err = accountAPI.sqlDB.Table(accountsTable).Where("id=?", ID).
-		Update("account_state", int8(account.AccountState_ACTIVE)).Error
+		Update("account_state", account.AccountState_ACTIVE.String()).Error
 	if err != nil {
-		return nil, errs.SQLQueryFailed(err, "UPDATE")
+		return nil, errs.FailedToUpdate("account", err)
 	}
 
 	return &account.ActivateAccountResponse{}, nil
@@ -360,7 +385,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroup(ctx, updateReq.GetAccount().GetAccountId(), auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -384,18 +409,18 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 		First(accountDB, "id=?", updateReq.Account.AccountId).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("account", updateReq.Account.AccountId)
 	default:
-		return nil, errs.SQLQueryFailed(err, "SELECT")
+		return nil, errs.FailedToFind("account", err)
 	}
 
 	// Check that account is not blocked
-	if accountDB.AccountState == int8(account.AccountState_BLOCKED) {
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
-	accountDBX, err := getAccountDB(updateReq.Account)
+	accountDBX, err := GetAccountDB(updateReq.Account)
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +485,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		Find(accountDB, "email=? OR phone=?", req.Payload, req.Payload).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		emailOrPhone := func(err error) string {
 			if strings.Contains(strings.ToLower(err.Error()), "email") {
 				return "email " + req.Payload
@@ -472,13 +497,13 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		}
 		return nil, errs.WrapMessagef(codes.NotFound, "account with %s does not exist", emailOrPhone(err))
 	default:
-		return nil, errs.SQLQueryFailed(err, "FIND")
+		return nil, errs.FailedToFind("account", err)
 	}
 
 	accountID := fmt.Sprint(accountDB.ID)
 
 	// Authorize the actor
-	_, err = accountAPI.authAPI.AuthorizeActorOrGroup(ctx, accountID, auth.AdminGroup())
+	_, err = accountAPI.authAPI.AuthorizeActorOrGroups(ctx, accountID, auth.AdminGroup())
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to authorize actor")
 	}
@@ -495,7 +520,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	jwtToken, err := accountAPI.authAPI.GenToken(ctx, &auth.Payload{
 		ID:    accountID,
 		Names: accountDB.Names,
-	}, int64(6*time.Hour))
+	}, time.Now().Add(6*time.Hour))
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 	}
@@ -514,10 +539,10 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		Type:        messaging.MessageType_ALERT,
 		SendMethods: []messaging.SendMethod{req.SendMethod},
 		Details: map[string]string{
-			"from": "accounts API",
-			"app":  accountAPI.appName,
+			"origin": "Accounts API",
+			"app":    accountAPI.appName,
 		},
-	}, grpc.WaitForReady(true))
+	})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to send message")
 	}
@@ -536,7 +561,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroup(ctx, updatePrivateReq.AccountId, auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -562,14 +587,14 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	err = accountAPI.sqlDB.Select("account_state").First(accountDB, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("account", updatePrivateReq.AccountId)
 	default:
-		return nil, errs.SQLQueryFailed(err, "SELECT")
+		return nil, errs.FailedToFind("account", err)
 	}
 
 	// Check that account is not blocked
-	if accountDB.AccountState == int8(account.AccountState_BLOCKED) {
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account not active")
 	}
 
@@ -610,7 +635,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	// Update the model
 	err = accountAPI.sqlDB.Model(privateDB).Where("id=?", ID).Updates(privateDB).Error
 	if err != nil {
-		return nil, errs.SQLQueryFailed(err, "UpdatePrivateProfile")
+		return nil, errs.FailedToUpdate("account", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -625,7 +650,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroup(ctx, delReq.AccountId, auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -647,21 +672,21 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	err = accountAPI.sqlDB.Select("account_state").First(accountDB, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("account", delReq.AccountId)
 	default:
-		return nil, errs.SQLQueryFailed(err, "SELECT")
+		return nil, errs.FailedToFind("account", err)
 	}
 
 	// Check that account is not blocked
-	if accountDB.AccountState == int8(account.AccountState_BLOCKED) {
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
 	// Soft delete their account
 	err = accountAPI.sqlDB.Delete(accountDB, "id=?", ID).Error
 	if err != nil {
-		return nil, errs.SQLQueryFailed(err, "DELETE")
+		return nil, errs.FailedToDelete("account", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -676,7 +701,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	}
 
 	// Authorization
-	payload, err := accountAPI.authAPI.AuthorizeActorOrGroup(ctx, getReq.AccountId, auth.AdminGroup())
+	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -707,23 +732,23 @@ func (accountAPI *accountAPIServer) GetAccount(
 	}
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("account", getReq.AccountId)
 	default:
-		return nil, errs.SQLQueryFailed(err, "SELECT")
+		return nil, errs.FailedToFind("account", err)
 	}
 
 	// Account should not be blocked
-	if accountDB.AccountState == int8(account.AccountState_BLOCKED) && !getReq.Priviledge {
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() && !getReq.Priviledge {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
-	accountPB, err := getAccountPB(accountDB)
+	accountPB, err := GetAccountPB(accountDB)
 	if err != nil {
 		return nil, err
 	}
 
-	return getAccountPBView(accountPB, getReq.GetView()), nil
+	return GetAccountPBView(accountPB, getReq.GetView()), nil
 }
 
 func (accountAPI *accountAPIServer) BatchGetAccounts(
@@ -774,13 +799,13 @@ func (accountAPI *accountAPIServer) ExistAccount(
 		return &account.ExistAccountResponse{
 			Exists: true,
 		}, nil
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Account dosn't exist
 		return &account.ExistAccountResponse{
 			Exists: false,
 		}, nil
 	default:
-		return nil, errs.SQLQueryFailed(err, "SELECT")
+		return nil, errs.FailedToFind("account", err)
 	}
 }
 
@@ -795,7 +820,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	// Authenticate the request
-	err := accountAPI.authAPI.AuthenticateRequest(ctx)
+	payload, err := accountAPI.authAPI.AuthenticateRequestV2(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -823,22 +848,28 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	// Apply filter criterias
 	db := generateWhereCondition(accountAPI.sqlDB, listReq.GetListCriteria())
 
-	err = db.Unscoped().Limit(pageSize).Order("id DESC").
-		Find(&accountsDB).Error
+	if payload.Group == auth.AdminGroup() {
+		db = db.Unscoped()
+	}
+
+	// Order by ID
+	db = db.Limit(int(pageSize)).Order("id DESC")
+
+	err = db.Find(&accountsDB).Error
 	switch {
 	case err == nil:
 	default:
-		return nil, errs.SQLQueryFailed(err, "LIST")
+		return nil, errs.FailedToFind("accounts", err)
 	}
 
 	accountsPB := make([]*account.Account, 0, len(accountsDB))
 
 	for _, accountDB := range accountsDB {
-		accountPB, err := getAccountPB(accountDB)
+		accountPB, err := GetAccountPB(accountDB)
 		if err != nil {
 			return nil, err
 		}
-		accountsPB = append(accountsPB, getAccountPBView(accountPB, listReq.GetView()))
+		accountsPB = append(accountsPB, GetAccountPBView(accountPB, listReq.GetView()))
 		id = accountDB.ID
 	}
 
@@ -867,7 +898,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	// Authenticate the request
-	err := accountAPI.authAPI.AuthenticateRequest(ctx)
+	payload, err := accountAPI.authAPI.AuthenticateRequestV2(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -885,7 +916,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 		pageSize = defaultPageSize
 	}
 
-	var id uint
+	var ID uint
 
 	// Get last id from page token
 	pageToken := searchReq.GetPageToken()
@@ -894,7 +925,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
-		id = uint(ids[0])
+		ID = uint(ids[0])
 	}
 
 	accountsDB := make([]*Account, 0, pageSize)
@@ -902,32 +933,43 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Apply filter criterias
 	db := generateWhereCondition(accountAPI.sqlDB, searchReq.GetSearchCriteria())
 
+	if payload.Group == auth.AdminGroup() {
+		db = db.Unscoped()
+	}
+
+	// Order by ID
+	db = db.Limit(int(pageSize)).Order("id DESC")
+
 	parsedQuery := dbutil.ParseQuery(searchReq.Query)
 
-	err = db.Unscoped().Limit(pageSize).Order("id DESC").
-		Find(&accountsDB, "MATCH(email, phone) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
-		Error
+	if searchReq.SearchLinkedAccounts {
+		err = db.Find(&accountsDB, "MATCH(email, phone, linked_accounts) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
+			Error
+	} else {
+		err = db.Find(&accountsDB, "MATCH(email, phone) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
+			Error
+	}
 	switch {
 	case err == nil:
 	default:
-		return nil, errs.SQLQueryFailed(err, "SEARCH")
+		return nil, errs.FailedToFind("accounts", err)
 	}
 
 	accountsPB := make([]*account.Account, 0, len(accountsDB))
 
 	for _, accountDB := range accountsDB {
-		accountPB, err := getAccountPB(accountDB)
+		accountPB, err := GetAccountPB(accountDB)
 		if err != nil {
 			return nil, err
 		}
-		accountsPB = append(accountsPB, getAccountPBView(accountPB, searchReq.GetView()))
-		id = accountDB.ID
+		accountsPB = append(accountsPB, GetAccountPBView(accountPB, searchReq.GetView()))
+		ID = accountDB.ID
 	}
 
 	var token string
 	if int(pageSize) == len(accountsDB) {
 		// Next page token
-		token, err = accountAPI.hasher.EncodeInt64([]int64{int64(id)})
+		token, err = accountAPI.hasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}
@@ -947,11 +989,11 @@ func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
 	// Filter by account state
 	switch {
 	case criteria.ShowActiveAccounts:
-		db = db.Where("account_state = ?", account.AccountState_ACTIVE)
+		db = db.Where("account_state = ?", account.AccountState_ACTIVE.String())
 	case criteria.ShowInactiveAccounts:
-		db = db.Where("account_state = ?", account.AccountState_INACTIVE)
+		db = db.Where("account_state = ?", account.AccountState_INACTIVE.String())
 	case criteria.ShowBlockedAccounts:
-		db = db.Where("account_state = ?", account.AccountState_BLOCKED)
+		db = db.Where("account_state = ?", account.AccountState_BLOCKED.String())
 	}
 
 	// Filter by gender

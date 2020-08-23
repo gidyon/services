@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 	"github.com/gidyon/services/pkg/api/operation"
 	"github.com/gidyon/services/pkg/mocks"
 	"github.com/go-redis/redis"
@@ -37,7 +37,7 @@ var _ = BeforeSuite(func() {
 
 	var err error
 
-	logger := micros.NewLogger("operation_app")
+	logger := micro.NewLogger("operation_app")
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:    redisAddress,

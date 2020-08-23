@@ -7,7 +7,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 
 	"github.com/gidyon/services/pkg/api/subscriber"
 	"github.com/gidyon/services/pkg/mocks"
@@ -47,7 +47,7 @@ var _ = BeforeSuite(func() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger := micros.NewLogger("subscriber_app")
+	logger := micro.NewLogger("subscriber_app")
 	channelClient := mocks.ChannelAPI
 	accountClient := mocks.AccountAPI
 

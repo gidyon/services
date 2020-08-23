@@ -5,7 +5,7 @@ import (
 
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 const accountsTable = "accounts"
@@ -21,12 +21,13 @@ type Account struct {
 	Gender           string `gorm:"index:query_index;type:varchar(10);default:'unknown'"`
 	Nationality      string `gorm:"type:varchar(50);default:'Kenyan'"`
 	ProfileURL       string `gorm:"type:varchar(256)"`
+	LinkedAccounts   string `gorm:"type:varchar(256)"`
 	SecurityQuestion string `gorm:"type:varchar(50)"`
 	SecurityAnswer   string `gorm:"type:varchar(50)"`
 	Password         string `gorm:"type:text"`
 	PrimaryGroup     string `gorm:"index:query_index;type:varchar(50);not null"`
 	SecondaryGroups  []byte `gorm:"type:json"`
-	AccountState     int8   `gorm:"index:query_index;type:tinyint(1)"`
+	AccountState     string `gorm:"index:query_index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
 	gorm.Model
 }
 
@@ -77,52 +78,62 @@ func (u *Account) AfterFind() (err error) {
 	return
 }
 
-func getAccountPB(accountDB *Account) (*account.Account, error) {
+// GetAccountPB converts account db model to protobuf Account message
+func GetAccountPB(accountDB *Account) (*account.Account, error) {
 	if accountDB == nil {
 		return nil, errs.NilObject("account")
 	}
 
+	var state = account.AccountState(account.AccountState_value[accountDB.AccountState])
+	if accountDB.DeletedAt != nil {
+		state = account.AccountState_DELETED
+	}
+
 	accountPB := &account.Account{
-		AccountId:   fmt.Sprint(accountDB.ID),
-		ExternalId:  accountDB.ExternalID,
-		Email:       accountDB.Email,
-		Phone:       accountDB.Phone,
-		DeviceToken: accountDB.DeviceToken,
-		Names:       accountDB.Names,
-		BirthDate:   accountDB.BirthDate,
-		Gender:      accountDB.Gender,
-		Nationality: accountDB.Nationality,
-		ProfileUrl:  accountDB.ProfileURL,
-		Group:       accountDB.PrimaryGroup,
-		State:       account.AccountState(accountDB.AccountState),
+		AccountId:      fmt.Sprint(accountDB.ID),
+		ExternalId:     accountDB.ExternalID,
+		Email:          accountDB.Email,
+		Phone:          accountDB.Phone,
+		DeviceToken:    accountDB.DeviceToken,
+		Names:          accountDB.Names,
+		BirthDate:      accountDB.BirthDate,
+		Gender:         accountDB.Gender,
+		Nationality:    accountDB.Nationality,
+		ProfileUrl:     accountDB.ProfileURL,
+		LinkedAccounts: accountDB.LinkedAccounts,
+		Group:          accountDB.PrimaryGroup,
+		State:          state,
 	}
 
 	return accountPB, nil
 }
 
-func getAccountDB(accountPB *account.Account) (*Account, error) {
+// GetAccountDB converts protobuf Account message to account db model
+func GetAccountDB(accountPB *account.Account) (*Account, error) {
 	if accountPB == nil {
 		return nil, errs.NilObject("account")
 	}
 
 	accountDB := &Account{
-		Email:        accountPB.Email,
-		Phone:        accountPB.Phone,
-		ExternalID:   accountPB.ExternalId,
-		DeviceToken:  accountPB.DeviceToken,
-		Names:        accountPB.Names,
-		BirthDate:    accountPB.BirthDate,
-		Gender:       accountPB.Gender,
-		Nationality:  accountPB.Nationality,
-		ProfileURL:   accountPB.ProfileUrl,
-		PrimaryGroup: accountPB.Group,
-		AccountState: int8(accountPB.State),
+		Email:          accountPB.Email,
+		Phone:          accountPB.Phone,
+		ExternalID:     accountPB.ExternalId,
+		DeviceToken:    accountPB.DeviceToken,
+		Names:          accountPB.Names,
+		BirthDate:      accountPB.BirthDate,
+		Gender:         accountPB.Gender,
+		Nationality:    accountPB.Nationality,
+		ProfileURL:     accountPB.ProfileUrl,
+		LinkedAccounts: accountPB.LinkedAccounts,
+		PrimaryGroup:   accountPB.Group,
+		AccountState:   accountPB.State.String(),
 	}
 
 	return accountDB, nil
 }
 
-func getAccountPBView(accountPB *account.Account, view account.AccountView) *account.Account {
+// GetAccountPBView returns the appropriate view
+func GetAccountPBView(accountPB *account.Account, view account.AccountView) *account.Account {
 	if accountPB == nil {
 		return accountPB
 	}

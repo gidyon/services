@@ -52,7 +52,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, err
 	}
 
-	accountDB, err := getAccountDB(accountPB)
+	accountDB, err := GetAccountDB(accountPB)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	if createReq.GetByAdmin() {
 		// Authenticate the admin
-		p, err := accountAPI.authAPI.AuthorizeGroup(ctx, auth.AdminGroup())
+		p, err := accountAPI.authAPI.AuthorizeGroups(ctx, auth.AdminGroup())
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +75,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		accountState = account.AccountState_ACTIVE
 	}
 
-	accountDB.AccountState = int8(accountState)
+	accountDB.AccountState = accountState.String()
 
 	accountPrivate := createReq.GetPrivateAccount()
 	if accountPrivate != nil {
@@ -92,7 +92,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	}
 
 	// Start a transaction
-	tx := accountAPI.sqlDB.BeginTx(ctx, &sql.TxOptions{
+	tx := accountAPI.sqlDB.Begin(&sql.TxOptions{
 		Isolation: sql.IsolationLevel(0),
 	})
 	defer func() {
@@ -158,7 +158,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			Names:        accountPB.Names,
 			PhoneNumber:  accountPB.Phone,
 			EmailAddress: accountPB.Email,
-		}, time.Now().Add(time.Duration(6*time.Hour)).Unix())
+		}, time.Now().Add(time.Duration(6*time.Hour)))
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 		}

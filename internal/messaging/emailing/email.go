@@ -61,7 +61,7 @@ func NewEmailingAPIServer(ctx context.Context, opt *Options) (emailing.EmailingS
 	}
 
 	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "EMailing API", "users")
 	if err != nil {
 		return nil, err
 	}

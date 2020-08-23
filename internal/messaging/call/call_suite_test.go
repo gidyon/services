@@ -9,7 +9,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -45,7 +45,7 @@ var _ = BeforeSuite(func() {
 
 	ctx := context.Background()
 
-	logger := micros.NewLogger("call")
+	logger := micro.NewLogger("call")
 
 	opt := &Options{
 		Logger:        logger,

@@ -59,7 +59,7 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 	}
 
 	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "SMS API", "users")
 	if err != nil {
 		return nil, err
 	}

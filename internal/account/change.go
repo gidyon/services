@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -17,8 +18,8 @@ import (
 	"github.com/gidyon/services/pkg/utils/mdutil"
 	"github.com/gidyon/services/pkg/utils/templateutil"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/jinzhu/gorm"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
 func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
@@ -30,7 +31,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	}
 
 	// Authorize the admin
-	_, err := accountAPI.authAPI.AuthorizeGroup(ctx, auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeGroups(ctx, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -64,14 +65,14 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 		First(admin, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.WrapMessagef(codes.NotFound, "admin account with id: %s doesn't exist", accountID)
 	default:
 		return nil, errs.SQLQueryFailed(err, "GET")
 	}
 
 	// Admin account must be active
-	if admin.AccountState != int8(account.AccountState_ACTIVE) {
+	if admin.AccountState != account.AccountState_ACTIVE.String() {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account not active")
 	}
 
@@ -85,7 +86,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	err = accountAPI.sqlDB.Unscoped().First(accountDB, "id=?", ID2).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.WrapMessagef(codes.NotFound, "account with id: %s doesn't exist", accountID)
 	default:
 		return nil, errs.SQLQueryFailed(err, "SELECT")
@@ -153,11 +154,11 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_UNBLOCK:
 		// The state must be blocked in order to unblock it
-		if accountDB.AccountState != int8(account.AccountState_BLOCKED) {
+		if accountDB.AccountState != account.AccountState_BLOCKED.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account is not blocked")
 		}
-		err = tx.Update("account_state", int8(account.AccountState_ACTIVE)).Error
+		err = tx.Update("account_state", account.AccountState_ACTIVE.String()).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, errs.WrapErrorWithMsg(err, "failed to unblock account")
@@ -170,7 +171,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_BLOCK:
 		// The state must be active in order to block it
-		if accountDB.AccountState != int8(account.AccountState_ACTIVE) {
+		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account is not active")
 		}
@@ -187,7 +188,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_CHANGE_GROUP:
 		// The state must be active in order to change group it
-		if accountDB.AccountState != int8(account.AccountState_ACTIVE) {
+		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account is not active")
 		}
@@ -209,7 +210,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		)
 
 	case account.UpdateOperation_ADMIN_ACTIVATE:
-		err = tx.Update("account_state", int8(account.AccountState_ACTIVE)).Error
+		err = tx.Update("account_state", account.AccountState_ACTIVE.String()).Error
 		if err != nil {
 			tx.Rollback()
 			return nil, errs.WrapErrorWithMsg(err, "failed to update secondary groups")

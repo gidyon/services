@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -51,7 +51,7 @@ var _ = BeforeSuite(func() {
 	emailClient := mocks.EmailAPI
 	pushClient := mocks.PushAPI
 	subscriberClient := mocks.SubscriberAPI
-	logger := micros.NewLogger("messaging")
+	logger := micro.NewLogger("messaging")
 
 	opt := &Options{
 		SQLDB:            db,

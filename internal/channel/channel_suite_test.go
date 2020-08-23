@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micros"
+	"github.com/gidyon/micro"
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -45,7 +45,7 @@ var _ = BeforeSuite(func() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger := micros.NewLogger("channel_app")
+	logger := micro.NewLogger("channel_app")
 
 	opt := &Options{
 		SQLDB:         db,

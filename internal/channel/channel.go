@@ -66,7 +66,7 @@ func NewChannelAPIServer(
 	}
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Channel", "users")
 	if err != nil {
 		return nil, err
 	}

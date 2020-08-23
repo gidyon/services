@@ -40,7 +40,7 @@ func NewCallAPIServer(ctx context.Context, opt *Options) (call.CallAPIServer, er
 	}
 
 	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey)
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Call API", "users")
 	if err != nil {
 		return nil, err
 	}

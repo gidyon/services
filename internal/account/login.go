@@ -3,16 +3,31 @@ package account
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/auth"
 	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/jinzhu/gorm"
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
+	"gorm.io/gorm"
 )
+
+func getSessionID(accountID string) string {
+	year, month, day := time.Now().Date()
+	return fmt.Sprintf("sessions:%d-%d-%d:%v", year, month, day, accountID)
+}
+
+func refreshTokenSet() string {
+	year, month, day := time.Now().Date()
+	return fmt.Sprintf("refreshtokens:%d-%d-%d", year, month, day)
+}
 
 func (accountAPI *accountAPIServer) SignIn(
 	ctx context.Context, signInReq *account.SignInRequest,
@@ -42,7 +57,7 @@ func (accountAPI *accountAPIServer) SignIn(
 	).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		emailOrPhone := func() string {
 			if strings.Contains(signInReq.Username, "@") {
 				return "email " + signInReq.Username
@@ -64,7 +79,7 @@ func (accountAPI *accountAPIServer) SignIn(
 		)
 	}
 
-	accountPB, err := getAccountPB(accountDB)
+	accountPB, err := GetAccountPB(accountDB)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +95,19 @@ func (accountAPI *accountAPIServer) SignIn(
 		return nil, errs.WrapMessage(codes.Internal, "wrong password")
 	}
 
+	return accountAPI.updateSession(ctx, accountDB, signInReq.GetGroup())
+}
+
+func (accountAPI *accountAPIServer) updateSession(
+	ctx context.Context, accountDB *Account, signInGroup string,
+) (*account.SignInResponse, error) {
+	var (
+		accountID    = fmt.Sprint(accountDB.ID)
+		refreshToken = uuid.New().String()
+		token        string
+		err          error
+	)
+
 	// Secondary groups
 	secondaryGroups := make([]string, 0)
 	if len(accountDB.SecondaryGroups) != 0 {
@@ -89,24 +117,29 @@ func (accountAPI *accountAPIServer) SignIn(
 		}
 	}
 
-	var token string
-	signInGroup := strings.ToUpper(signInReq.GetGroup())
+	signInGroup = strings.ToUpper(signInGroup)
+
+	durStr := os.Getenv("TOKEN_EXPIRATION_MINUTES")
+	dur, err := strconv.Atoi(durStr)
+	if err != nil {
+		dur = 30
+	}
+
 	if signInGroup != "" {
 		var found bool
 		for _, group := range append(secondaryGroups, accountDB.PrimaryGroup) {
 			group := strings.ToUpper(strings.TrimSpace(group))
 			if group == signInGroup {
 				found = true
-				// Generates the token with claims from profile object
+				// Generates JWT
 				token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
-					ID:           fmt.Sprint(accountDB.ID),
-					Names:        accountDB.Names,
-					PhoneNumber:  accountDB.Phone,
-					EmailAddress: accountDB.Email,
-					Group:        signInGroup,
-				}, 0)
+					ID:    fmt.Sprint(accountDB.ID),
+					Names: accountDB.Names,
+					Group: signInGroup,
+				}, time.Now().Add(time.Duration(dur)*time.Minute))
 				if err != nil {
-					return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
+					return nil,
+						errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 				}
 				break
 			}
@@ -115,17 +148,57 @@ func (accountAPI *accountAPIServer) SignIn(
 			return nil,
 				errs.WrapMessagef(codes.InvalidArgument, "group %s not associated with the account", signInGroup)
 		}
+	} else {
+		signInGroup = accountDB.PrimaryGroup
+		// Generate JWT
+		token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
+			ID:    accountID,
+			Names: accountDB.Names,
+			Group: accountDB.PrimaryGroup,
+		}, time.Now().Add(time.Duration(dur)*time.Minute))
+		if err != nil {
+			return nil,
+				errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
+		}
+	}
+
+	// Set refresh token
+	err = accountAPI.redisDB.SAdd(refreshTokenSet(), refreshToken, 0).Err()
+	if err != nil {
+		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set refresh token")
 	}
 
 	// Set Cookie in response header
-	encoded, err := accountAPI.cookier.Encode(auth.CookieName(), token)
+	encoded, err := accountAPI.cookier.Encode(auth.JWTCookie(), token)
 	if err == nil {
+		// JWT cookie
 		cookie := &http.Cookie{
-			Name:     auth.CookieName(),
+			Name:     auth.JWTCookie(),
 			Value:    encoded,
 			Path:     "/",
 			HttpOnly: true,
+			Expires:  time.Now().Add(time.Hour * 8760),
+			SameSite: http.SameSiteNoneMode,
+			Secure:   true,
 		}
+		err = accountAPI.setCookie(ctx, cookie.String())
+		if err != nil {
+			return nil, err
+		}
+
+		// Refresh token
+		cookie.Name = auth.RefreshCookie()
+		cookie.Value = refreshToken
+		cookie.HttpOnly = false
+		err = accountAPI.setCookie(ctx, cookie.String())
+		if err != nil {
+			return nil, err
+		}
+
+		// Acccount ID Cookie
+		cookie.Name = auth.AccountIDCookie()
+		cookie.Value = accountID
+		cookie.HttpOnly = false
 		err = accountAPI.setCookie(ctx, cookie.String())
 		if err != nil {
 			return nil, err
@@ -134,9 +207,10 @@ func (accountAPI *accountAPIServer) SignIn(
 
 	// Return token
 	return &account.SignInResponse{
-		Token:     token,
-		AccountId: fmt.Sprint(accountDB.ID),
-		State:     accountPB.State,
-		Group:     signInGroup,
+		AccountId:    accountID,
+		Token:        token,
+		RefreshToken: refreshToken,
+		State:        account.AccountState(account.AccountState_value[accountDB.AccountState]),
+		Group:        signInGroup,
 	}, nil
 }
