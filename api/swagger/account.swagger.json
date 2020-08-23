@@ -1,9 +1,23 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "account.proto",
-    "version": "version not set"
+    "title": "Accounts Service - Gideon Kamau",
+    "description": "Manages user accounts and sign in user to their accounts",
+    "version": "0.1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/account.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "BSD 3-Clause License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE.txt"
+    }
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
@@ -182,7 +196,7 @@
     },
     "/api/accounts/action/activate": {
       "get": {
-        "summary": "ActivateAccounts a created account",
+        "summary": "ActivateAccounts an account",
         "operationId": "AccountAPI_ActivateAccount",
         "responses": {
           "200": {
@@ -210,6 +224,57 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/change-private": {
+      "get": {
+        "summary": "Request to change private account",
+        "operationId": "AccountAPI_RequestChangePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountRequestChangePrivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "fallback_url",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "send_method",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SEND_METHOD_UNSPECIFIED",
+              "EMAIL",
+              "SMS",
+              "CALL",
+              "PUSH"
+            ],
+            "default": "SEND_METHOD_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -286,6 +351,84 @@
             "schema": {
               "$ref": "#/definitions/accountSignInRequest"
             }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/login/external": {
+      "post": {
+        "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
+        "operationId": "AccountAPI_SignInExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/accountSignInExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/login/refresh": {
+      "get": {
+        "summary": "Fetch new JWT using refresh token and updates session",
+        "operationId": "AccountAPI_RefreshSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/accountSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "refresh_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "account_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "account_group",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -453,7 +596,7 @@
     },
     "/api/accounts/{account_id}/private": {
       "patch": {
-        "summary": "Updates user private profile  account information",
+        "summary": "Updates a user private account information",
         "operationId": "AccountAPI_UpdatePrivateAccount",
         "responses": {
           "200": {
@@ -521,57 +664,6 @@
         ]
       }
     },
-    "/api/accounts/{payload}/action/change-private": {
-      "get": {
-        "summary": "Request to change private account",
-        "operationId": "AccountAPI_RequestChangePrivateAccount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/accountRequestChangePrivateAccountResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "payload",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "fallback_url",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "send_method",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "SEND_METHOD_UNSPECIFIED",
-              "EMAIL",
-              "SMS",
-              "CALL",
-              "PUSH"
-            ],
-            "default": "SEND_METHOD_UNSPECIFIED"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
     "/api/accounts:batchGet": {
       "get": {
         "summary": "Retrieves multiple user accounts",
@@ -609,7 +701,7 @@
     },
     "/api/accounts:search": {
       "get": {
-        "summary": "Searches accounts",
+        "summary": "Searches accounts and linked accounts",
         "operationId": "AccountAPI_SearchAccounts",
         "responses": {
           "200": {
@@ -627,6 +719,12 @@
         },
         "parameters": [
           {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "page_token",
             "in": "query",
             "required": false,
@@ -638,6 +736,13 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "search_linked_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
           },
           {
             "name": "search_criteria.filter",
@@ -720,12 +825,6 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "query",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "view",
             "in": "query",
             "required": false,
@@ -737,39 +836,6 @@
               "BASIC_VIEW"
             ],
             "default": "FULL_VIEW"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
-    "/api/antibug/accounts/login/external": {
-      "post": {
-        "summary": "Signs in a user from third party",
-        "operationId": "AccountAPI_SignInExternal",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/accountSignInResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/accountSignInExternalRequest"
-            }
           }
         ],
         "tags": [
@@ -815,30 +881,25 @@
         "group": {
           "type": "string"
         },
-        "label": {
-          "type": "string"
-        },
-        "linked_account_a": {
-          "type": "string"
-        },
-        "linked_account_b": {
+        "linked_accounts": {
           "type": "string"
         },
         "state": {
           "$ref": "#/definitions/accountAccountState"
         }
       },
-      "title": "Account contains information about user entity. Can be a user or admin"
+      "description": "Account profile information",
+      "title": "Account"
     },
     "accountAccountState": {
       "type": "string",
       "enum": [
         "BLOCKED",
         "ACTIVE",
-        "INACTIVE"
+        "INACTIVE",
+        "DELETED"
       ],
-      "default": "BLOCKED",
-      "title": "AccountState represent the state of an account at any point"
+      "default": "BLOCKED"
     },
     "accountAccountView": {
       "type": "string",
@@ -848,8 +909,7 @@
         "SEARCH_VIEW",
         "BASIC_VIEW"
       ],
-      "default": "FULL_VIEW",
-      "title": "AccountView returns only subset of account information"
+      "default": "FULL_VIEW"
     },
     "accountAccounts": {
       "type": "object",
@@ -864,11 +924,12 @@
           }
         }
       },
-      "title": "Accounts is a collection of accounts"
+      "description": "Collection of accounts",
+      "title": "Accounts"
     },
     "accountActivateAccountResponse": {
       "type": "object",
-      "title": "ActivateAccountResponse is response after activating an account"
+      "title": "ActivateAccountResponse"
     },
     "accountAdminUpdateAccountRequest": {
       "type": "object",
@@ -892,7 +953,13 @@
           }
         }
       },
-      "title": "AdminUpdateAccountRequest is request to mutate an account by administrator"
+      "description": "Request to update an account data by admininstrator",
+      "title": "AdminUpdateAccountRequest",
+      "required": [
+        "account_id",
+        "admin_id",
+        "update_operation"
+      ]
     },
     "accountBatchGetAccountsResponse": {
       "type": "object",
@@ -904,7 +971,7 @@
           }
         }
       },
-      "title": "BatchGetAccountsResponse is response after calling batch get"
+      "title": "BatchGetAccountsResponse"
     },
     "accountCreateAccountRequest": {
       "type": "object",
@@ -927,7 +994,11 @@
           "type": "string"
         }
       },
-      "title": "CreateAccountRequest is request to create an account"
+      "description": "Request to create an account",
+      "title": "CreateAccountRequest",
+      "required": [
+        "account"
+      ]
     },
     "accountCreateAccountResponse": {
       "type": "object",
@@ -936,7 +1007,7 @@
           "type": "string"
         }
       },
-      "title": "CreateAccountResponse is response after creating an account"
+      "title": "CreateAccountResponse"
     },
     "accountCriteria": {
       "type": "object",
@@ -988,7 +1059,8 @@
           }
         }
       },
-      "title": "Criteria contains filter criteria filtering colections of accounts"
+      "description": "Filtering criteria for fetching collection of accounts",
+      "title": "Criteria"
     },
     "accountExistAccountResponse": {
       "type": "object",
@@ -998,7 +1070,7 @@
           "format": "boolean"
         }
       },
-      "title": "ExistAccountResponse is response after checking whether account exist"
+      "title": "ExistAccountResponse"
     },
     "accountGetLinkedAccountsResponse": {
       "type": "object",
@@ -1010,7 +1082,7 @@
           }
         }
       },
-      "title": "GetLinkedAccountsResponse is response with linked accounts"
+      "title": "GetLinkedAccountsResponse"
     },
     "accountPrivateAccount": {
       "type": "object",
@@ -1028,7 +1100,8 @@
           "type": "string"
         }
       },
-      "title": "PrivateAccount contains account sensitive information such as password and security QA"
+      "description": "Contains account sensitive information such as password and security QA",
+      "title": "PrivateAccount"
     },
     "accountRequestChangePrivateAccountResponse": {
       "type": "object",
@@ -1037,7 +1110,7 @@
           "type": "string"
         }
       },
-      "title": "RequestChangePrivateAccountResponse is response after changing private account"
+      "title": "RequestChangePrivateAccountResponse"
     },
     "accountSignInExternalRequest": {
       "type": "object",
@@ -1049,7 +1122,12 @@
           "type": "string"
         }
       },
-      "title": "SignInExternalRequest logins a user using external authentication provider"
+      "description": "Request to sign in using external provider like Google, Facebook or Github",
+      "title": "SignInExternalRequest",
+      "required": [
+        "account",
+        "auth_token"
+      ]
     },
     "accountSignInRequest": {
       "type": "object",
@@ -1057,22 +1135,33 @@
         "username": {
           "type": "string"
         },
-        "group": {
+        "password": {
           "type": "string"
         },
-        "password": {
+        "group": {
           "type": "string"
         }
       },
-      "title": "SignInRequest is request to login to an account"
+      "description": "Request to sign in to an account",
+      "title": "SignInRequest",
+      "required": [
+        "username",
+        "password"
+      ]
     },
     "accountSignInResponse": {
       "type": "object",
       "properties": {
-        "token": {
+        "session_id": {
           "type": "string"
         },
         "account_id": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "refresh_token": {
           "type": "string"
         },
         "group": {
@@ -1082,7 +1171,7 @@
           "$ref": "#/definitions/accountAccountState"
         }
       },
-      "title": "SignInResponse is response after login"
+      "title": "SignInRequest"
     },
     "accountUpdateAccountRequest": {
       "type": "object",
@@ -1091,7 +1180,11 @@
           "$ref": "#/definitions/accountAccount"
         }
       },
-      "title": "UpdateAccountRequest is request to update an account"
+      "description": "Request to update an account",
+      "title": "UpdateAccountRequest",
+      "required": [
+        "account"
+      ]
     },
     "accountUpdateOperation": {
       "type": "string",
@@ -1104,8 +1197,7 @@
         "CHANGE_GROUP",
         "ADMIN_ACTIVATE"
       ],
-      "default": "UPDATE_OPERATION_INSPECIFIED",
-      "title": "UpdateOperation is operation kind"
+      "default": "UPDATE_OPERATION_INSPECIFIED"
     },
     "accountUpdatePrivateAccountRequest": {
       "type": "object",
@@ -1120,7 +1212,13 @@
           "type": "string"
         }
       },
-      "title": "UpdatePrivateAccountRequest is request to update an account private information"
+      "description": "Request to update account private information",
+      "title": "UpdatePrivateAccountRequest",
+      "required": [
+        "account_id",
+        "private_account",
+        "change_token"
+      ]
     },
     "messagingSendMethod": {
       "type": "string",
@@ -1138,13 +1236,16 @@
       "type": "object",
       "properties": {
         "type_url": {
-          "type": "string"
+          "type": "string",
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         },
         "value": {
           "type": "string",
-          "format": "byte"
+          "format": "byte",
+          "description": "Must be a valid serialized protocol buffer of the above specified type."
         }
-      }
+      },
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := ptypes.MarshalAny(foo)\n     ...\n     foo := \u0026pb.Foo{}\n     if err := ptypes.UnmarshalAny(any, foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "runtimeError": {
       "type": "object",
@@ -1167,5 +1268,20 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "BasicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }
