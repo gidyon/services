@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gidyon.messaging.emailing;
+package gidyon.apis;
 
 option go_package="github.com/gidyon/services/pkg/api/messaging/emailing";
 
@@ -8,12 +8,20 @@ import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
+message Attachemnt {
+    string filename = 1;
+    string filename_override = 2;
+    string ctype = 3;
+    bytes data = 4;
+}
+
 message Email {
     repeated string destinations = 2;
     string from = 1;
     string subject = 3;
     string body_content_type = 4;
     string body = 5;
+    repeated Attachemnt attachments = 6;
 }
 
 service Emailing {

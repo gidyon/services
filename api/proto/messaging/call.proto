@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gidyon.messaging.call;
+package gidyon.apis;
 
 option go_package="github.com/gidyon/services/pkg/api/messaging/call";
 
