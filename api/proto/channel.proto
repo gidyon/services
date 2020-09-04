@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package="github.com/gidyon/services/pkg/api/channel";
+package gidyon.apis;
 
-package gidyon.channel;
+option go_package="github.com/gidyon/services/pkg/api/channel";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";

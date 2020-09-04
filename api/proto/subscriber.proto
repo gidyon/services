@@ -1,8 +1,9 @@
 syntax = "proto3";
 
+package gidyon.apis;
+
 option go_package="github.com/gidyon/services/pkg/api/subscriber";
 
-package gidyon.subscriber;
 
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";

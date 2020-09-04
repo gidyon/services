@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package gidyon.apis;
+
 import "google/protobuf/empty.proto";
 
 option go_package="github.com/gidyon/services/pkg/api/operation";
