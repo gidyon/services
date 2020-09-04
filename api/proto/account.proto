@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package gidyon.account;
+package gidyon.apis;
 
 option go_package="github.com/gidyon/services/pkg/api/account";
 
@@ -17,7 +17,13 @@ message Account {
 			title: "Account"
 			description: "Account profile information"
 		}
-	};
+    };
+    
+    enum Gender {
+        GENDER_UNSPECIFIED = 0;
+        MALE = 1;
+        FEMALE = 2;
+    }
     string account_id = 1;
     string external_id = 2;
     string email = 3;
@@ -25,7 +31,7 @@ message Account {
     string device_token = 5;
     string names = 6;
     string birth_date = 7;
-    string gender = 8;
+    Gender gender = 8;
     string nationality = 9;
     string profile_url = 11;
     string group = 13;
@@ -119,6 +125,7 @@ message CreateAccountRequest {
     bool update_only = 3;
     bool by_admin = 4;
     string admin_id = 5;
+    bool notify = 6;
 }
 
 message CreateAccountResponse {
@@ -171,7 +178,7 @@ message RequestChangePrivateAccountRequest {
 	};
     string payload = 1 [(google.api.field_behavior) = REQUIRED];
     string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
-    gidyon.messaging.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
+    gidyon.apis.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 message RequestChangePrivateAccountResponse {
