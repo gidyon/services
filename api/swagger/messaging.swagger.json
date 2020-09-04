@@ -35,7 +35,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/messagingBroadCastMessageRequest"
+              "$ref": "#/definitions/apisBroadCastMessageRequest"
             }
           }
         ],
@@ -52,7 +52,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/messagingMessages"
+              "$ref": "#/definitions/apisMessages"
             }
           },
           "default": {
@@ -114,7 +114,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/messagingNewMessagesCount"
+              "$ref": "#/definitions/apisNewMessagesCount"
             }
           },
           "default": {
@@ -176,7 +176,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/messagingSendMessageResponse"
+              "$ref": "#/definitions/apisSendMessageResponse"
             }
           },
           "default": {
@@ -192,7 +192,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/messagingMessage"
+              "$ref": "#/definitions/apisMessage"
             }
           }
         ],
@@ -203,7 +203,7 @@
     }
   },
   "definitions": {
-    "messagingBroadCastMessageRequest": {
+    "apisBroadCastMessageRequest": {
       "type": "object",
       "properties": {
         "channels": {
@@ -213,12 +213,12 @@
           }
         },
         "message": {
-          "$ref": "#/definitions/messagingMessage"
+          "$ref": "#/definitions/apisMessage"
         }
       },
       "title": "BroadCastMessageRequest is request to broadcast message to users"
     },
-    "messagingMessage": {
+    "apisMessage": {
       "type": "object",
       "properties": {
         "message_id": {
@@ -249,12 +249,12 @@
           "format": "boolean"
         },
         "type": {
-          "$ref": "#/definitions/messagingMessageType"
+          "$ref": "#/definitions/apisMessageType"
         },
         "send_methods": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/messagingSendMethod"
+            "$ref": "#/definitions/apisSendMethod"
           }
         },
         "details": {
@@ -266,7 +266,7 @@
       },
       "title": "Message is a message payload"
     },
-    "messagingMessageType": {
+    "apisMessageType": {
       "type": "string",
       "enum": [
         "ALL",
@@ -279,13 +279,13 @@
       "default": "ALL",
       "title": "MessageType is category of a message"
     },
-    "messagingMessages": {
+    "apisMessages": {
       "type": "object",
       "properties": {
         "messages": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/messagingMessage"
+            "$ref": "#/definitions/apisMessage"
           }
         },
         "next_page_token": {
@@ -294,7 +294,7 @@
       },
       "title": "Messages is a collection of user messages"
     },
-    "messagingNewMessagesCount": {
+    "apisNewMessagesCount": {
       "type": "object",
       "properties": {
         "count": {
@@ -304,7 +304,7 @@
       },
       "title": "NewMessagesCount contains the count of new messages"
     },
-    "messagingSendMessageResponse": {
+    "apisSendMessageResponse": {
       "type": "object",
       "properties": {
         "message_id": {
@@ -313,7 +313,7 @@
       },
       "title": "SendMessageResponse is response after sending message contains message id"
     },
-    "messagingSendMethod": {
+    "apisSendMethod": {
       "type": "string",
       "enum": [
         "SEND_METHOD_UNSPECIFIED",

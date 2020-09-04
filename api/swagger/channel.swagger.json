@@ -19,7 +19,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/channelListChannelsResponse"
+              "$ref": "#/definitions/apisListChannelsResponse"
             }
           },
           "default": {
@@ -55,7 +55,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/channelCreateChannelResponse"
+              "$ref": "#/definitions/apisCreateChannelResponse"
             }
           },
           "default": {
@@ -71,7 +71,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/channelCreateChannelRequest"
+              "$ref": "#/definitions/apisCreateChannelRequest"
             }
           }
         ],
@@ -110,7 +110,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/channelUpdateChannelRequest"
+              "$ref": "#/definitions/apisUpdateChannelRequest"
             }
           }
         ],
@@ -127,7 +127,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/channelChannel"
+              "$ref": "#/definitions/apisChannel"
             }
           },
           "default": {
@@ -187,7 +187,7 @@
     }
   },
   "definitions": {
-    "channelChannel": {
+    "apisChannel": {
       "type": "object",
       "properties": {
         "id": {
@@ -213,16 +213,16 @@
       },
       "title": "Channel is a publisher network with subscribers"
     },
-    "channelCreateChannelRequest": {
+    "apisCreateChannelRequest": {
       "type": "object",
       "properties": {
         "channel": {
-          "$ref": "#/definitions/channelChannel"
+          "$ref": "#/definitions/apisChannel"
         }
       },
       "title": "CreateChannelRequest is request to create a new channel"
     },
-    "channelCreateChannelResponse": {
+    "apisCreateChannelResponse": {
       "type": "object",
       "properties": {
         "id": {
@@ -231,13 +231,13 @@
       },
       "title": "CreateChannelResponse is response after creating a channel"
     },
-    "channelListChannelsResponse": {
+    "apisListChannelsResponse": {
       "type": "object",
       "properties": {
         "channels": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/channelChannel"
+            "$ref": "#/definitions/apisChannel"
           }
         },
         "next_page_token": {
@@ -246,14 +246,14 @@
       },
       "title": "ListChannelsResponse is response containing collection of channel resource"
     },
-    "channelUpdateChannelRequest": {
+    "apisUpdateChannelRequest": {
       "type": "object",
       "properties": {
         "owner_id": {
           "type": "string"
         },
         "channel": {
-          "$ref": "#/definitions/channelChannel"
+          "$ref": "#/definitions/apisChannel"
         }
       },
       "title": "UpdateChannelRequest request to update a channel resource"

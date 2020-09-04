@@ -12,6 +12,24 @@
   ],
   "paths": {},
   "definitions": {
+    "apisAttachemnt": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "filename_override": {
+          "type": "string"
+        },
+        "ctype": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
