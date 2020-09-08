@@ -1,0 +1,32 @@
+apiVersion: v1
+entries:
+  account:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2020-09-08T16:46:55.85916+03:00"
+    dependencies:
+    - name: micro
+      repository: '@mycharts'
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    digest: 165d8f5f5550dbdebef9cedcecce885245f2aa1570b7d16654be6a035e4db98d
+    name: account
+    type: application
+    urls:
+    - account-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.17.0
+    created: "2020-09-08T16:46:55.85563+03:00"
+    dependencies:
+    - name: micro
+      repository: '@mycharts'
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    digest: fe74b3fa841e67fbb8f7db4680e43685d49aabff9844343ebb805e6000de5fe4
+    name: account
+    type: application
+    urls:
+    - account-0.1.0.tgz
+    version: 0.1.0
+generated: "2020-09-08T16:46:55.853578+03:00"

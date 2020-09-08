@@ -1,0 +1,6 @@
+dependencies:
+- name: micro
+  repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/charts/
+  version: 0.1.0
+digest: sha256:81c97b1dd330a372af71e83e9888d93bf565829c23eab17aa1bb88e3521377fb
+generated: "2020-09-08T16:50:00.155896+03:00"
