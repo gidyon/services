@@ -1,0 +1,6 @@
+apiVersion: v2
+name: sms
+description: Messaging sms client that sends sms to clients
+type: application
+version: 0.1.0
+appVersion: v1

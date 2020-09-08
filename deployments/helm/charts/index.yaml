@@ -1,0 +1,29 @@
+apiVersion: v1
+entries:
+  account:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-08T04:22:22.488477+03:00"
+    dependencies:
+    - name: micro
+      repository: file://../micro
+      version: 0.1.0
+    description: A Helm chart for Kubernetes
+    digest: 43c68d4319ec136cbb897051fe0f702b626cfcafda011d404c7bf053d4a070d1
+    name: account
+    type: application
+    urls:
+    - account-0.1.0.tgz
+    version: 0.1.0
+  micro:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-08T04:22:22.492285+03:00"
+    description: Chart boilerplate for creating micro services
+    digest: c0231984e9e45b2ebdcfb0bc8091e70200364e04666aee0e54d2c1acca44763d
+    name: micro
+    type: library
+    urls:
+    - micro-0.1.0.tgz
+    version: 0.1.0
+generated: "2020-09-08T04:22:22.486749+03:00"

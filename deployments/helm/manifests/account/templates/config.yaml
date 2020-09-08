@@ -1,0 +1,3 @@
+{{- include "micro.configmap" (list . "account.configmap") -}}
+{{- define "account.configmap" -}}
+{{- end -}}

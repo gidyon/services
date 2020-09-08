@@ -1,0 +1,6 @@
+apiVersion: v2
+name: micro
+description: Chart boilerplate for creating micro services
+type: library
+version: 0.1.0
+appVersion: 1.16.0
