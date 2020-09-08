@@ -8,4 +8,4 @@ appVersion: 1.16.0
 dependencies:
 - name: micro
   version: 0.1.0
-  repository: file://../micro
+  repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/charts/micro
