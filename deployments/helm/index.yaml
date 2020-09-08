@@ -3,13 +3,13 @@ entries:
   account:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-08T16:46:55.85916+03:00"
+    created: "2020-09-08T16:54:17.680957+03:00"
     dependencies:
     - name: micro
       repository: '@mycharts'
       version: 0.1.0
     description: A Helm chart for Kubernetes
-    digest: 165d8f5f5550dbdebef9cedcecce885245f2aa1570b7d16654be6a035e4db98d
+    digest: 79901f75455ee3e78e27e2a0db9149c6b4609d6bf810d1648ad0bb1ace5ac41d
     name: account
     type: application
     urls:
@@ -17,7 +17,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 1.17.0
-    created: "2020-09-08T16:46:55.85563+03:00"
+    created: "2020-09-08T16:54:17.679519+03:00"
     dependencies:
     - name: micro
       repository: '@mycharts'
@@ -29,4 +29,48 @@ entries:
     urls:
     - account-0.1.0.tgz
     version: 0.1.0
-generated: "2020-09-08T16:46:55.853578+03:00"
+  accounts:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-08T16:54:17.68379+03:00"
+    description: A Helm chart for Kubernetes
+    digest: 9689a64304d3827794a1d8edba6bd126079712526fea3ad0f3f8e33c86654a69
+    name: accounts
+    type: application
+    urls:
+    - accounts-0.1.0.tgz
+    version: 0.1.0
+  channel:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-08T16:54:17.684562+03:00"
+    description: Messaging channel that subscribers can subscribe to
+    digest: dbdf33a1014490d91fcd7036e14e0f74a3bf604687486a07155f829e2ee65ed8
+    name: channel
+    type: application
+    urls:
+    - channel-0.1.0.tgz
+    version: 0.1.0
+  micro:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-08T16:54:17.685145+03:00"
+    description: Chart boilerplate for creating micro services
+    digest: 68e8791e790519142d763b780a09c9da85d7fc90a9b8e4c6f09be3d22be93745
+    name: micro
+    type: library
+    urls:
+    - micro-0.1.0.tgz
+    version: 0.1.0
+  subcriber:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2020-09-08T16:54:17.685935+03:00"
+    description: Subscriber service subscribes accounts(subsribers) to multiple channels
+    digest: da5d224b48fac29b245125962f14b47cb0882826102154ee9cc98ca19126e798
+    name: subcriber
+    type: application
+    urls:
+    - subcriber-0.1.0.tgz
+    version: 0.1.0
+generated: "2020-09-08T16:54:17.675942+03:00"
