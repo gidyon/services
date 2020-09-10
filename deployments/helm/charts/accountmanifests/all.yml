@@ -1,0 +1,25 @@
+
+# {{- if .Values.serviceAccount -}}
+# {{- if .Values.serviceAccount.create -}}
+# {{- include "micro.sa" (list . "service.sa") -}}
+# {{- end -}}
+# {{- end -}}
+
+{{- if .Values.serviceAccount -}}
+{{- if .Values.serviceAccount.create -}}
+{{- include "micro.sa" (list . "service.sa") -}}
+{{- end -}}
+{{- end -}}
+{{- define "service.sa" -}}
+{{- end -}}
+
+# {{- include "micro.service" (list . "service.service") -}}
+# {{- define "service.service" -}}
+# {{- end -}}
+
+# {{- include "micro.deployment" (list . "service.deployment") -}}
+# {{- define "service.deployment" -}}
+# {{- end -}}
+
+# {{- define "account.hpa" -}}
+# {{- end -}}

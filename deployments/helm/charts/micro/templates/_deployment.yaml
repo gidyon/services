@@ -1,0 +1,103 @@
+{{- define "micro.deployment.tpl" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "micro.fullname" . }}
+  labels:
+    {{- include "micro.labels" . | nindent 4 }}
+spec:
+{{- if not .Values.autoscaling }}
+  replicas: {{ .Values.replicaCount }}
+{{- else if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "micro.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "micro.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "micro.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        {{- with .Values.command }}
+        command: 
+         {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.args }}
+        args: 
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- with .Values.podSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.config.httpPort }}
+            protocol: TCP
+          - name: grpc
+            containerPort: {{ .Values.config.grpcPort }}
+            protocol: TCP
+        {{- with .Values.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        env:
+        - name: API_HASH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecrets.symmetricKeysCredentials }}
+              key: api-hash-key
+        - name: API_BLOCK_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecrets.symmetricKeysCredentials }}
+              key: api-block-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.existingSecrets.symmetricKeysCredentials }}
+              key: jwt-signing-key
+        {{- range .Values.extraEnv }}
+        - {{- toYaml . | nindent 10 }}
+        {{- end }}
+        volumeMounts:
+        - name: app-config
+          mountPath: /app/configs/
+          readOnly: true
+        {{- range .Values.extraVolume }}
+        - {{- toYaml . | nindent 10 }}
+        {{- end }}
+      volumes:
+      - name: app-config
+        configMap:
+          name: {{ include "micro.fullname" . }}
+      {{- range .Values.extraVolumeMount }}
+      - {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+{{- end -}}
+{{- define "micro.deployment" -}}
+{{- include "micro.util.merge" (append . "micro.deployment.tpl") -}}
+{{- end -}}

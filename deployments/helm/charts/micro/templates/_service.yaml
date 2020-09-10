@@ -1,0 +1,25 @@
+{{- define "micro.service.tpl" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "micro.fullname" . }}
+  labels:
+    {{- include "micro.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.config.serviceType }}
+  ports:
+    - port: {{ .Values.config.httpPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.config.grpcPort }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "micro.selectorLabels" . | nindent 4 }}
+---
+{{- end -}}
+{{- define "micro.service" -}}
+{{- include "micro.util.merge" (append . "micro.service.tpl") -}}
+{{- end -}}
