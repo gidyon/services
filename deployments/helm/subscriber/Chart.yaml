@@ -1,6 +1,0 @@
-apiVersion: v2
-name: subcriber
-description: Subscriber service subscribes accounts(subsribers) to multiple channels
-type: application
-version: 0.1.0
-appVersion: v1

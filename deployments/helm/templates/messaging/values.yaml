@@ -1,0 +1,140 @@
+image: 
+  repository: gidyon/messaging
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# command will set the command to be run overriding the image's command
+command:
+# ['/app/service']
+
+# args is arguments passed when the container is started
+args:
+# ['--config-file=/app/configs/config.yaml']
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+  
+startupProbe:
+  httpGet:
+    path: /api/messaging/health/live
+    scheme: HTTP
+    port: 80
+  periodSeconds: 10
+  failureThreshold: 10
+
+livenessProble:
+  httpGet:
+    path: /api/messaging/health/ready
+    scheme: HTTP
+    port: 80
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 20
+  failureThreshold: 3
+
+resources:
+  limits:
+    # cpu: 2000m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 12Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# replicaCount: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# existingSecrets are secrets that should already exist for the container to run correctly
+existingSecrets:
+  symmetricKeysCredentials: "symmetric-keys"
+
+# extraEnv contains additional environment variables suppliws by the user
+extraEnv:
+- name: SENDER_EMAIL_ADDRESS
+  valueFrom:
+    secretKeyRef:
+      name: smtp-creds
+      key: username
+
+# extraVolume contains additional volumes supplied by user
+extraVolume:
+- name: mysql-creds
+  mountPath: /app/secrets/mysql/
+  readOnly: true
+
+# extraVolumeMount specifies volume mounts for extraVolume
+extraVolumeMount:
+- name: mysql-creds
+  secret:
+    secretName: mysql-creds-v2
+
+# config contains values for the service configuration
+config:
+  serviceName: Messaging API
+  serviceType: ClusterIP
+  httpPort: 80
+  startupSleepSeconds: 10
+  logLevel: -1
+  security:
+    insecure: true
+  externalServices:
+  - name: call
+    address: call:8080
+    required: true
+    k8service: true
+    insecure: true
+  - name: emailing
+    address: emailing:8080
+    required: true
+    k8service: true
+    insecure: true
+  - name: pusher
+    address: pusher:8080
+    required: true
+    k8service: true
+    insecure: true
+  - name: sms
+    address: sms:8080
+    required: true
+    k8service: true
+    insecure: true
+  - name: subscriber
+    address: subscriber:8080
+    required: true
+    k8service: true
+    insecure: true

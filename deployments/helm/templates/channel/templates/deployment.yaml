@@ -1,0 +1,3 @@
+{{- include "micro.deployment" (list . "service.deployment") -}}
+{{- define "service.deployment" -}}
+{{- end -}}

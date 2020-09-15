@@ -1,0 +1,6 @@
+dependencies:
+- name: micro
+  repository: file://../micro
+  version: 0.1.0
+digest: sha256:7729d221da4f24814bbf6e9a567488987868c422693a297b70154d45ad24a84d
+generated: "2020-09-10T12:43:20.190029+03:00"

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: account
+description: Manages CRUD operations on accounts by admins and owners
+type: application
+version: 0.2.0
+appVersion: v1
+
+dependencies:
+- name: micro
+  version: 0.1.0
+  repository: "@micro"

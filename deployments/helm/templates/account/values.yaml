@@ -1,0 +1,169 @@
+# replicaCount is the number of replicas to run if autoscaling is not enabled
+replicaCount: 1
+
+image: 
+  repository: gidyon/account
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# command will overrides the image entrypoint
+command:
+# ['/app/service']
+
+# args is arguments passed when the container is started
+args:
+# ['--config-file=/app/configs/config.yaml']
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+startupProbe:
+  httpGet:
+    path: /api/accounts/health/live
+    scheme: HTTP
+    port: 80
+  periodSeconds: 10
+  failureThreshold: 10
+
+livenessProble:
+  httpGet:
+    path: /api/accounts/health/ready
+    scheme: HTTP
+    port: 80
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 20
+  failureThreshold: 3
+
+resources:
+  limits:
+    # cpu: 2000m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 12Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# existingSecrets are secrets that should already exist for the container to run correctly
+existingSecrets:
+  mySqlCredentials: "mysql-creds"
+  firebaseCredentials: "firebase-creds"
+  symmetricKeysCredentials: "symmetric-keys"
+
+# extraEnv contains additional environment variables suppliws by the user
+extraEnv:
+  - name: APP_NAME
+    value: EMRS
+  - name: TEMPLATES_DIR
+    value: /app/templates/
+  - name: ACTIVATION_URL
+    value: https://ldaddress/activate
+  - name: FIREBASE_CREDENTIALS_FILE
+    value: /app/secrets/firebase/creds
+
+# extraVolume contains additional volumes supplied by user
+extraVolume:
+  - name: mysql-creds
+    mountPath: /app/secrets/mysql/
+    readOnly: true
+  - name: templates
+    mountPath: /app/templates/
+    readOnly: true
+  - name: firebase-credentials
+    mountPath: /app/secrets/firebase
+    readOnly: true
+
+# extraVolumeMount specifies volume mounts for extraVolume
+extraVolumeMount:
+  - name: templates
+    configMap:
+      name: account-templates-v1
+  - name: mysql-creds
+    secret:
+      secretName: mysql-creds-v2
+  - name: firebase-credentials
+    secret:
+      secretName: firebase-credentials
+
+# config contains values for the service configuration
+config:
+  serviceName: Accounts API
+  serviceType: ClusterIP
+  httpPort: 80
+  startupSleepSeconds: 10
+  logLevel: -1
+  security:
+    insecure: true
+  databases:
+  - required: true
+    type: sqlDatabase
+    address: mysql:3306
+    userFile: /app/secrets/mysql/mysql-default-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-password
+    metadata:
+      name: sqlWrites
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: sqlDatabase
+    address: mysql:3306
+    userFile: /app/secrets/mysql/mysql-default-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-password
+    metadata:
+      name: sqlReads
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: redisDatabase
+    address: redisdb:6379
+    metadata:
+      name: redisWrites
+  - required: true
+    type: redisDatabase
+    address: redisdb:6379
+    metadata:
+      name: redisReads
+  externalServices:
+  - name: messaging
+    required: true
+    address: messaging:8080
+    k8service: true
+    insecure: true

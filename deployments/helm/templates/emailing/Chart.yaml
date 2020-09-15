@@ -1,0 +1,11 @@
+apiVersion: v2
+name: emailing
+description: Email client for sending message
+type: application
+version: 0.1.0
+appVersion: v1
+
+dependencies:
+- name: micro
+  version: 0.1.0
+  repository: file://../micro

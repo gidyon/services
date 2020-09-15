@@ -1,0 +1,8 @@
+{{- if .Values.autoscaling -}}
+{{- if .Values.autoscaling.enabled -}}
+{{- include "micro.hpa" (list . "account.hpa") -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "account.hpa" -}}
+{{- end -}}

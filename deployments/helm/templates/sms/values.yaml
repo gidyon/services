@@ -1,0 +1,128 @@
+image: 
+  repository: gidyon/messaging-sms
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# command will set the command to be run overriding the image's command
+command:
+# ['/app/service']
+
+# args is arguments passed when the container is started
+args:
+# ['--config-file=/app/configs/config.yaml']
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+  
+startupProbe:
+  httpGet:
+    path: /api/sms/health/live
+    scheme: HTTP
+    port: 80
+  periodSeconds: 10
+  failureThreshold: 10
+
+livenessProble:
+  httpGet:
+    path: /api/sms/health/ready
+    scheme: HTTP
+    port: 80
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 20
+  failureThreshold: 3
+
+resources:
+  limits:
+    # cpu: 2000m
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 12Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# replicaCount: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# existingSecrets are secrets that should already exist for the container to run correctly
+existingSecrets:
+  symmetricKeysCredentials: "symmetric-keys"
+
+# extraEnv contains additional environment variables suppliws by the user
+extraEnv:
+- name: SMS_API_KEY
+  valueFrom:
+    secretKeyRef:
+      name: sms-creds
+      key: sms-api-key
+- name: SMS_AUTH_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: sms-creds
+      key: sms-auth-token
+- name: SMS_API_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: sms-creds
+      key: sms-api-username
+- name: SMS_API_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: sms-creds
+      key: sms-api-password
+- name: SMS_API_URL
+  valueFrom:
+    secretKeyRef:
+      name: sms-creds
+      key: sms-api-url
+
+# extraVolume contains additional volumes supplied by user
+extraVolume:
+
+# extraVolumeMount specifies volume mounts for extraVolume
+extraVolumeMount:
+
+# config contains values for the service configuration
+config:
+  serviceName: SMS API
+  serviceType: ClusterIP
+  httpPort: 80
+  startupSleepSeconds: 10
+  logLevel: -1
+  security:
+    insecure: true
