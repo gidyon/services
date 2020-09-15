@@ -1,6 +1,6 @@
 apiVersion: v2
 name: sms
-description: SMS client that sends sms to clients
+description: Messaging client that sends sms to clients
 type: application
 version: 0.1.0
 appVersion: v1
@@ -8,4 +8,4 @@ appVersion: v1
 dependencies:
 - name: micro
   version: 0.1.0
-  repository: file://../micro
+  repository: "@micro"
