@@ -1,6 +1,6 @@
 apiVersion: v2
 name: subscriber
-description: Subscriber is an app user who subscribes to channel
+description: Manages subscriptions, topics and subscribers
 type: application
 version: 0.1.0
 appVersion: 1.16.0
@@ -8,4 +8,4 @@ appVersion: 1.16.0
 dependencies:
 - name: micro
   version: 0.1.0
-  repository: file://../micro
+  repository: "@micro"
