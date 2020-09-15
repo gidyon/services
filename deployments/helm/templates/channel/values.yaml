@@ -97,7 +97,7 @@ extraVolume:
 extraVolumeMount:
   - name: mysql-creds
     secret:
-      secretName: mysql-creds-v2
+      secretName: mysql-creds
 
 # config contains values for the service configuration
 config:
