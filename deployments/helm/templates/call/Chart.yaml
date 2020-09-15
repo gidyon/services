@@ -1,6 +1,6 @@
 apiVersion: v2
 name: call
-description: Call API API
+description: Call API
 type: application
 version: 0.1.0
 appVersion: v1
@@ -8,4 +8,4 @@ appVersion: v1
 dependencies:
 - name: micro
   version: 0.1.0
-  repository: file://../micro
+  repository: "@micro"
