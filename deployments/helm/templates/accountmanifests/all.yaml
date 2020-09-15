@@ -1,5 +1,0 @@
-{{- include "micro.configmap" (list . "service.configmap") -}}
-{{- define "service.configmap" -}}
-{{- end -}}
-
-"---"
