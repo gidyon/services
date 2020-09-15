@@ -8,7 +8,7 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# command will set the command to be run overriding the image's command
+# command will overrides the image entrypoint
 command:
 # ['/app/service']
 
