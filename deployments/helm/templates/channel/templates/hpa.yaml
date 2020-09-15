@@ -1,8 +1,8 @@
 {{- if .Values.autoscaling -}}
 {{- if .Values.autoscaling.enabled -}}
-{{- include "micro.hpa" (list . "account.hpa") -}}
+{{- include "micro.hpa" (list . "service.hpa") -}}
 {{- end -}}
 {{- end -}}
 
-{{- define "account.hpa" -}}
+{{- define "service.hpa" -}}
 {{- end -}}
