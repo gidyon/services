@@ -1,0 +1,28 @@
+apiVersion: v1
+entries:
+  account:
+  - apiVersion: v2
+    appVersion: v1
+    created: "2020-09-15T04:18:04.063485+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Manages CRUD operations on accounts by admins and owners
+    digest: 33997e9ad88260ef050ca8985b56372523e69bd90289bcf1cd5881cc6c01234b
+    name: account
+    type: application
+    urls:
+    - account-0.2.0.tgz
+    version: 0.2.0
+  micro:
+  - apiVersion: v2
+    created: "2020-09-15T04:18:04.067099+03:00"
+    description: Chart boilerplate for creating micro services
+    digest: a9d1d87e2ae49fd95a6411d26a768dacadaea5d5e99f8dc37886c6d9edf4dc09
+    name: micro
+    type: library
+    urls:
+    - micro-0.1.0.tgz
+    version: 0.1.0
+generated: "2020-09-15T04:18:04.059233+03:00"
