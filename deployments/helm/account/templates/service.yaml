@@ -1,3 +1,0 @@
-{{- include "micro.service" (list . "account.service") -}}
-{{- define "account.service" -}}
-{{- end -}}

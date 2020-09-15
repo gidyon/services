@@ -1,3 +1,0 @@
-{{- include "micro.hpa" (list . "account.hpa") -}}
-{{- define "account.hpa" -}}
-{{- end -}}
