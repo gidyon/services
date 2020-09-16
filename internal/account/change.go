@@ -61,7 +61,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Get admin
 	admin := &Account{}
-	err = accountAPI.sqlDB.Unscoped().Select("account_state,primary_group").
+	err = accountAPI.sqlDBWrites.Unscoped().Select("account_state,primary_group").
 		First(admin, "id=?", ID).Error
 	switch {
 	case err == nil:
@@ -83,7 +83,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Get user
 	accountDB := &Account{}
-	err = accountAPI.sqlDB.Unscoped().First(accountDB, "id=?", ID2).Error
+	err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "id=?", ID2).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -113,7 +113,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	)
 
 	// Start a transaction
-	tx := accountAPI.sqlDB.Begin()
+	tx := accountAPI.sqlDBWrites.Begin()
 	defer func() {
 		if err := recover(); err != nil {
 			accountAPI.logger.Errorln(err)

@@ -115,7 +115,7 @@ var _ = Describe("Searching accounts @search", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(searchRes).ShouldNot(BeNil())
 					for _, adminPB := range searchRes.Accounts {
-						Expect(adminPB.Gender).Should(Equal("male"))
+						Expect(adminPB.Gender).Should(Equal(account.Account_MALE))
 					}
 				})
 			})
@@ -128,7 +128,7 @@ var _ = Describe("Searching accounts @search", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(searchRes).ShouldNot(BeNil())
 					for _, adminPB := range searchRes.Accounts {
-						Expect(adminPB.Gender).Should(Equal("female"))
+						Expect(adminPB.Gender).Should(Equal(account.Account_FEMALE))
 					}
 				})
 			})

@@ -42,8 +42,7 @@ const (
 func startDB() (*gorm.DB, error) {
 	return conn.OpenGormConn(&conn.DBOptions{
 		Dialect:  "mysql",
-		Host:     "localhost",
-		Port:     "3306",
+		Address:  "localhost:3306",
 		User:     "root",
 		Password: "hakty11",
 		Schema:   schema,
@@ -76,8 +75,10 @@ var _ = BeforeSuite(func() {
 		TemplatesDir:    templatesDir,
 		ActivationURL:   randomdata.MacAddress(),
 		JWTSigningKey:   []byte(randomdata.RandStringRunes(32)),
-		SQLDB:           db,
-		RedisDB:         redisDB,
+		SQLDBWrites:     db,
+		SQLDBReads:      db,
+		RedisDBWrites:   redisDB,
+		RedisDBReads:    redisDB,
 		SecureCookie:    sc,
 		Logger:          logger,
 		MessagingClient: mocks.MessagingAPI,
@@ -108,11 +109,20 @@ var _ = BeforeSuite(func() {
 	_, err = NewAccountAPI(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = nil
+	opt.SQLDBWrites = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = db
+	opt.SQLDBWrites = db
+	opt.MessagingClient = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDBReads = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDBReads = db
 	opt.MessagingClient = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
@@ -123,11 +133,20 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.RedisDB = nil
+	opt.RedisDBReads = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.RedisDB = redisDB
+	opt.RedisDBReads = redisDB
+	opt.JWTSigningKey = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.RedisDBReads = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.RedisDBReads = redisDB
 	opt.JWTSigningKey = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
@@ -163,7 +182,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	Expect(AccountAPIServer.sqlDB.Close()).ShouldNot(HaveOccurred())
+	// Expect(AccountAPIServer.sqlDB.Close()).ShouldNot(HaveOccurred())
 })
 
 // Declarations for Ginkgo DSL

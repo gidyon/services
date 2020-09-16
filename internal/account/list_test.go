@@ -97,7 +97,7 @@ var _ = Describe("Listing accounts @list", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(listRes).ShouldNot(BeNil())
 					for _, adminPB := range listRes.Accounts {
-						Expect(adminPB.Gender).Should(Equal("male"))
+						Expect(adminPB.Gender).Should(Equal(account.Account_MALE))
 					}
 				})
 			})
@@ -110,7 +110,7 @@ var _ = Describe("Listing accounts @list", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(listRes).ShouldNot(BeNil())
 					for _, adminPB := range listRes.Accounts {
-						Expect(adminPB.Gender).Should(Equal("female"))
+						Expect(adminPB.Gender).Should(Equal(account.Account_FEMALE))
 					}
 				})
 			})

@@ -16,6 +16,7 @@ import (
 
 	"github.com/gidyon/services/pkg/api/account"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 )
 
 func (accountAPI *accountAPIServer) CreateAccount(
@@ -26,11 +27,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.NilObject("CreateAccountRequest")
 	}
 
-	// Authentication
-	err := accountAPI.authAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var err error
 
 	accountPB := createReq.GetAccount()
 	if accountPB == nil {
@@ -92,7 +89,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	}
 
 	// Start a transaction
-	tx := accountAPI.sqlDB.Begin(&sql.TxOptions{
+	tx := accountAPI.sqlDBWrites.Begin(&sql.TxOptions{
 		Isolation: sql.IsolationLevel(0),
 	})
 	defer func() {
@@ -126,10 +123,10 @@ func (accountAPI *accountAPIServer) CreateAccount(
 				// Must be admin to update
 				if createReq.GetByAdmin() {
 					// Update account instead
-					err = accountAPI.sqlDB.Table(accountsTable).Updates(accountDB).Error
+					err = accountAPI.sqlDBWrites.Table(accountsTable).Updates(accountDB).Error
 					if err != nil {
 						tx.Rollback()
-						return nil, errs.SQLQueryFailed(err, "UPDATE")
+						return nil, errs.FailedToUpdate("account", err)
 					}
 					break
 				}
@@ -205,8 +202,10 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			}
 		}
 
+		md := metadata.Pairs(auth.Header(), fmt.Sprintf("%s %s", auth.Scheme(), jwtToken))
+
 		// Send message
-		_, err = accountAPI.messagingClient.SendMessage(mdutil.AddFromCtx(ctx), messagePB)
+		_, err = accountAPI.messagingClient.SendMessage(mdutil.AddMD(ctx, md), messagePB)
 		if err != nil {
 			return nil, err
 		}

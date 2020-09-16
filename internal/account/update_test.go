@@ -219,7 +219,7 @@ var _ = Describe("Updating private account @updateprivate", func() {
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(updateRes).ShouldNot(BeNil())
 
-				v, err := AccountAPIServer.redisDB.Get(updateToken(accountID)).Result()
+				v, err := AccountAPIServer.redisDBWrites.Get(updateToken(accountID)).Result()
 				Expect(err).ShouldNot(HaveOccurred())
 				token = v
 			})

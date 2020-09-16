@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/utils/errs"
@@ -12,13 +13,13 @@ const accountsTable = "accounts"
 
 // Account contains profile information stored in the database
 type Account struct {
-	Email            string `gorm:"index:query_index;type:varchar(50);unique_index;not null"`
-	Phone            string `gorm:"index:query_index;type:varchar(50);unique_index;not null"`
-	ExternalID       string `gorm:"index:query_index;type:varchar(50);unique_index;not null"`
+	Email            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
+	Phone            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
+	ExternalID       string `gorm:"index:query_index;type:varchar(50);unique;not null"`
 	DeviceToken      string `gorm:"type:varchar(256)"`
 	Names            string `gorm:"type:varchar(50);not null"`
 	BirthDate        string `gorm:"type:varchar(30);"`
-	Gender           string `gorm:"index:query_index;type:varchar(10);default:'unknown'"`
+	Gender           string `gorm:"index:query_index;type:enum('GENDER_UNSPECIFIED', 'MALE', 'FEMALE');default:'GENDER_UNSPECIFIED';not null"`
 	Nationality      string `gorm:"type:varchar(50);default:'Kenyan'"`
 	ProfileURL       string `gorm:"type:varchar(256)"`
 	LinkedAccounts   string `gorm:"type:varchar(256)"`
@@ -28,7 +29,10 @@ type Account struct {
 	PrimaryGroup     string `gorm:"index:query_index;type:varchar(50);not null"`
 	SecondaryGroups  []byte `gorm:"type:json"`
 	AccountState     string `gorm:"index:query_index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
-	gorm.Model
+	ID               uint   `gorm:"primarykey"`
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        gorm.DeletedAt
 }
 
 // TableName is the name of the tables
@@ -37,24 +41,24 @@ func (u *Account) TableName() string {
 }
 
 // AfterCreate is a callback after creating object
-func (u *Account) AfterCreate(scope *gorm.Scope) error {
+func (u *Account) AfterCreate(tx *gorm.DB) error {
 	accountID := fmt.Sprint(u.ID)
 	var err error
 
 	if u.Email == "" {
-		err = scope.DB().Model(u).Update("email", accountID).Error
+		err = tx.Model(u).Update("email", accountID).Error
 		if err != nil {
 			return err
 		}
 	}
 	if u.Phone == "" {
-		err = scope.DB().Model(u).Update("phone", accountID).Error
+		err = tx.Model(u).Update("phone", accountID).Error
 		if err != nil {
 			return err
 		}
 	}
 	if u.ExternalID == "" {
-		err = scope.DB().Model(u).Update("external_id", accountID).Error
+		err = tx.Model(u).Update("external_id", accountID).Error
 		if err != nil {
 			return err
 		}
@@ -64,7 +68,7 @@ func (u *Account) AfterCreate(scope *gorm.Scope) error {
 }
 
 // AfterFind will reset email and phone to their zero value if they equal the user id
-func (u *Account) AfterFind() (err error) {
+func (u *Account) AfterFind(tx *gorm.DB) (err error) {
 	accountID := fmt.Sprint(u.ID)
 	if u.Email == accountID {
 		u.Email = ""
@@ -84,11 +88,6 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		return nil, errs.NilObject("account")
 	}
 
-	var state = account.AccountState(account.AccountState_value[accountDB.AccountState])
-	if accountDB.DeletedAt != nil {
-		state = account.AccountState_DELETED
-	}
-
 	accountPB := &account.Account{
 		AccountId:      fmt.Sprint(accountDB.ID),
 		ExternalId:     accountDB.ExternalID,
@@ -97,12 +96,12 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		DeviceToken:    accountDB.DeviceToken,
 		Names:          accountDB.Names,
 		BirthDate:      accountDB.BirthDate,
-		Gender:         accountDB.Gender,
+		Gender:         account.Account_Gender(account.Account_Gender_value[accountDB.Gender]),
 		Nationality:    accountDB.Nationality,
 		ProfileUrl:     accountDB.ProfileURL,
 		LinkedAccounts: accountDB.LinkedAccounts,
 		Group:          accountDB.PrimaryGroup,
-		State:          state,
+		State:          account.AccountState(account.AccountState_value[accountDB.AccountState]),
 	}
 
 	return accountPB, nil
@@ -121,7 +120,7 @@ func GetAccountDB(accountPB *account.Account) (*Account, error) {
 		DeviceToken:    accountPB.DeviceToken,
 		Names:          accountPB.Names,
 		BirthDate:      accountPB.BirthDate,
-		Gender:         accountPB.Gender,
+		Gender:         accountPB.Gender.String(),
 		Nationality:    accountPB.Nationality,
 		ProfileURL:     accountPB.ProfileUrl,
 		LinkedAccounts: accountPB.LinkedAccounts,
