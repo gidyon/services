@@ -293,6 +293,7 @@ message ExistAccountResponse {
 		}
 	};
     bool exists = 1;
+    string account_id = 2;
 }
 
 message Accounts {

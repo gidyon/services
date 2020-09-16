@@ -1081,6 +1081,9 @@
         "exists": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "account_id": {
+          "type": "string"
         }
       },
       "title": "ExistAccountResponse"
