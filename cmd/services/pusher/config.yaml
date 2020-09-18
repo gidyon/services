@@ -1,4 +1,4 @@
-serviceName: psuher
+serviceName: pusher
 httpPort: 5030
 logLevel: -1
 security:
