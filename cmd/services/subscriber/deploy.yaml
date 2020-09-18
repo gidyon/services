@@ -1,0 +1,156 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: subscriber-v1
+  labels:
+    app: subscriber
+data:
+  config.yml: |
+    serviceName: "Subscriber API"
+    httpPort: 80
+    startupSleepSeconds: 5
+    logLevel: -1
+    security:
+      insecure: true
+    database:
+      sqlDatabase:
+        required: true
+        address: mysql:3306
+        user: onfon
+        schema: ussd
+        passwordFile: /app/secrets/mysql/mysql-password
+        metadata:
+          name: mysql
+          dialect: mysql
+          orm: gorm
+    externalServices:
+    - name: channel
+      required: true
+      address: channel:8080
+      k8service: true
+      insecure: true
+    - name: account
+      required: true
+      address: account:8080
+      k8service: true
+      insecure: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subscriber
+  labels:
+    app: subscriber
+spec:
+  selector:
+    app: subscriber
+  ports:
+  - port: 80
+    name: http
+  - port: 8080
+    name: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subscriber
+  labels:
+    app: subscriber
+    version: v1
+spec:
+
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subscriber
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: subscriber
+        version: v1
+    spec:
+      containers:
+      - name: subscriber
+        image: gidyon/subscriber:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+        env:
+        - name: API_HASH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-hash-key
+        - name: API_BLOCK_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-block-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /api/subscribers/health/ready
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /api/subscribers/health/live
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+          - name: mysql-creds
+            mountPath: /app/secrets/mysql/
+            readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: subscriber-v1
+      - name: mysql-creds
+        secret:
+          secretName: mysql
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "subscriber-hpa"
+  labels:
+    app: "subscriber"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "subscriber"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80
