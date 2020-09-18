@@ -29,4 +29,9 @@ github.com/gidyon/services/internal/messaging/emailing/email.go:123.24,124.34 1 
 github.com/gidyon/services/internal/messaging/emailing/email.go:125.27,126.37 1 1
 github.com/gidyon/services/internal/messaging/emailing/email.go:127.24,128.34 1 1
 github.com/gidyon/services/internal/messaging/emailing/email.go:129.35,130.38 1 1
-github.com/gidyon/services/internal/messaging/emailing/send.go:8.70,16.2 6 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:11.70,21.47 7 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:29.2,29.47 1 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:33.2,33.34 1 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:21.47,23.17 2 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:23.17,25.4 1 0
+github.com/gidyon/services/internal/messaging/emailing/send.go:29.47,31.3 1 0
