@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
-
 	"google.golang.org/grpc/codes"
+	"gorm.io/gorm"
 
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/utils/errs"

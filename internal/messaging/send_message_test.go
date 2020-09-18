@@ -139,7 +139,7 @@ var _ = Describe("Sending messages @sending", func() {
 			Describe("The message should be sent and saved in table", func() {
 				It("should be available in table", func() {
 					msg := &Message{}
-					err := MessagingServer.sqlDB.Table(messages).
+					err := MessagingServer.SQLDBWrites.Table(messages).
 						First(msg, "id=? AND user_id=?", messageID, userID).Error
 					Expect(err).ShouldNot(HaveOccurred())
 				})
@@ -178,7 +178,7 @@ var _ = Describe("Sending messages @sending", func() {
 				Describe("The message should be sent and saved in table", func() {
 					It("should available in table", func() {
 						msg := &Message{}
-						err := MessagingServer.sqlDB.Table(messages).
+						err := MessagingServer.SQLDBWrites.Table(messages).
 							First(msg, "ID=? AND user_id=?", messageID, userID).Error
 						Expect(err).ShouldNot(HaveOccurred())
 						msgPB, err := GetMessagePB(msg)

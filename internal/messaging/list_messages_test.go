@@ -19,7 +19,9 @@ var _ = Describe("Getting messages @list", func() {
 
 	BeforeEach(func() {
 		listReq = &messaging.ListMessagesRequest{
-			UserId: userID,
+			Filter: &messaging.ListMessagesFilter{
+				UserId: userID,
+			},
 		}
 		ctx = context.Background()
 	})
@@ -33,7 +35,7 @@ var _ = Describe("Getting messages @list", func() {
 			Expect(getRes).Should(BeNil())
 		})
 		It("should fail when user id has incorrect syntax", func() {
-			listReq.UserId = randomdata.RandStringRunes(32)
+			listReq.Filter.UserId = randomdata.RandStringRunes(32)
 			getRes, err := MessagingAPI.ListMessages(ctx, listReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -80,8 +82,8 @@ var _ = Describe("Getting messages @list", func() {
 
 		When("Getting messages with type all should succeed", func() {
 			It("should succeed", func() {
-				listReq.UserId = ""
-				listReq.TypeFilters = []messaging.MessageType{
+				listReq.Filter.UserId = ""
+				listReq.Filter.TypeFilters = []messaging.MessageType{
 					messaging.MessageType_ALL,
 				}
 				getRes, err := MessagingAPI.ListMessages(ctx, listReq)
@@ -94,8 +96,8 @@ var _ = Describe("Getting messages @list", func() {
 
 		When("Getting messages with type filters should succeed", func() {
 			It("should succeed", func() {
-				listReq.UserId = ""
-				listReq.TypeFilters = []messaging.MessageType{
+				listReq.Filter.UserId = ""
+				listReq.Filter.TypeFilters = []messaging.MessageType{
 					messaging.MessageType_PROMOTIONAL,
 					messaging.MessageType_REMINDER,
 					messaging.MessageType_WARNING,
@@ -106,7 +108,7 @@ var _ = Describe("Getting messages @list", func() {
 				Expect(getRes.Messages).ShouldNot(BeNil())
 				Expect(len(getRes.Messages)).ShouldNot(BeZero())
 				for _, messagePB := range getRes.Messages {
-					Expect(messagePB.Type).Should(BeElementOf(listReq.TypeFilters))
+					Expect(messagePB.Type).Should(BeElementOf(listReq.Filter.TypeFilters))
 				}
 			})
 		})

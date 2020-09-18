@@ -8,22 +8,22 @@ import (
 
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
-	"github.com/gidyon/services/pkg/api/messaging/push"
+	"github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
 	"github.com/gidyon/services/pkg/api/subscriber"
 	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
 	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/gidyon/services/pkg/utils/mdutil"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	"gorm.io/gorm"
 
 	"google.golang.org/grpc/grpclog"
 
 	"github.com/golang/protobuf/ptypes/empty"
-
-	"github.com/jinzhu/gorm"
 
 	"github.com/gidyon/services/pkg/api/messaging"
 )
@@ -31,37 +31,23 @@ import (
 var emptyMsg = &empty.Empty{}
 
 type messagingServer struct {
-	sqlDB            *gorm.DB
-	hasher           *hashids.HashID
-	logger           grpclog.LoggerV2
-	authAPI          auth.Interface
-	emailClient      emailing.EmailingClient
-	emailSender      string
-	pushClient       push.PushMessagingClient
-	smsClient        sms.SMSAPIClient
-	callClient       call.CallAPIClient
-	subscriberClient subscriber.SubscriberAPIClient
+	hasher  *hashids.HashID
+	authAPI auth.Interface
+	*Options
 }
 
 // Options contains the parameters passed while calling NewMessagingServer
 type Options struct {
-	SQLDB            *gorm.DB
+	SQLDBWrites      *gorm.DB
+	SQLDBReads       *gorm.DB
 	Logger           grpclog.LoggerV2
 	JWTSigningKey    []byte
 	EmailSender      string
 	EmailClient      emailing.EmailingClient
 	CallClient       call.CallAPIClient
-	PushClient       push.PushMessagingClient
+	PushClient       pusher.PushMessagingClient
 	SMSClient        sms.SMSAPIClient
 	SubscriberClient subscriber.SubscriberAPIClient
-}
-
-func newHasher(salt string) (*hashids.HashID, error) {
-	hd := hashids.NewData()
-	hd.Salt = salt
-	hd.MinLength = 30
-
-	return hashids.NewWithData(hd)
 }
 
 // NewMessagingServer is factory for creating MessagingServer APIs
@@ -73,18 +59,20 @@ func NewMessagingServer(ctx context.Context, opt *Options) (messaging.MessagingS
 		err = errors.New("context is required")
 	case opt == nil:
 		err = errs.NilObject("options")
-	case opt.SQLDB == nil:
-		err = errors.New("sqlDB is required")
+	case opt.SQLDBWrites == nil:
+		err = errors.New("sql writes is required")
+	case opt.SQLDBReads == nil:
+		err = errors.New("sql reads is required")
+	case opt.JWTSigningKey == nil:
+		err = errors.New("jwt signing key is required")
 	case opt.Logger == nil:
 		err = errors.New("logger is required")
 	case opt.EmailClient == nil:
 		err = errors.New("email client is required")
 	case opt.EmailSender == "":
 		err = errors.New("email sender is required")
-	case opt.JWTSigningKey == nil:
-		err = errors.New("jwt signing key is required")
 	case opt.PushClient == nil:
-		err = errors.New("push client is required")
+		err = errors.New("pusher client is required")
 	case opt.SMSClient == nil:
 		err = errors.New("sms client is required")
 	case opt.CallClient == nil:
@@ -103,26 +91,19 @@ func NewMessagingServer(ctx context.Context, opt *Options) (messaging.MessagingS
 	}
 
 	// Pagination
-	hasher, err := newHasher(string(opt.JWTSigningKey))
+	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
 
 	api := &messagingServer{
-		sqlDB:            opt.SQLDB,
-		hasher:           hasher,
-		logger:           opt.Logger,
-		emailClient:      opt.EmailClient,
-		emailSender:      opt.EmailSender,
-		pushClient:       opt.PushClient,
-		smsClient:        opt.SMSClient,
-		callClient:       opt.CallClient,
-		subscriberClient: opt.SubscriberClient,
-		authAPI:          authAPI,
+		hasher:  hasher,
+		authAPI: authAPI,
+		Options: opt,
 	}
 
 	// Automigration
-	err = api.sqlDB.AutoMigrate(&Message{}).Error
+	err = api.SQLDBWrites.AutoMigrate(&Message{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to automigrate: %v", err)
 	}
@@ -217,7 +198,7 @@ func (api *messagingServer) sendBroadCastMessage(
 
 	for nextResults {
 		// Get subscribers
-		subscribersRes, err := api.subscriberClient.ListSubscribers(ctxGet, &subscriber.ListSubscribersRequest{
+		subscribersRes, err := api.SubscriberClient.ListSubscribers(ctxGet, &subscriber.ListSubscribersRequest{
 			Channels:  req.GetChannels(),
 			PageSize:  pageSize,
 			PageToken: pageToken,
@@ -259,9 +240,9 @@ func (api *messagingServer) sendBroadCastMessage(
 					if err != nil {
 						return
 					}
-					err = api.sqlDB.Create(msgDB).Error
+					err = api.SQLDBWrites.Create(msgDB).Error
 					if err != nil {
-						api.logger.Errorf("failed to save message model: %v", err)
+						api.Logger.Errorf("failed to save message model: %v", err)
 						return
 					}
 				}
@@ -271,43 +252,43 @@ func (api *messagingServer) sendBroadCastMessage(
 				switch sendMethod {
 				case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 				case messaging.SendMethod_EMAIL:
-					_, err = api.emailClient.SendEmail(ctx2, &emailing.Email{
+					_, err = api.EmailClient.SendEmail(ctx2, &emailing.Email{
 						Destinations:    emails,
-						From:            api.emailSender,
+						From:            api.EmailSender,
 						Subject:         msg.Title,
 						Body:            msg.Data,
 						BodyContentType: "text/html",
 					})
 					if err != nil {
-						api.logger.Errorf("failed to send email message to destinations: %v", err)
+						api.Logger.Errorf("failed to send email message to destinations: %v", err)
 					}
 				case messaging.SendMethod_SMS:
-					_, err = api.smsClient.SendSMS(ctx2, &sms.SMS{
+					_, err = api.SMSClient.SendSMS(ctx2, &sms.SMS{
 						DestinationPhones: phones,
 						Keyword:           msg.Title,
 						Message:           msg.Data,
 					})
 					if err != nil {
-						api.logger.Errorf("failed to send sms message to destinations: %v", err)
+						api.Logger.Errorf("failed to send sms message to destinations: %v", err)
 					}
 				case messaging.SendMethod_CALL:
-					_, err = api.callClient.Call(ctx2, &call.CallPayload{
+					_, err = api.CallClient.Call(ctx2, &call.CallPayload{
 						DestinationPhones: phones,
 						Keyword:           msg.Title,
 						Message:           msg.Data,
 					})
 					if err != nil {
-						api.logger.Errorf("failed to call recipients: %v", err)
+						api.Logger.Errorf("failed to call recipients: %v", err)
 					}
 				case messaging.SendMethod_PUSH:
-					_, err = api.pushClient.SendPushMessage(ctx2, &push.PushMessage{
+					_, err = api.PushClient.SendPushMessage(ctx2, &pusher.PushMessage{
 						DeviceTokens: deviceTokens,
 						Title:        msg.Title,
 						Message:      msg.Data,
 						Details:      msg.Details,
 					})
 					if err != nil {
-						api.logger.Errorf("failed to send push message to recipients: %v", err)
+						api.Logger.Errorf("failed to send pusher message to recipients: %v", err)
 					}
 				}
 			}
@@ -340,7 +321,7 @@ func (api *messagingServer) SendMessage(
 	ctxGet := mdutil.AddFromCtx(ctx)
 
 	// Get subscriber
-	subscriberPB, err := api.subscriberClient.GetSubscriber(ctxGet, &subscriber.GetSubscriberRequest{
+	subscriberPB, err := api.SubscriberClient.GetSubscriber(ctxGet, &subscriber.GetSubscriberRequest{
 		SubscriberId: msg.UserId,
 	}, grpc.WaitForReady(true))
 	if err != nil {
@@ -352,9 +333,9 @@ func (api *messagingServer) SendMessage(
 		switch sendMethod {
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
-			_, err = api.emailClient.SendEmail(ctxGet, &emailing.Email{
+			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.Email{
 				Destinations:    []string{subscriberPB.GetEmail()},
-				From:            api.emailSender,
+				From:            api.EmailSender,
 				Subject:         msg.Title,
 				Body:            msg.Data,
 				BodyContentType: "text/html",
@@ -363,7 +344,7 @@ func (api *messagingServer) SendMessage(
 				return nil, errs.WrapErrorWithMsg(err, "failed to send email")
 			}
 		case messaging.SendMethod_SMS:
-			_, err = api.smsClient.SendSMS(ctxGet, &sms.SMS{
+			_, err = api.SMSClient.SendSMS(ctxGet, &sms.SMS{
 				DestinationPhones: []string{subscriberPB.GetPhone()},
 				Keyword:           msg.Title,
 				Message:           msg.Data,
@@ -372,7 +353,7 @@ func (api *messagingServer) SendMessage(
 				return nil, errs.WrapErrorWithMsg(err, "failed to send sms")
 			}
 		case messaging.SendMethod_CALL:
-			_, err = api.callClient.Call(ctxGet, &call.CallPayload{
+			_, err = api.CallClient.Call(ctxGet, &call.CallPayload{
 				DestinationPhones: []string{subscriberPB.GetPhone()},
 				Keyword:           msg.Title,
 				Message:           msg.Data,
@@ -381,14 +362,14 @@ func (api *messagingServer) SendMessage(
 				return nil, errs.WrapErrorWithMsg(err, "failed to send call")
 			}
 		case messaging.SendMethod_PUSH:
-			_, err = api.pushClient.SendPushMessage(ctxGet, &push.PushMessage{
+			_, err = api.PushClient.SendPushMessage(ctxGet, &pusher.PushMessage{
 				DeviceTokens: []string{subscriberPB.GetDeviceToken()},
 				Title:        msg.Title,
 				Message:      msg.Data,
 				Details:      msg.Details,
 			}, grpc.WaitForReady(true))
 			if err != nil {
-				return nil, errs.WrapErrorWithMsg(err, "failed to send push message")
+				return nil, errs.WrapErrorWithMsg(err, "failed to send pusher message")
 			}
 		}
 	}
@@ -401,7 +382,7 @@ func (api *messagingServer) SendMessage(
 		if err != nil {
 			return nil, err
 		}
-		err = api.sqlDB.Create(msgDB).Error
+		err = api.SQLDBWrites.Create(msgDB).Error
 		if err != nil {
 			return nil, errs.WrapErrorWithMsg(err, "failed to save message")
 		}
@@ -427,7 +408,7 @@ func (api *messagingServer) ListMessages(
 	}
 
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroup(ctx, listReq.UserId, auth.AdminGroup())
+	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -435,8 +416,8 @@ func (api *messagingServer) ListMessages(
 	// Validation
 	var ID int
 	switch {
-	case listReq.UserId != "":
-		ID, err = strconv.Atoi(listReq.UserId)
+	case listReq.GetFilter().GetUserId() != "":
+		ID, err = strconv.Atoi(listReq.GetFilter().GetUserId())
 		if err != nil {
 			return nil, errs.IncorrectVal("user id")
 		}
@@ -457,15 +438,15 @@ func (api *messagingServer) ListMessages(
 		id = uint(ids[0])
 	}
 
-	db := api.sqlDB.Order("id DESC").Limit(pageSize)
+	db := api.SQLDBReads.Order("id DESC").Limit(int(pageSize))
 	if id > 0 {
 		db = db.Where("id<?", id)
 	}
 
-	if len(listReq.TypeFilters) > 0 {
+	if len(listReq.GetFilter().GetTypeFilters()) > 0 {
 		types := make([]int8, 0)
 		filter := true
-		for _, msgType := range listReq.GetTypeFilters() {
+		for _, msgType := range listReq.GetFilter().GetTypeFilters() {
 			types = append(types, int8(msgType))
 			if msgType == messaging.MessageType_ALL {
 				filter = false
@@ -479,7 +460,7 @@ func (api *messagingServer) ListMessages(
 
 	messagesDB := make([]*Message, 0, pageSize)
 
-	if listReq.UserId != "" {
+	if listReq.GetFilter().GetUserId() != "" {
 		err = db.Find(&messagesDB, "user_id=?", ID).Error
 	} else {
 		err = db.Find(&messagesDB).Error
@@ -524,7 +505,7 @@ func (api *messagingServer) ReadAll(
 	}
 
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroup(ctx, readReq.UserId, auth.AdminGroup())
+	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, readReq.UserId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +524,7 @@ func (api *messagingServer) ReadAll(
 	}
 
 	// Update messages
-	err = api.sqlDB.Model(Message{}).Where("user_id=? AND seen=?", ID, false).
+	err = api.SQLDBWrites.Model(Message{}).Where("user_id=? AND seen=?", ID, false).
 		Update("seen", true).Error
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to mark messages as read")
@@ -561,7 +542,7 @@ func (api *messagingServer) GetNewMessagesCount(
 	}
 
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroup(ctx, getReq.UserId, auth.AdminGroup())
+	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -579,14 +560,14 @@ func (api *messagingServer) GetNewMessagesCount(
 		}
 	}
 
-	var count int32
-	err = api.sqlDB.Model(Message{}).Where("user_id=? AND seen=?", ID, false).
+	var count int64
+	err = api.SQLDBWrites.Model(Message{}).Where("user_id=? AND seen=?", ID, false).
 		Count(&count).Error
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to get new messages count")
 	}
 
 	return &messaging.NewMessagesCount{
-		Count: count,
+		Count: int32(count),
 	}, nil
 }

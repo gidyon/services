@@ -54,7 +54,7 @@ var _ = Describe("Marking all messages as read @read", func() {
 				messagePB := fakeMessage(userID)
 				messageDB, err := GetMessageDB(messagePB)
 				Expect(err).ShouldNot(HaveOccurred())
-				err = MessagingServer.sqlDB.Create(messageDB).Error
+				err = MessagingServer.SQLDBWrites.Create(messageDB).Error
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 		})
@@ -70,7 +70,9 @@ var _ = Describe("Marking all messages as read @read", func() {
 			Describe("All messages should now be marked as read", func() {
 				It("should mark all messages as read", func() {
 					listReq := &messaging.ListMessagesRequest{
-						UserId:   userID,
+						Filter: &messaging.ListMessagesFilter{
+							UserId: userID,
+						},
 						PageSize: 100,
 					}
 					getRes, err := MessagingAPI.ListMessages(ctx, listReq)

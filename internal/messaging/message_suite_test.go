@@ -2,18 +2,18 @@ package messaging
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/conn"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
+	"gorm.io/gorm"
 )
 
 func TestMessaging(t *testing.T) {
@@ -32,9 +32,13 @@ const (
 )
 
 func startDB() (*gorm.DB, error) {
-	param := "charset=utf8&parseTime=true"
-	dsn := fmt.Sprintf("root:hakty11@tcp(%s)/%s?%s", dbAddress, schema, param)
-	return gorm.Open("mysql", dsn)
+	return conn.OpenGormConn(&conn.DBOptions{
+		Dialect:  "mysql",
+		Address:  "localhost:3306",
+		User:     "root",
+		Password: "hakty11",
+		Schema:   schema,
+	})
 }
 
 var _ = BeforeSuite(func() {
@@ -54,7 +58,8 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("messaging")
 
 	opt := &Options{
-		SQLDB:            db,
+		SQLDBWrites:      db,
+		SQLDBReads:       db,
 		Logger:           logger,
 		JWTSigningKey:    []byte("who can guess :)"),
 		EmailSender:      "emrs test team",
@@ -82,11 +87,16 @@ var _ = BeforeSuite(func() {
 	_, err = NewMessagingServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = nil
+	opt.SQLDBWrites = nil
 	_, err = NewMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = db
+	opt.SQLDBWrites = db
+	opt.SQLDBReads = nil
+	_, err = NewMessagingServer(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDBReads = db
 	opt.EmailClient = nil
 	_, err = NewMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())

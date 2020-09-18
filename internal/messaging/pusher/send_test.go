@@ -4,11 +4,10 @@ import (
 	"context"
 
 	"github.com/Pallinder/go-randomdata"
+	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/gidyon/services/pkg/api/messaging/push"
 )
 
 func fakePushMessage() *push.PushMessage {

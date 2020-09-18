@@ -9,7 +9,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 
 	"github.com/gidyon/micro"
-	"github.com/gidyon/services/pkg/api/messaging/push"
+	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/onsi/ginkgo"
