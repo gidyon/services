@@ -6,11 +6,11 @@ import (
 
 	"github.com/appleboy/go-fcm"
 	"github.com/golang/protobuf/ptypes/empty"
+	"gorm.io/gorm"
 
 	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/auth"
 	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/jinzhu/gorm"
 	"google.golang.org/grpc/grpclog"
 )
 
