@@ -5,10 +5,10 @@ package gidyon.apis;
 option go_package="github.com/gidyon/services/pkg/api/messaging";
 
 import "google/protobuf/empty.proto";
+import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-// import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 
-// MessageType is category of a message
 enum MessageType {
     ALL = 0;
     PROMOTIONAL = 1;
@@ -18,17 +18,22 @@ enum MessageType {
     INFO = 5;
 }
 
-// SendMethod is the method used to send the message
 enum SendMethod {
     SEND_METHOD_UNSPECIFIED = 0;
     EMAIL = 1;
-    SMS = 2;
+    SMSV2 = 2;
     CALL = 3;
     PUSH = 4;
 }
 
-// Message is a message payload
 message Message {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Message"
+			description: "Message to be sent"
+		}
+    };
+
     string message_id = 1;
     string user_id = 2;
     string title = 3;
@@ -42,85 +47,173 @@ message Message {
     map<string, string> details = 12;
 }
 
-// BroadCastMessageRequest is request to broadcast message to users
 message BroadCastMessageRequest {
-    repeated string channels = 1;
-    Message message = 2;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "BroadCastMessageRequest"
+            description: "Request to broadcast message to users"
+            required: ["channels", "message"]
+		}
+    };
+
+    repeated string channels = 1 [(google.api.field_behavior) = REQUIRED];
+    Message message = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// SendMessageResponse is response after sending message contains message id
 message SendMessageResponse {
-    string message_id = 1;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SendMessageResponse"
+			description: "Response after sending message containing the message id"
+		}
+    };
+
+    string message_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// ListMessagesRequest is request to get user messages
-message ListMessagesRequest {
+message ListMessagesFilter {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListMessagesFilter"
+			description: "Filter criteria for filtering messages"
+		}
+    };
+
     string user_id = 1;
-    string page_token = 2;
-    int32 page_size = 3;
-    repeated MessageType type_filters = 4;
+    repeated MessageType type_filters = 2;
 }
 
-// Messages is a collection of user messages
+message ListMessagesRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListMessagesRequest"
+			description: "Request to retrieve a collection of messages"
+		}
+    };
+
+    string page_token = 1;
+    int32 page_size = 2;
+    ListMessagesFilter filter = 3;
+}
+
 message Messages {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Messages"
+			description: "A collection of messages"
+		}
+    };
+
     repeated Message messages = 1;
     string next_page_token = 2;
 }
 
-// MessageRequest is request to fetch or perform action to messages owned by user
 message MessageRequest {
-    string user_id = 1;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "MessageRequest"
+            description: "Request to perform an action to a message resource"
+            required: ["user_id"]
+		}
+    };
+
+    string user_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// NewMessagesCount contains the count of new messages
 message NewMessagesCount {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "NewMessagesCount"
+            description: "Contains count of new messages"
+		}
+    };
+
     int32 count = 1;
 }
 
-// Sends messages to devices and destinations
+// API for sending, saving and retrieving messages
 service Messaging {
     // Broadcasts a message
     rpc BroadCastMessage (BroadCastMessageRequest) returns (google.protobuf.Empty) {
-        // Maps to HTTP POST
-        // Everything maps to the body of the request
         option (google.api.http) = {
-            post: "/api/messaging/broadcast"
+            post: "/api/messaging:broadcast"
             body: "*"
         };
     };
 
     // Sends message to a single destination
     rpc SendMessage (Message) returns (SendMessageResponse) {
-        // Maps to HTTP POST
-        // Everything maps to the body of the request
         option (google.api.http) = {
-            post: "/api/messaging/send"
+            post: "/api/messaging:send"
             body: "*"
         };
     };
 
-    // Retrieves user messages
+    // Retrieves a collection of messages
     rpc ListMessages (ListMessagesRequest) returns (Messages) {
-        // Maps to HTTP GET
-        // Everything maps to the body of the request
         option (google.api.http) = {
-            get: "/api/messaging/messages/{user_id}"
+            get: "/api/messaging"
+            additional_bindings {
+                post: "/api/messaging:list"
+                body: "*"
+            }
         };
     };
 
     // Updates all messages status as read
     rpc ReadAll (MessageRequest) returns (google.protobuf.Empty) {
-        // // Maps to HTTP PATCH
         option (google.api.http) = {
-            patch: "/api/messaging/messages/{user_id}/readall"
+            patch: "/api/messaging/users/{user_id}:readall"
         };
     };
 
     // Fetches count of new messages
     rpc GetNewMessagesCount (MessageRequest) returns (NewMessagesCount) {
-        // Maps to HTTP GET
         option (google.api.http) = {
-            get: "/api/messaging/messages/{user_id}/newcount"
+            get: "/api/messaging/users/{user_id}:newcount"
         };
     };
 }
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Messaging API";
+        description: "Send, saves and retrives notification messages"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/messaging/messaging.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};

@@ -5,10 +5,18 @@ package gidyon.apis;
 option go_package="github.com/gidyon/services/pkg/api/messaging/emailing";
 
 import "google/protobuf/empty.proto";
+import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
 message Attachemnt {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Attachemnt"
+			description: "Attachment contained in the body of the email"
+		}
+    };
+
     string filename = 1;
     string filename_override = 2;
     string ctype = 3;
@@ -16,14 +24,71 @@ message Attachemnt {
 }
 
 message Email {
-    repeated string destinations = 2;
-    string from = 1;
-    string subject = 3;
-    string body_content_type = 4;
-    string body = 5;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Email"
+            description: "Email message to be delivered"
+            required: ["destinations"]
+		}
+    };
+
+    repeated string destinations = 2 [(google.api.field_behavior) = REQUIRED];
+    string from = 1 [(google.api.field_behavior) = REQUIRED];
+    string subject = 3 [(google.api.field_behavior) = REQUIRED];
+    string body = 4 [(google.api.field_behavior) = REQUIRED];
+    string body_content_type = 5;
     repeated Attachemnt attachments = 6;
 }
 
+// Sends email to destination(s)
 service Emailing {
-    rpc SendEmail (Email) returns (google.protobuf.Empty);
+    // Sends email
+    rpc SendEmail (Email) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/api/emailing:send"
+        };
+    };
 }
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Emailing API";
+        description: "Sends emails to client(s)"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/messaging/emailing.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};

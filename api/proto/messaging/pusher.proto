@@ -2,45 +2,46 @@ syntax = "proto3";
 
 package gidyon.apis;
 
-option go_package="github.com/gidyon/services/pkg/api/messaging/sms";
+option go_package="github.com/gidyon/services/pkg/api/messaging/pusher";
 
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
-message SMS {
+message PushMessage {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "SMS"
-            description: "SMS is a text message that is to be sent to client(s)"
-            required: ["destination_phones", "message"]
+			title: "PushMessage"
+            description: "Message to be pushed to client(s)"
+            required: ["device_tokens", "title", "message", "details"]
 		}
     };
-    
-    repeated string destination_phones = 2 [(google.api.field_behavior) = REQUIRED];
-    string keyword = 1;
+
+    repeated string device_tokens = 2 [(google.api.field_behavior) = REQUIRED];
+    string title = 1 [(google.api.field_behavior) = REQUIRED];
     string message = 3 [(google.api.field_behavior) = REQUIRED];
+    map<string, string> details = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Sends SMS to destination phone(s)
-service SMSAPI {
-    // Send an sms to its destination(s)
-    rpc SendSMS (SMS) returns (google.protobuf.Empty) {
+// Sends push messages to device(s)
+service PushMessaging {
+    // Sends push message
+    rpc SendPushMessage (PushMessage) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            get: "/api/sms:send"
+            get: "/api/pusher:send"
         };
     };
 }
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
-        title: "SMS API";
-        description: "Send text messages to client(s)"
+        title: "Pusher API";
+        description: "Send push messages to client(s)"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
-			url: "https://github.com/gidyon/services/blob/master/api/proto/messaging/sms.proto";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/messaging/pusher.proto";
 			email: "gideonhacer@gmail.com";
         };
         license: {

@@ -5,15 +5,74 @@ package gidyon.apis;
 option go_package="github.com/gidyon/services/pkg/api/messaging/call";
 
 import "google/protobuf/empty.proto";
+import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
+
 message CallPayload {
-    repeated string destination_phones = 2;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CallPayload"
+            description: "Information for making a call"
+            required: ["destination_phones", "message"]
+		}
+    };
+
+    repeated string destination_phones = 2 [(google.api.field_behavior) = REQUIRED];
     string keyword = 1;
-    string message = 3;
+    string message = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Make calls to notify parties
 service CallAPI {
-    rpc Call (CallPayload) returns (google.protobuf.Empty);
+    // Calls a user programmatically
+    rpc Call (CallPayload) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/api/calls:send"
+        };
+    };
 }
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Call API";
+        description: "API for making a programmatic phone calls"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/messaging/call.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};
