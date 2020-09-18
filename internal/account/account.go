@@ -224,7 +224,7 @@ func (accountAPI *accountAPIServer) SignInExternal(
 	}
 	switch {
 	case err == nil:
-		ID = accountDB.ID
+		ID = accountDB.AccountID
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Create user
 		accountDB, err = GetAccountDB(signInReq.Account)
@@ -237,13 +237,13 @@ func (accountAPI *accountAPIServer) SignInExternal(
 			return nil, errs.FailedToSave("account", err)
 		}
 		shouldUpdateUser = false
-		ID = accountDB.ID
+		ID = accountDB.AccountID
 	default:
 		return nil, errs.FailedToSave("account", err)
 	}
 
 	if shouldUpdateUser {
-		err = accountAPI.sqlDBWrites.Table(accountsTable).Where("id = ?", ID).
+		err = accountAPI.sqlDBWrites.Table(accountsTable).Where("account_id= ?", ID).
 			Updates(accountDB).Error
 		if err != nil {
 			return nil, errs.FailedToUpdate("account", err)
@@ -290,7 +290,7 @@ func (accountAPI *accountAPIServer) RefreshSession(
 	}
 
 	accountDB := &Account{}
-	err = accountAPI.sqlDBWrites.First(accountDB, "id=?", ID).Error
+	err = accountAPI.sqlDBWrites.First(accountDB, "account_id=?", ID).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -349,7 +349,7 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 		}
 	}
 
-	// Compare if account id matches or if activated by admin
+	// Compare if account account_idmatches or if activated by admin
 	isOwner := payload.ID == activateReq.AccountId
 	isAdmin := payload.Group == auth.AdminGroup()
 	if !isOwner && !isAdmin {
@@ -365,12 +365,12 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 
 	// Check that account exists
 	if errors.Is(accountAPI.sqlDBWrites.Select("account_state").
-		First(&Account{}, "id=?", ID).Error, gorm.ErrRecordNotFound) {
+		First(&Account{}, "account_id=?", ID).Error, gorm.ErrRecordNotFound) {
 		return nil, errs.DoesNotExist("account", activateReq.AccountId)
 	}
 
 	// Update the model of the user to activate their account
-	err = accountAPI.sqlDBWrites.Table(accountsTable).Where("id=?", ID).
+	err = accountAPI.sqlDBWrites.Table(accountsTable).Where("account_id=?", ID).
 		Update("account_state", account.AccountState_ACTIVE.String()).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)
@@ -409,7 +409,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	// GetAccount the account details from database
 	accountDB := &Account{}
 	err = accountAPI.sqlDBWrites.Select("account_state").
-		First(accountDB, "id=?", updateReq.Account.AccountId).Error
+		First(accountDB, "account_id=?", updateReq.Account.AccountId).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -431,7 +431,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	// Update the model; omit "id", "primary_group", "account_state"
 	err = accountAPI.sqlDBWrites.Model(accountDBX).
 		Omit("id", "primary_group", "account_state", "password", "security_answer", "security_question").
-		Where("id=?", updateReq.Account.AccountId).
+		Where("account_id=?", updateReq.Account.AccountId).
 		Updates(accountDBX).Error
 	switch {
 	case err == nil:
@@ -443,7 +443,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 			if strings.Contains(strings.ToLower(err.Error()), "phone") {
 				return "phone " + accountDBX.Phone
 			}
-			return "id " + fmt.Sprint(accountDBX.ID)
+			return "account_id" + fmt.Sprint(accountDBX.AccountID)
 		}
 		// Check if duplicate
 		if dbutil.IsDuplicate(err) {
@@ -503,7 +503,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		return nil, errs.FailedToFind("account", err)
 	}
 
-	accountID := fmt.Sprint(accountDB.ID)
+	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Authorize the actor
 	_, err = accountAPI.authAPI.AuthorizeActorOrGroups(ctx, accountID, auth.AdminGroup())
@@ -528,7 +528,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 	}
 
-	link := fmt.Sprintf("%s?token=%s&id=%s&passphrase=%d", req.FallbackUrl, jwtToken, accountID, uniqueNumber)
+	link := fmt.Sprintf("%s?token=%s&account_id=%s&passphrase=%d", req.FallbackUrl, jwtToken, accountID, uniqueNumber)
 
 	// Send message
 	_, err = accountAPI.messagingClient.SendMessage(mdutil.AddFromCtx(ctx), &messaging.Message{
@@ -587,7 +587,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 
 	// GetAccount the account details from database
 	accountDB := &Account{}
-	err = accountAPI.sqlDBWrites.Select("account_state").First(accountDB, "id=?", ID).Error
+	err = accountAPI.sqlDBWrites.Select("account_state").First(accountDB, "account_id=?", ID).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -636,7 +636,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	}
 
 	// Update the model
-	err = accountAPI.sqlDBWrites.Model(privateDB).Where("id=?", ID).Updates(privateDB).Error
+	err = accountAPI.sqlDBWrites.Model(privateDB).Where("account_id=?", ID).Updates(privateDB).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)
 	}
@@ -672,7 +672,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 
 	// Get the account details from database
 	accountDB := &Account{}
-	err = accountAPI.sqlDBWrites.Select("account_state").First(accountDB, "id=?", ID).Error
+	err = accountAPI.sqlDBWrites.Select("account_state").First(accountDB, "account_id=?", ID).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -687,7 +687,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	}
 
 	// Soft delete their account
-	err = accountAPI.sqlDBWrites.Delete(accountDB, "id=?", ID).Error
+	err = accountAPI.sqlDBWrites.Delete(accountDB, "account_id=?", ID).Error
 	if err != nil {
 		return nil, errs.FailedToDelete("account", err)
 	}
@@ -726,12 +726,12 @@ func (accountAPI *accountAPIServer) GetAccount(
 
 	if getReq.Priviledge {
 		if payload.Group == auth.AdminGroup() {
-			err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "id=?", ID).Error
+			err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "account_id=?", ID).Error
 		} else {
-			err = accountAPI.sqlDBWrites.First(accountDB, "id=?", ID).Error
+			err = accountAPI.sqlDBWrites.First(accountDB, "account_id=?", ID).Error
 		}
 	} else {
-		err = accountAPI.sqlDBWrites.First(accountDB, "id=?", ID).Error
+		err = accountAPI.sqlDBWrites.First(accountDB, "account_id=?", ID).Error
 	}
 	switch {
 	case err == nil:
@@ -799,14 +799,14 @@ func (accountAPI *accountAPIServer) ExistAccount(
 	accountDB := &Account{}
 
 	// Query for account with email or phone
-	err = accountAPI.sqlDBWrites.Select("id,email,phone,external_id").
+	err = accountAPI.sqlDBWrites.Select("account_id,email,phone,external_id").
 		First(accountDB, "email=? OR phone=? OR external_id=?", email, phone, externalID).Error
 	switch {
 	case err == nil:
 		// Account exist
 		return &account.ExistAccountResponse{
 			Exists:    true,
-			AccountId: fmt.Sprint(accountDB),
+			AccountId: fmt.Sprint(accountDB.AccountID),
 		}, nil
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Account doesn't exist
@@ -862,7 +862,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	// Order by ID
-	db = db.Limit(int(pageSize)).Order("id DESC")
+	db = db.Limit(int(pageSize)).Order("account_id DESC")
 
 	err = db.Find(&accountsDB).Error
 	switch {
@@ -879,7 +879,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 			return nil, err
 		}
 		accountsPB = append(accountsPB, GetAccountPBView(accountPB, listReq.GetView()))
-		id = accountDB.ID
+		id = accountDB.AccountID
 	}
 
 	var token string
@@ -947,7 +947,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	// Order by ID
-	db = db.Limit(int(pageSize)).Order("id DESC")
+	db = db.Limit(int(pageSize)).Order("account_id DESC")
 
 	parsedQuery := dbutil.ParseQuery(searchReq.Query)
 
@@ -972,7 +972,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 			return nil, err
 		}
 		accountsPB = append(accountsPB, GetAccountPBView(accountPB, searchReq.GetView()))
-		ID = accountDB.ID
+		ID = accountDB.AccountID
 	}
 
 	var token string

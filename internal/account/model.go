@@ -13,6 +13,7 @@ const accountsTable = "accounts"
 
 // Account contains profile information stored in the database
 type Account struct {
+	AccountID        uint   `gorm:"primaryKey;autoIncrement"`
 	Email            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
 	Phone            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
 	ExternalID       string `gorm:"index:query_index;type:varchar(50);unique;not null"`
@@ -29,7 +30,6 @@ type Account struct {
 	PrimaryGroup     string `gorm:"index:query_index;type:varchar(50);not null"`
 	SecondaryGroups  []byte `gorm:"type:json"`
 	AccountState     string `gorm:"index:query_index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
-	ID               uint   `gorm:"primarykey"`
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	DeletedAt        gorm.DeletedAt
@@ -42,7 +42,7 @@ func (u *Account) TableName() string {
 
 // AfterCreate is a callback after creating object
 func (u *Account) AfterCreate(tx *gorm.DB) error {
-	accountID := fmt.Sprint(u.ID)
+	accountID := fmt.Sprint(u.AccountID)
 	var err error
 
 	if u.Email == "" {
@@ -69,7 +69,7 @@ func (u *Account) AfterCreate(tx *gorm.DB) error {
 
 // AfterFind will reset email and phone to their zero value if they equal the user id
 func (u *Account) AfterFind(tx *gorm.DB) (err error) {
-	accountID := fmt.Sprint(u.ID)
+	accountID := fmt.Sprint(u.AccountID)
 	if u.Email == accountID {
 		u.Email = ""
 	}
@@ -89,7 +89,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 	}
 
 	accountPB := &account.Account{
-		AccountId:      fmt.Sprint(accountDB.ID),
+		AccountId:      fmt.Sprint(accountDB.AccountID),
 		ExternalId:     accountDB.ExternalID,
 		Email:          accountDB.Email,
 		Phone:          accountDB.Phone,

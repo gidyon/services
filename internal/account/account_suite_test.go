@@ -58,6 +58,8 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
+	Expect(db.Migrator().AutoMigrate(&Account{})).ShouldNot(HaveOccurred())
+
 	// Redis db
 	redisDB := redis.NewClient(&redis.Options{
 		Network: "tcp",

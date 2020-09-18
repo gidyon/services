@@ -52,7 +52,7 @@ func (accountAPI *accountAPIServer) SignIn(
 	accountDB := &Account{}
 
 	// Query for user with email or phone or huduma id
-	err = accountAPI.sqlDBWrites.Select("id,names,primary_group,account_state,password").First(
+	err = accountAPI.sqlDBWrites.Select("account_id,names,primary_group,account_state,password").First(
 		accountDB, "phone=? OR email=?", signInReq.Username, signInReq.Username,
 	).Error
 	switch {
@@ -102,7 +102,7 @@ func (accountAPI *accountAPIServer) updateSession(
 	ctx context.Context, accountDB *Account, signInGroup string,
 ) (*account.SignInResponse, error) {
 	var (
-		accountID    = fmt.Sprint(accountDB.ID)
+		accountID    = fmt.Sprint(accountDB.AccountID)
 		refreshToken = uuid.New().String()
 		token        string
 		err          error
@@ -133,7 +133,7 @@ func (accountAPI *accountAPIServer) updateSession(
 				found = true
 				// Generates JWT
 				token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
-					ID:    fmt.Sprint(accountDB.ID),
+					ID:    fmt.Sprint(accountDB.AccountID),
 					Names: accountDB.Names,
 					Group: signInGroup,
 				}, time.Now().Add(time.Duration(dur)*time.Minute))

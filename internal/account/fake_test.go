@@ -34,7 +34,7 @@ func createAdmin(accountState account.AccountState) (string, error) {
 	}
 
 	// Return account ID
-	return fmt.Sprint(accountDB.ID), nil
+	return fmt.Sprint(accountDB.AccountID), nil
 }
 
 // creates a fake account

@@ -114,7 +114,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			if strings.Contains(strings.ToLower(err.Error()), "phone") {
 				return "phone", accountDB.Phone
 			}
-			return "id", fmt.Sprint(accountDB.ID)
+			return "id", fmt.Sprint(accountDB.AccountID)
 		}
 
 		if dbutil.IsDuplicate(err) {
@@ -140,7 +140,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.SQLQueryFailed(err, "CREATE")
 	}
 
-	accountID := fmt.Sprint(accountDB.ID)
+	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Commit transaction
 	if err = tx.Commit().Error; err != nil {

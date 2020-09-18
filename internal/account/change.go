@@ -62,7 +62,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	// Get admin
 	admin := &Account{}
 	err = accountAPI.sqlDBWrites.Unscoped().Select("account_state,primary_group").
-		First(admin, "id=?", ID).Error
+		First(admin, "account_id=?", ID).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -83,7 +83,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Get user
 	accountDB := &Account{}
-	err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "id=?", ID2).Error
+	err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "account_id=?", ID2).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -125,7 +125,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	}
 
 	// Update the model
-	tx = tx.Unscoped().Model(&Account{}).Where("id=?", updateReq.AccountId)
+	tx = tx.Unscoped().Model(&Account{}).Where("account_id=?", updateReq.AccountId)
 
 	switch updateReq.UpdateOperation {
 	case account.UpdateOperation_UNDELETE:
