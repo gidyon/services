@@ -1,4 +1,4 @@
-serviceName: call
+serviceName: psuher
 httpPort: 5030
 logLevel: -1
 security:
