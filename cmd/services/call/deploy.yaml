@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: call-v1
+  labels:
+    app: call
+data:
+  config.yml: |
+    serviceVersion: v1/beta
+    serviceName: "Call API"
+    servicePort: 80
+    startupSleepSeconds: 5
+    logging:
+      level: -1
+      timeFormat: 2006-01-02T15:04:05Z07:00
+    security:
+      insecure: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: call
+  labels:
+    app: call
+spec:
+  selector:
+    app: call
+  ports:
+  - port: 80
+    name: http
+  - port: 8080
+    name: grpc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: call
+  labels:
+    app: call
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: call
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: call
+        version: v1
+    spec:
+      containers:
+      - name: call
+        image: gidyon/messaging-call:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 500m
+            memory: 200Mi
+        env:
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /api/calls/health/ready
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /api/calls/health/live
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: call-v1
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "call-hpa"
+  labels:
+    app: "call"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "call"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80
