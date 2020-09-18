@@ -43,14 +43,14 @@ func main() {
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
 
 	// Readiness health check
-	app.AddEndpoint("/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+	app.AddEndpoint("/api/longrunning/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
 		Service:      app,
 		Type:         healthcheck.ProbeReadiness,
 		AutoMigrator: func() error { return nil },
 	}))
 
 	// Liveness health check
-	app.AddEndpoint("/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+	app.AddEndpoint("/api/longrunning/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
 		Service:      app,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },

@@ -1,5 +1,5 @@
 PROJECT_ROOT := /Users/jessegitaka/go/src/github.com/gidyon/services
-SERVICE := operation
+SERVICE := longrunning
 
 API_BLOCK_KEY := 9AI8o4ta02gdqWsVhYe0r276z7my6yDwY78rCsrcofT7pCNq4WwnRoW93hn8WFJM0HheZHDYPc4tD+tUXVNEGw
 API_HASH_KEY := 73H/I3+27Qp3ZETqMzbYa/EGT826Zxx2821cmHUl7fTX/DmkIWPJatczkxN3p8RHbdOGWT/HDRAf7gqhZcZOow

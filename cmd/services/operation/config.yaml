@@ -1,4 +1,4 @@
-serviceName: emailing
+serviceName: longrunning
 httpPort: 9015
 grpcPort: 9016
 startupSleepSeconds: 5
