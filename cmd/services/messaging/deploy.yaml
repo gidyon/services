@@ -1,0 +1,185 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: messaging-v1
+  labels:
+    app: messaging
+data:
+  config.yml: |
+    serviceName: "Messaging API"
+    httpPort: 80
+    startupSleepSeconds: 5
+    logLevel: -1
+    security:
+      insecure: true
+    databases:
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      user: onfon
+      schema: ussd
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlWrites
+        dialect: mysql
+        orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      user: onfon
+      schema: ussd
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlReads
+        dialect: mysql
+        orm: gorm
+    externalServices:
+    - name: call
+      address: call:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: emailing
+      address: emailing:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: pusher
+      address: pusher:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: sms
+      address: sms:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: subscriber
+      address: subscriber:8080
+      required: true
+      k8service: true
+      insecure: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging
+  labels:
+    app: messaging
+spec:
+  selector:
+    app: messaging
+  ports:
+  - port: 80
+    name: http
+  - port: 8080
+    name: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging
+  labels:
+    app: messaging
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: messaging
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: messaging
+        version: v1
+    spec:
+      containers:
+      - name: messaging
+        image: gidyon/messaging:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 1000m
+            memory: 200Mi
+        env:
+        - name: API_HASH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-hash-key
+        - name: API_BLOCK_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: api-block-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        - name: SENDER_EMAIL_ADDRESS
+          valueFrom:
+            secretKeyRef:
+              name: smtp-creds
+              key: username
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /api/messaging/health/ready
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /api/messaging/health/live
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+          - name: mysql-creds
+            mountPath: /app/secrets/mysql/
+            readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: messaging-v1
+      - name: mysql-creds
+        secret:
+          secretName: mysql
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "messaging-hpa"
+  labels:
+    app: "messaging"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "messaging"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80

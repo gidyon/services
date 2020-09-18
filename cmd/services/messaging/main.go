@@ -15,13 +15,11 @@ import (
 
 	"github.com/gidyon/services/pkg/api/messaging/sms"
 
-	"github.com/gidyon/services/pkg/api/messaging/push"
+	"github.com/gidyon/services/pkg/api/messaging/pusher"
 
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 
 	"github.com/gidyon/services/pkg/api/messaging"
-
-	"google.golang.org/grpc"
 
 	"github.com/gidyon/micro/utils/healthcheck"
 
@@ -79,23 +77,23 @@ func main() {
 
 	// Start service
 	app.Start(ctx, func() error {
-		emailConn, err := app.DialExternalService(ctx, "emailing", grpc.WithBlock())
+		emailConn, err := app.DialExternalService(ctx, "emailing")
 		errs.Panic(err)
 		app.Logger().Infoln("connected to emailing service")
 
-		pusherConn, err := app.DialExternalService(ctx, "pusher", grpc.WithBlock())
+		pusherConn, err := app.DialExternalService(ctx, "pusher")
 		errs.Panic(err)
 		app.Logger().Infoln("connected to pusher service")
 
-		smsConn, err := app.DialExternalService(ctx, "sms", grpc.WithBlock())
+		smsConn, err := app.DialExternalService(ctx, "sms")
 		errs.Panic(err)
 		app.Logger().Infoln("connected to sms service")
 
-		callConn, err := app.DialExternalService(ctx, "call", grpc.WithBlock())
+		callConn, err := app.DialExternalService(ctx, "call")
 		errs.Panic(err)
 		app.Logger().Infoln("connected to call service")
 
-		subscriberConn, err := app.DialExternalService(ctx, "subscriber", grpc.WithBlock())
+		subscriberConn, err := app.DialExternalService(ctx, "subscriber")
 		errs.Panic(err)
 		app.Logger().Infoln("connected to subscriber service")
 
@@ -103,12 +101,13 @@ func main() {
 
 		// Create messaging API instance
 		messagingAPI, err := messaging_app.NewMessagingServer(ctx, &messaging_app.Options{
-			SQLDB:            app.GormDB(),
+			SQLDBWrites:      app.GormDBByName("sqlWrites"),
+			SQLDBReads:       app.GormDBByName("sqlReads"),
 			Logger:           app.Logger(),
 			JWTSigningKey:    []byte(os.Getenv("JWT_SIGNING_KEY")),
 			EmailSender:      os.Getenv("SENDER_EMAIL_ADDRESS"),
 			EmailClient:      emailing.NewEmailingClient(emailConn),
-			PushClient:       push.NewPushMessagingClient(pusherConn),
+			PushClient:       pusher.NewPushMessagingClient(pusherConn),
 			SMSClient:        sms.NewSMSAPIClient(smsConn),
 			CallClient:       call.NewCallAPIClient(callConn),
 			SubscriberClient: subscriber.NewSubscriberAPIClient(subscriberConn),
