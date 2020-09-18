@@ -1,1 +1,5 @@
-cmd
+client
+Makefile
+*.go
+*.yaml
+*.yml
