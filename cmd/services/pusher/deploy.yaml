@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pusher-v1
+  labels:
+    app: pusher
+data:
+  config.yml: |
+    serviceName: "Pusher API"
+    httpPort: 80
+    startupSleepSeconds: 5
+    logLevel: -1
+    security:
+      insecure: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pusher
+  labels:
+    app: pusher
+spec:
+  selector:
+    app: pusher
+  ports:
+  - port: 80
+    name: http
+  - port: 8080
+    name: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: pusher
+  labels:
+    app: pusher
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pusher
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: pusher
+        version: v1
+    spec:
+      containers:
+      - name: pusher
+        image: gidyon/messaging-pusher:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 500m
+            memory: 200Mi
+        env:
+        - name: FCM_SERVER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: fcm-server-key
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /api/pusher/health/ready
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /api/pusher/health/live
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: pusher-v1
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "pusher-hpa"
+  labels:
+    app: "pusher"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "pusher"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80
