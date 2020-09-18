@@ -66,7 +66,6 @@ func main() {
 		CookieName:   auth.JWTCookie(),
 	}))
 
-	// Start the service
 	app.Start(ctx, func() error {
 		operationAPI, err := operation_app.NewOperationAPIService(ctx, &operation_app.Options{
 			RedisClient:   app.RedisClient(),
@@ -76,6 +75,7 @@ func main() {
 		errs.Panic(err)
 
 		operation.RegisterOperationAPIServer(app.GRPCServer(), operationAPI)
+		operation.RegisterOperationAPIHandler(ctx, app.RuntimeMux(), app.ClientConn())
 
 		return nil
 	})
