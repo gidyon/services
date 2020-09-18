@@ -69,9 +69,10 @@ func main() {
 	app.Start(ctx, func() error {
 		// Create channel tracing instance
 		channelAPI, err := channel_app.NewChannelAPIServer(ctx, &channel_app.Options{
-			SQLDB:         app.GormDB(),
-			Logger:        app.Logger(),
+			SQLDBWrites:   app.GormDBByName("sqlWrites"),
+			SQLDBReads:    app.GormDBByName("sqlReads"),
 			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
+			Logger:        app.Logger(),
 		})
 		errs.Panic(err)
 

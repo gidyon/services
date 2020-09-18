@@ -1,0 +1,28 @@
+serviceName: channel
+httpPort: 8080
+logLevel: 1
+security:
+  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  serverName: localhost
+databases:
+- type: sqlDatabase
+  required: true
+  address: localhost:3306
+  user: root
+  password: hakty11
+  schema: services
+  metadata:
+    name: sqlWrites
+    dialect: mysql
+    orm: gorm
+- type: sqlDatabase
+  required: true
+  address: localhost:3306
+  user: root
+  password: hakty11
+  schema: services
+  metadata:
+    name: sqlReads
+    dialect: mysql
+    orm: gorm
