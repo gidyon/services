@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emailing-v1
+  labels:
+    app: emailing
+data:
+  config.yml: |
+    serviceName: "Emailing API"
+    httpPort: 80
+    startupSleepSeconds: 5
+    logLevel: -1
+    security:
+      insecure: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emailing
+  labels:
+    app: emailing
+spec:
+  selector:
+    app: emailing
+  ports:
+  - port: 80
+    name: http
+  - port: 8080
+    name: grpc
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: emailing
+  labels:
+    app: emailing
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: emailing
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: emailing
+        version: v1
+    spec:
+      containers:
+      - name: emailing
+        image: gidyon/messaging-emailing:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 8080
+          name: grpc
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 10m
+            memory: 15Mi
+          limits:
+            cpu: 500m
+            memory: 200Mi
+        env:
+        - name: SMTP_HOST
+          valueFrom:
+            secretKeyRef:
+              name: smtp-creds
+              key: host
+        - name: SMTP_PORT
+          valueFrom:
+            secretKeyRef:
+              name: smtp-creds
+              key: port
+        - name: SMTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: smtp-creds
+              key: username
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: smtp-creds
+              key: password
+        - name: JWT_SIGNING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: symmetric-keys
+              key: jwt-signing-key
+        readinessProbe: # Checks that the container is started
+          httpGet:
+            path: /api/emailing/health/ready
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        livenessProbe: # Checks that the container is running
+          httpGet:
+            path: /api/emailing/health/live
+            port: 80
+          initialDelaySeconds: 8
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        volumeMounts:
+          - name: app-config
+            mountPath: /app/configs/
+            readOnly: true
+      volumes:
+      - name: app-config
+        configMap:
+          name: emailing-v1
+
+---
+apiVersion: "autoscaling/v2beta1"
+kind: "HorizontalPodAutoscaler"
+metadata:
+  name: "emailing-hpa"
+  labels:
+    app: "emailing"
+spec:
+  scaleTargetRef:
+    kind: "Deployment"
+    name: "emailing"
+    apiVersion: "apps/v1"
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: "Resource"
+    resource:
+      name: "cpu"
+      targetAverageUtilization: 80
