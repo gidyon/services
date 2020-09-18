@@ -15,7 +15,7 @@ message Account {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Account"
-			description: "Account profile information"
+			description: "Account profile information for a client"
 		}
     };
     
@@ -24,6 +24,7 @@ message Account {
         MALE = 1;
         FEMALE = 2;
     }
+
     string account_id = 1;
     string external_id = 2;
     string email = 3;
@@ -45,7 +46,8 @@ message PrivateAccount {
 			title: "PrivateAccount"
 			description: "Contains account sensitive information such as password and security QA"
 		}
-	};
+    };
+    
     string password = 1; 
     string confirm_password = 2;
     string security_question = 3;
@@ -66,7 +68,8 @@ message SignInRequest {
 			description: "Request to sign in to an account"
 			required: ["username", "password"]
 		}
-	};
+    };
+    
     string username = 1 [(google.api.field_behavior) = REQUIRED];
     string password = 2 [(google.api.field_behavior) = REQUIRED];
     string group = 3;
@@ -80,9 +83,10 @@ message SignInExternalRequest {
 			description: "Request to sign in using external provider like Google, Facebook or Github"
 			required: ["account", "auth_token"]
 		}
-	};
-    Account account = 1;
-    string auth_token = 2;
+    };
+    
+    Account account = 1 [(google.api.field_behavior) = REQUIRED];
+    string auth_token = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message RefreshSessionRequest {
@@ -92,22 +96,25 @@ message RefreshSessionRequest {
 			description: "Request to refresh session credential"
 			required: ["refresh_token", "account_id"]
 		}
-	};
-    string refresh_token = 1;
-    string account_id = 2;
+    };
+    
+    string refresh_token = 1 [(google.api.field_behavior) = REQUIRED];
+    string account_id = 2 [(google.api.field_behavior) = REQUIRED];
     string account_group = 3;
 }
 
 message SignInResponse {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "SignInRequest"
+            title: "SignInResponse"
+			description: "Response after signing in"
 		}
     };
-    string session_id = 1;
-    string account_id = 2;
-    string token = 3;
-    string refresh_token = 4;
+
+    string session_id = 1 [(google.api.field_behavior) = REQUIRED];
+    string account_id = 2 [(google.api.field_behavior) = REQUIRED];
+    string token = 3 [(google.api.field_behavior) = REQUIRED];
+    string refresh_token = 4 [(google.api.field_behavior) = REQUIRED];
     string group = 5;
     AccountState state = 6;
 }
@@ -119,7 +126,8 @@ message CreateAccountRequest {
 			description: "Request to create an account"
 			required: ["account"]
 		}
-	};
+    };
+    
     Account account = 1 [(google.api.field_behavior) = REQUIRED];
     PrivateAccount private_account = 2 [(google.api.field_behavior) = OPTIONAL];
     bool update_only = 3;
@@ -131,20 +139,23 @@ message CreateAccountRequest {
 message CreateAccountResponse {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "CreateAccountResponse"
+            title: "CreateAccountResponse"
+			description: "Response after creating an account"
 		}
-	};
-    string account_id = 1;
+    };
+    
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ActivateAccountRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ActivateAccountRequest"
-			description: "Request to activate an account"
+			description: "Request to activate an account that was inactive"
 			required: ["account_id", "token"]
 		}
-	};
+    };
+    
     string account_id = 1 [(google.api.field_behavior) = REQUIRED];
     string token = 2 [(google.api.field_behavior) = REQUIRED];
 }
@@ -152,7 +163,8 @@ message ActivateAccountRequest {
 message ActivateAccountResponse {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "ActivateAccountResponse"
+            title: "ActivateAccountResponse"
+			description: "Response after activating an account"
 		}
 	};
 }
@@ -164,7 +176,8 @@ message UpdateAccountRequest {
 			description: "Request to update an account"
 			required: ["account"]
 		}
-	};
+    };
+    
     Account account = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -175,7 +188,8 @@ message RequestChangePrivateAccountRequest {
 			description: "Request to change private account information"
 			required: ["payload", "fallback_url", "send_method"]
 		}
-	};
+    };
+    
     string payload = 1 [(google.api.field_behavior) = REQUIRED];
     string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
     gidyon.apis.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
@@ -184,9 +198,11 @@ message RequestChangePrivateAccountRequest {
 message RequestChangePrivateAccountResponse {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "RequestChangePrivateAccountResponse"
+            title: "RequestChangePrivateAccountResponse"
+			description: "Response after requesting for the change"
 		}
-	};
+    };
+    
     string response_message = 1;
 }
 
@@ -197,7 +213,8 @@ message UpdatePrivateAccountRequest {
 			description: "Request to update account private information"
 			required: ["account_id", "private_account", "change_token"]
 		}
-	};
+    };
+    
     string account_id = 1 [(google.api.field_behavior) = REQUIRED];
     PrivateAccount private_account = 2 [(google.api.field_behavior) = REQUIRED];
     string change_token = 3 [(google.api.field_behavior) = REQUIRED];
@@ -207,10 +224,11 @@ message DeleteAccountRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "DeleteAccountRequest"
-			description: "Request to remove an account"
+			description: "Request to delete an account"
 			required: ["account_id"]
 		}
-	};
+    };
+    
     string account_id = 1  [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -228,8 +246,9 @@ message GetAccountRequest {
 			description: "Request to retrieve an account"
 			required: ["account_id"]
 		}
-	};
-    string account_id = 1[(google.api.field_behavior) = REQUIRED];
+    };
+    
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
     AccountView view = 2 [(google.api.field_behavior) = OPTIONAL];
     bool priviledge = 3;
 }
@@ -241,8 +260,9 @@ message BatchGetAccountsRequest {
 			description: "Request to get multiple accounts"
 			required: ["account_ids"]
 		}
-	};
-    repeated string account_ids = 1;
+    };
+    
+    repeated string account_ids = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message BatchGetAccountsResponse {
@@ -250,7 +270,8 @@ message BatchGetAccountsResponse {
 		json_schema: {
 			title: "BatchGetAccountsResponse"
 		}
-	};
+    };
+    
     repeated Account accounts = 1;
 }
 
@@ -258,19 +279,22 @@ message GetLinkedAccountsRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetLinkedAccountsRequest"
-			description: "Request to retrive linked accounts"
+			description: "Request to retrive linked accounts for an account"
 			required: ["account_id"]
 		}
-	};
-    string account_id = 1;
+    };
+    
+    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message GetLinkedAccountsResponse {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "GetLinkedAccountsResponse"
+            title: "GetLinkedAccountsResponse"
+            description: "Response containing linked accounts"
 		}
-	};
+    };
+    
     repeated Account accounts = 1;
 }
 
@@ -280,7 +304,8 @@ message ExistAccountRequest {
 			title: "ExistAccountRequest"
 			description: "Request to check if an account exists"
 		}
-	};
+    };
+    
     string email = 1 [(google.api.field_behavior) = OPTIONAL];
     string phone = 2 [(google.api.field_behavior) = OPTIONAL];
     string external_id = 3 [(google.api.field_behavior) = OPTIONAL];
@@ -291,7 +316,8 @@ message ExistAccountResponse {
 		json_schema: {
 			title: "ExistAccountResponse"
 		}
-	};
+    };
+    
     bool exists = 1;
     string account_id = 2;
 }
@@ -302,8 +328,9 @@ message Accounts {
 			title: "Accounts"
 			description: "Collection of accounts"
 		}
-	};
-    string next_page_token = 1;
+    };
+    
+    string next_page_token = 1 [(google.api.field_behavior) = OPTIONAL];
     repeated Account accounts = 2;
 }
 
@@ -324,7 +351,8 @@ message AdminUpdateAccountRequest {
 			description: "Request to update an account data by admininstrator"
 			required: ["account_id", "admin_id", "update_operation"]
 		}
-	};
+    };
+    
     string account_id = 1 [(google.api.field_behavior) = REQUIRED];
     string admin_id = 2 [(google.api.field_behavior) = REQUIRED];
     UpdateOperation update_operation = 3 [(google.api.field_behavior) = REQUIRED];
@@ -338,7 +366,8 @@ message Criteria {
 			title: "Criteria"
 			description: "Filtering criteria for fetching collection of accounts"
 		}
-	};
+    };
+    
     bool filter = 1;
     bool show_active_accounts = 2;
     bool show_inactive_accounts = 3;
@@ -358,7 +387,8 @@ message ListAccountsRequest {
 			title: "ListAccountsRequest"
 			description: "Request to retrieve collection of accounts"
 		}
-	};
+    };
+    
     string page_token = 1;
     int32 page_size = 2;
     Criteria list_criteria = 3;
@@ -372,7 +402,8 @@ message SearchAccountsRequest {
 			title: "SearchAccountsRequest"
 			description: "Request to search for accounts"
 		}
-	};
+    };
+    
     string query = 1;
     string page_token = 2;
     int32 page_size = 3;
@@ -381,7 +412,7 @@ message SearchAccountsRequest {
     AccountView view = 6;
 }
 
-// Manages account activities
+// Manages account activities for an account
 service AccountAPI {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_tag) = {
 		description: "AccountAPI description -- Managing user accounts!"
@@ -434,7 +465,7 @@ service AccountAPI {
     // ActivateAccounts an account
     rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/activate"
+            get: "/api/accounts/action:activate"
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -451,7 +482,7 @@ service AccountAPI {
     // Request to change private account
     rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/change-private"
+            get: "/api/accounts/action:change-private"
         };
         option (google.api.method_signature) = "payload,fallback_url";
     };
@@ -484,7 +515,7 @@ service AccountAPI {
     //  Retrieves multiple user accounts
     rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
         option (google.api.http) = {
-            get: "/api/accounts:batchGet"
+            get: "/api/accounts/action:batchGet"
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -492,7 +523,7 @@ service AccountAPI {
     //  Retrieves deeply linked accounts
     rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/{account_id}:related"
+            get: "/api/accounts/{account_id}:linked"
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -500,7 +531,7 @@ service AccountAPI {
     // Checks if an account exists
     rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/exists"
+            get: "/api/accounts/action:exists"
         };
         option (google.api.method_signature) = "email,phone,huduma_id";
     };
@@ -508,7 +539,7 @@ service AccountAPI {
     // Updates account
     rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            patch: "/api/accounts/{account_id}/byadmin"
+            patch: "/api/accounts/{account_id}:admin"
             body: "*"
         };
         option (google.api.method_signature) = "admin_id,account_id";
@@ -525,7 +556,7 @@ service AccountAPI {
     // Searches accounts and linked accounts
     rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
         option (google.api.http) = {
-            get: "/api/accounts:search"
+            get: "/api/accounts/action:search"
         };
         option (google.api.method_signature) = "query";
     };
@@ -533,17 +564,17 @@ service AccountAPI {
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
-        title: "Accounts Service - Gideon Kamau";
-        description: "Manages user accounts and sign in user to their accounts"
-		version: "0.1";
+        title: "Accounts Service";
+        description: "Manages activities in user accounts"
+		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
 			url: "https://github.com/gidyon/services/blob/master/api/proto/account.proto";
 			email: "gideonhacer@gmail.com";
         };
         license: {
-			name: "BSD 3-Clause License";
-			url: "https://github.com/gidyon/services/blob/master/LICENSE.txt";
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
 		};
     };
     schemes: HTTP;
