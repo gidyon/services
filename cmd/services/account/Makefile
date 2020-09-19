@@ -9,7 +9,7 @@ CONFIGS_DIR := /Users/jessegitaka/go/src/github.com/gidyon/services/configs
 TEMPLATES_DIR := /Users/jessegitaka/go/src/github.com/gidyon/services/templates/account
 ACTIVATION_URL := https://google.com
 
-image := onfon/$(SERVICE):latest
+image := gidyon/$(SERVICE):latest
 context := .
 
 ifdef IMAGE
