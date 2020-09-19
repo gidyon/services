@@ -24,7 +24,7 @@ run:
 	./service -config-file=./config.yaml
 
 gotest:
-	@cd $(PROJECT_ROOT)/internal/account && ginkgo -cover
+	@cd $(PROJECT_ROOT)/internal/subscriber && ginkgo -cover
 	
 compile:
 	@GOOS=linux go build -i -v -o service .
