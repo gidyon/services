@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/gidyon/services/pkg/api/messaging/push"
+	"github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/mocks/mocks"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/stretchr/testify/mock"
@@ -9,7 +9,7 @@ import (
 
 // PushAPIClientMock is a mock for push API client
 type PushAPIClientMock interface {
-	push.PushMessagingClient
+	pusher.PushMessagingClient
 }
 
 // PushAPI is a fake push API
