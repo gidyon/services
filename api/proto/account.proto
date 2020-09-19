@@ -15,10 +15,11 @@ message Account {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Account"
-			description: "Account profile information for a client"
+			description: "Account profile information"
 		}
     };
     
+    // Gender
     enum Gender {
         GENDER_UNSPECIFIED = 0;
         MALE = 1;
@@ -54,11 +55,13 @@ message PrivateAccount {
     string security_answer = 4;
 }
 
+// AccountState 
 enum AccountState {
-    BLOCKED = 0;
-    ACTIVE = 1;
-    INACTIVE = 2;
-    DELETED = 3;
+    ACCOUNT_STATE_UNSPECIFIED = 0;
+    BLOCKED = 1;
+    ACTIVE = 2;
+    INACTIVE = 3;
+    DELETED = 4;
 }
 
 message SignInRequest {
@@ -80,7 +83,7 @@ message SignInExternalRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SignInExternalRequest"
-			description: "Request to sign in using external provider like Google, Facebook or Github"
+			description: "Request to sign in using an external provider like Google, Facebook or Github"
 			required: ["account", "auth_token"]
 		}
     };
@@ -232,6 +235,7 @@ message DeleteAccountRequest {
     string account_id = 1  [(google.api.field_behavior) = REQUIRED];
 }
 
+// AccountView
 enum AccountView {
     FULL_VIEW = 0;
     LIST_VIEW = 1; // account_id, email, first name and last name
@@ -334,6 +338,7 @@ message Accounts {
     repeated Account accounts = 2;
 }
 
+// UpdateOperation
 enum UpdateOperation {
     UPDATE_OPERATION_INSPECIFIED = 0;
     UNDELETE = 1;
@@ -412,7 +417,7 @@ message SearchAccountsRequest {
     AccountView view = 6;
 }
 
-// Manages account activities for an account
+// Manages account activities
 service AccountAPI {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_tag) = {
 		description: "AccountAPI description -- Managing user accounts!"
@@ -462,7 +467,7 @@ service AccountAPI {
         option (google.api.method_signature) = "account";
     };
 
-    // ActivateAccounts an account
+    // Activates an account to being active
     rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
         option (google.api.http) = {
             get: "/api/accounts/action:activate"
@@ -479,7 +484,7 @@ service AccountAPI {
         option (google.api.method_signature) = "account_id,account";
     };
 
-    // Request to change private account
+    // Request to change private account information
     rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
         option (google.api.http) = {
             get: "/api/accounts/action:change-private"
@@ -565,7 +570,7 @@ service AccountAPI {
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
         title: "Accounts Service";
-        description: "Manages activities in user accounts"
+        description: "API for managing account activities"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
