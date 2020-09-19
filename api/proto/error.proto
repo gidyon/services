@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package gidyon.apis;
+
+option go_package="github.com/gidyon/services/pkg/api/usererror";
+
+message Error {
+    string error_message = 1;
+}
