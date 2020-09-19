@@ -396,9 +396,9 @@ func RegisterSubscriberAPIHandlerClient(ctx context.Context, mux *runtime.ServeM
 }
 
 var (
-	pattern_SubscriberAPI_Subscribe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "subscribers", "subscribe"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SubscriberAPI_Subscribe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "subscribers", "action"}, "subscribe", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_SubscriberAPI_Unsubscribe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "subscribers", "unsubscribe"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_SubscriberAPI_Unsubscribe_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "subscribers", "action"}, "unsubscribe", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_SubscriberAPI_ListSubscribers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "subscribers"}, "", runtime.AssumeColonVerbOpt(true)))
 

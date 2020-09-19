@@ -1449,11 +1449,11 @@ var (
 
 	pattern_AccountAPI_CreateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "accounts"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_ActivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "action", "activate"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_ActivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "action"}, "activate", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_AccountAPI_UpdateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account.account_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_RequestChangePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "action", "change-private"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_RequestChangePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "action"}, "change-private", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_AccountAPI_UpdatePrivateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "accounts", "account_id", "private"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -1461,17 +1461,17 @@ var (
 
 	pattern_AccountAPI_GetAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_BatchGetAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "accounts"}, "batchGet", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_BatchGetAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "action"}, "batchGet", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_GetLinkedAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account_id"}, "related", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_GetLinkedAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account_id"}, "linked", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_ExistAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "accounts", "action", "exists"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_ExistAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "action"}, "exists", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_AdminUpdateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"api", "accounts", "account_id", "byadmin"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_AdminUpdateAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"api", "accounts", "account_id"}, "admin", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_AccountAPI_ListAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "accounts"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AccountAPI_SearchAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "accounts"}, "search", runtime.AssumeColonVerbOpt(true)))
+	pattern_AccountAPI_SearchAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "accounts", "action"}, "search", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
