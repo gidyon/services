@@ -16,9 +16,9 @@ data:
     - required: true
       type: sqlDatabase
       address: mysql:3306
-      user: onfon
-      schema: ussd
-      passwordFile: /app/secrets/mysql/mysql-password
+      user: root
+      schema: services
+      passwordFile: /app/secrets/mysql/mysql-root-password
       metadata:
         name: sqlWrites
         dialect: mysql
@@ -26,9 +26,9 @@ data:
     - required: true
       type: sqlDatabase
       address: mysql:3306
-      user: onfon
-      schema: ussd
-      passwordFile: /app/secrets/mysql/mysql-password
+      user: root
+      schema: services
+      passwordFile: /app/secrets/mysql/mysql-root-password
       metadata:
         name: sqlReads
         dialect: mysql
