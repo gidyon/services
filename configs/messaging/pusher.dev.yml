@@ -1,7 +1,6 @@
-serviceName: SMS API
-httpPort: 8080
-startupSleepSeconds: 5
-logLevel: 1
+serviceName: pusher
+httpPort: 5030
+logLevel: -1
 security:
   tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
