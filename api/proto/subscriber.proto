@@ -8,11 +8,17 @@ option go_package="github.com/gidyon/services/pkg/api/subscriber";
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-import "google/api/resource.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 import "google/api/client.proto";
 
-// Subscriber represent an entity that can subscribes to channels
 message Subscriber {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Subscriber"
+            description: "Party that subscribes to a channel"
+		}
+    };
+
     string subscriber_id = 1;
     string email = 2;
     string phone = 3;
@@ -21,51 +27,79 @@ message Subscriber {
     repeated Channel channels = 6;
 }
 
-// Channel is a channel a subscriber subscribes to
 message Channel {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Channel"
+            description: "The subscription"
+            required:["name", "channel_id"]
+		}
+    };
+
     string name = 1;
     string channel_id = 2;
 }
 
-// SubscriberRequest is request to subscribes an entity to a channel
 message SubscriberRequest {
-    string subscriber_id = 1 [
-        (google.api.field_behavior) = REQUIRED,
-        (google.api.resource_reference) = {
-          child_type: "emrs.subscriber/Subscriber"
-        }];
-    string channel_id = 2 [
-        (google.api.field_behavior) = REQUIRED,
-        (google.api.resource_reference) = {
-          child_type: "emrs.channel/Channel"
-        }];
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SubscriberRequest"
+            description: "Request to subscribes an entity to a channel"
+            required: ["subscriber_id", "channel_id"]
+		}
+    };
+
+    string subscriber_id = 1 [(google.api.field_behavior) = REQUIRED];
+    string channel_id = 2 [(google.api.field_behavior) = REQUIRED];
     string channel_name = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// ListSubscribersRequest is request to list subscribers for a particular channel
-message ListSubscribersRequest {
-    repeated string channels = 1 [
-        (google.api.field_behavior) = REQUIRED,
-        (google.api.resource_reference) = {
-          child_type: "emrs.subscriber/Subscriber"
-        }];
-    string page_token = 2;
-    int32 page_size = 3;
+message ListSubscribersFilter {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListSubscribersFilter"
+			description: "Filters for retrieving subscribers"
+		}
+    };
+
+    repeated string channels = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// ListSubscribersResponse is response containing collection of subscribers
+message ListSubscribersRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListSubscribersRequest"
+			description: "Request to list subscribers for channel(s)"
+		}
+    };
+
+    string page_token = 1;
+    int32 page_size = 2;
+    ListSubscribersFilter filter = 3;
+}
+
 message ListSubscribersResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListSubscribersResponse"
+			description: "Response containing collection of subscribers"
+		}
+    };
+
     repeated Subscriber subscribers = 1;
     string next_page_token = 2;
 }
 
-// GetSubscriberRequest is request to retrieve a subscriber
 message GetSubscriberRequest {
-    string subscriber_id = 1 [
-        (google.api.field_behavior) = REQUIRED,
-        (google.api.resource_reference) = {
-          type: "emrs.subscriber/Subscriber"
-        }];
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "GetSubscriberRequest"
+            description: "Request to retrieve a single subscriber"
+            required: ["subscriber_id"]
+		}
+    };
+
+    string subscriber_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages subscribers for a channel
@@ -73,7 +107,7 @@ service SubscriberAPI {
     // Subscribes a user to a channel
     rpc Subscribe (SubscriberRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/api/subscribers/subscribe",
+            post: "/api/subscribers/action:subscribe",
             body: "*"
         };
         option (google.api.method_signature) = "channel_id,subscriber_id";
@@ -82,7 +116,7 @@ service SubscriberAPI {
     // Unsubscribes a user from a channel
     rpc Unsubscribe (SubscriberRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/api/subscribers/unsubscribe",
+            post: "/api/subscribers/action:unsubscribe",
             body: "*"
         };
         option (google.api.method_signature) = "channel_id,subscriber_id";
@@ -104,3 +138,46 @@ service SubscriberAPI {
         option (google.api.method_signature) = "subscriber_id";
     };
 }
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Subscriber Service";
+        description: "Manages subscribers for channel(s)"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/subscriber.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};
