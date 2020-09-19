@@ -66,7 +66,7 @@ var _ = Describe("Creating A Operation @create", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
 		It("should fail when operation status is missing", func() {
-			createReq.Operation.Status = operation.OperationStatus_OPERATION_STATUS_UNKNOWN
+			createReq.Operation.Status = operation.OperationStatus_OPERATION_STATUS_UNSPECIFIED
 			createRes, err := OperationAPI.CreateOperation(ctx, createReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(createRes).Should(BeNil())
@@ -93,7 +93,7 @@ var _ = Describe("Creating A Operation @create", func() {
 				Expect(opPB.Id).ShouldNot(BeZero())
 				Expect(opPB.UserId).ShouldNot(BeZero())
 				Expect(opPB.Details).ShouldNot(BeZero())
-				Expect(opPB.Status).ShouldNot(Equal(operation.OperationStatus_OPERATION_STATUS_UNKNOWN))
+				Expect(opPB.Status).ShouldNot(Equal(operation.OperationStatus_OPERATION_STATUS_UNSPECIFIED))
 			})
 		})
 	})

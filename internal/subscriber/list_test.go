@@ -21,9 +21,11 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 
 	BeforeEach(func() {
 		listReq = &subscriber.ListSubscribersRequest{
-			Channels:  []string{"public"},
 			PageToken: "",
 			PageSize:  10,
+			Filter: &subscriber.ListSubscribersFilter{
+				Channels: []string{"public"},
+			},
 		}
 		ctx = context.Background()
 	})
@@ -54,7 +56,7 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 
 		Describe("List subscribers when missing channelId", func() {
 			It("should list subscribers for a channel even when page ", func() {
-				listReq.Channels = []string{}
+				listReq.Filter.Channels = []string{}
 				listReq.PageToken = pageToken
 				listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -77,7 +79,7 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 			})
 
 			It("should list subscribers for a channel", func() {
-				listReq.Channels = []string{channelID}
+				listReq.Filter.Channels = []string{channelID}
 				listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -90,7 +92,7 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 
 			Describe("Listing channels using previous next_page_token as page_token", func() {
 				It("should list subscribers for a channel even when page ", func() {
-					listReq.Channels = []string{channelID}
+					listReq.Filter.Channels = []string{channelID}
 					listReq.PageToken = pageToken
 					listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
 					Expect(err).ShouldNot(HaveOccurred())

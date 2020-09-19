@@ -2,15 +2,15 @@ package channel
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/conn"
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
@@ -32,9 +32,13 @@ const (
 )
 
 func startDB() (*gorm.DB, error) {
-	param := "charset=utf8&parseTime=true"
-	dsn := fmt.Sprintf("root:hakty11@tcp(%s)/%s?%s", dbAddress, schema, param)
-	return gorm.Open("mysql", dsn)
+	return conn.OpenGormConn(&conn.DBOptions{
+		Dialect:  "mysql",
+		Address:  "localhost:3306",
+		User:     "root",
+		Password: "hakty11",
+		Schema:   schema,
+	})
 }
 
 var _ = BeforeSuite(func() {
@@ -48,7 +52,8 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("channel_app")
 
 	opt := &Options{
-		SQLDB:         db,
+		SQLDBWrites:   db,
+		SQLDBReads:    db,
 		Logger:        logger,
 		JWTSigningKey: []byte(randomdata.RandStringRunes(32)),
 	}
@@ -70,11 +75,16 @@ var _ = BeforeSuite(func() {
 	_, err = NewChannelAPIServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = nil
+	opt.SQLDBReads = nil
 	_, err = NewChannelAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.SQLDB = db
+	opt.SQLDBReads = db
+	opt.SQLDBWrites = nil
+	_, err = NewChannelAPIServer(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDBWrites = db
 	opt.Logger = nil
 	_, err = NewChannelAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
@@ -100,7 +110,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	Expect(ChannelAPIServer.sqlDB.Close()).ShouldNot(HaveOccurred())
+	// Expect(ChannelAPIServer.sqlDB.Close()).ShouldNot(HaveOccurred())
 })
 
 // Declarations for Ginkgo DSL

@@ -22,7 +22,9 @@ var _ = Describe("ListOperations @list", func() {
 		listReq = &operation.ListOperationsRequest{
 			PageToken: "",
 			PageSize:  10,
-			UserId:    userID,
+			Filter: &operation.ListOperationsFilter{
+				UserId: userID,
+			},
 		}
 		ctx = context.Background()
 	})
@@ -43,7 +45,7 @@ var _ = Describe("ListOperations @list", func() {
 			Expect(listRes).Should(BeNil())
 		})
 		It("should fail when user id is missing", func() {
-			listReq.UserId = ""
+			listReq.Filter.UserId = ""
 			listRes, err := OperationAPI.ListOperations(ctx, listReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -86,7 +88,7 @@ var _ = Describe("ListOperations @list", func() {
 
 	Describe("Listing operations with incorrect user id", func() {
 		It("should succeed but with no ops!", func() {
-			listReq.UserId = randomdata.RandStringRunes(32)
+			listReq.Filter.UserId = randomdata.RandStringRunes(32)
 			listRes, err := OperationAPI.ListOperations(ctx, listReq)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.OK))

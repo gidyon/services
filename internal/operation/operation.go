@@ -8,6 +8,7 @@ import (
 
 	"github.com/gidyon/services/pkg/api/operation"
 	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
 	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/go-redis/redis"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -35,14 +36,6 @@ type Options struct {
 	JWTSigningKey []byte
 }
 
-func newHasher(salt string) (*hashids.HashID, error) {
-	hd := hashids.NewData()
-	hd.Salt = salt
-	hd.MinLength = 30
-
-	return hashids.NewWithData(hd)
-}
-
 // NewOperationAPIService is factory for creating OperationAPIServer singletons
 func NewOperationAPIService(ctx context.Context, opt *Options) (operation.OperationAPIServer, error) {
 	// Validation
@@ -68,7 +61,7 @@ func NewOperationAPIService(ctx context.Context, opt *Options) (operation.Operat
 		return nil, err
 	}
 
-	hasher, err := newHasher(string(opt.JWTSigningKey))
+	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
@@ -92,7 +85,7 @@ func validateOperation(op *operation.Operation) error {
 		err = errs.MissingField("user id")
 	case op.Details == "":
 		err = errs.MissingField("operation details")
-	case op.Status == operation.OperationStatus_OPERATION_STATUS_UNKNOWN:
+	case op.Status == operation.OperationStatus_OPERATION_STATUS_UNSPECIFIED:
 		err = errs.MissingField("operation status")
 	}
 	return err
@@ -139,11 +132,6 @@ func (operationAPI *operationAPIService) saveOperation(ctx context.Context, op *
 func (operationAPI *operationAPIService) CreateOperation(
 	ctx context.Context, createReq *operation.CreateOperationRequest,
 ) (*operation.Operation, error) {
-	// Request must not be nil
-	if createReq == nil {
-		return nil, errs.NilObject("CreateOperationRequest")
-	}
-
 	// Authenticate request
 	err := operationAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -151,9 +139,14 @@ func (operationAPI *operationAPIService) CreateOperation(
 	}
 
 	// Validation
-	err = validateOperation(createReq.Operation)
-	if err != nil {
-		return nil, err
+	switch {
+	case createReq == nil:
+		return nil, errs.NilObject("CreateOperationRequest")
+	default:
+		err = validateOperation(createReq.Operation)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	createReq.Operation.Id = uuid.New().String()
@@ -169,11 +162,6 @@ func (operationAPI *operationAPIService) CreateOperation(
 func (operationAPI *operationAPIService) UpdateOperation(
 	ctx context.Context, updateReq *operation.UpdateOperationRequest,
 ) (*operation.Operation, error) {
-	// Request must not be nil
-	if updateReq == nil {
-		return nil, errs.NilObject("UpdateOperationRequest")
-	}
-
 	// Authorization
 	err := operationAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -182,11 +170,13 @@ func (operationAPI *operationAPIService) UpdateOperation(
 
 	// Validation
 	switch {
+	case updateReq == nil:
+		return nil, errs.NilObject("UpdateOperationRequest")
 	case updateReq.OperationId == "":
 		err = errs.MissingField("operarion id")
 	case updateReq.Result == "":
 		err = errs.MissingField("operation result")
-	case updateReq.Status == operation.OperationStatus_OPERATION_STATUS_UNKNOWN:
+	case updateReq.Status == operation.OperationStatus_OPERATION_STATUS_UNSPECIFIED:
 		err = errs.MissingField("operation status")
 	}
 	if err != nil {
@@ -232,19 +222,16 @@ func (operationAPI *operationAPIService) UpdateOperation(
 func (operationAPI *operationAPIService) DeleteOperation(
 	ctx context.Context, delReq *operation.DeleteOperationRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if delReq == nil {
-		return nil, errs.NilObject("DeleteOperationRequest")
-	}
-
 	// Authorize actor
-	_, err := operationAPI.authAPI.AuthorizeActor(ctx, delReq.UserId)
+	_, err := operationAPI.authAPI.AuthorizeActor(ctx, delReq.GetUserId())
 	if err != nil {
 		return nil, err
 	}
 
 	// Validation
 	switch {
+	case delReq == nil:
+		return nil, errs.NilObject("DeleteOperationRequest")
 	case delReq.UserId == "":
 		err = errs.MissingField("user id")
 	case delReq.OperationId == "":
@@ -290,24 +277,20 @@ const defaultPageSize = 20
 func (operationAPI *operationAPIService) ListOperations(
 	ctx context.Context, listReq *operation.ListOperationsRequest,
 ) (*operation.ListOperationsResponse, error) {
-	// Request must not be nil
-	if listReq == nil {
-		return nil, errs.NilObject("ListOperationsRequest")
-	}
-
 	// Authentication
-	_, err := operationAPI.authAPI.AuthorizeActor(ctx, listReq.UserId)
+	_, err := operationAPI.authAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
+
+	userID := listReq.GetFilter().GetUserId()
 
 	// Validation
 	switch {
-	case listReq.UserId == "":
-		err = errs.MissingField("user id")
-	}
-	if err != nil {
-		return nil, err
+	case listReq == nil:
+		return nil, errs.NilObject("ListOperationsRequest")
+	case userID == "":
+		return nil, errs.MissingField("user id")
 	}
 
 	pageSize := listReq.GetPageSize()
@@ -326,7 +309,7 @@ func (operationAPI *operationAPIService) ListOperations(
 	}
 
 	// Get operations ids
-	opKeys, err := operationAPI.redisDB.LRange(getUserOpList(listReq.UserId), id, int64(pageSize)+id).Result()
+	opKeys, err := operationAPI.redisDB.LRange(getUserOpList(userID), id, int64(pageSize)+id).Result()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "lrange")
 	}
@@ -368,11 +351,6 @@ func (operationAPI *operationAPIService) ListOperations(
 func (operationAPI *operationAPIService) GetOperation(
 	ctx context.Context, getReq *operation.GetOperationRequest,
 ) (*operation.Operation, error) {
-	// Request must not be nil
-	if getReq == nil {
-		return nil, errs.NilObject("GetOperationRequest")
-	}
-
 	// Authentication
 	err := operationAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -381,6 +359,8 @@ func (operationAPI *operationAPIService) GetOperation(
 
 	// Validation
 	switch {
+	case getReq == nil:
+		return nil, errs.NilObject("GetOperationRequest")
 	case getReq.OperationId == "":
 		err = errs.MissingField("operation id")
 	}

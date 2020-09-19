@@ -246,7 +246,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		Link:        link,
 		Save:        true,
 		Type:        messageType,
-		SendMethods: []messaging.SendMethod{messaging.SendMethod_SMS, messaging.SendMethod_EMAIL},
+		SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2, messaging.SendMethod_EMAIL},
 		Details: map[string]string{
 			"email_body": content.String(),
 		},

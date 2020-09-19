@@ -84,7 +84,7 @@ var _ = Describe("Creating A Channel #create", func() {
 		Describe("Created channel", func() {
 			It("should exist in database", func() {
 				channelDB := &Channel{}
-				err := ChannelAPIServer.sqlDB.First(channelDB, "id=?", channelID).Error
+				err := ChannelAPIServer.SQLDBReads.First(channelDB, "id=?", channelID).Error
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(channelDB).ShouldNot(BeNil())
 			})

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gidyon/services/pkg/api/channel"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 const channelsTable = "channels"

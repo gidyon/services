@@ -3,6 +3,7 @@ package subscriber
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -10,8 +11,10 @@ import (
 
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
 	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/gidyon/services/pkg/utils/mdutil"
+	"gorm.io/gorm"
 
 	"github.com/gidyon/services/pkg/api/channel"
 
@@ -22,16 +25,12 @@ import (
 
 	"github.com/gidyon/services/pkg/api/subscriber"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/jinzhu/gorm"
 )
 
 type subscriberAPIServer struct {
-	sqlDB         *gorm.DB
-	logger        grpclog.LoggerV2
-	authAPI       auth.Interface
-	channelClient channel.ChannelAPIClient
-	accountClient account.AccountAPIClient
-	hasher        *hashids.HashID
+	authAPI auth.Interface
+	hasher  *hashids.HashID
+	*Options
 }
 
 // Options are parameters passed while calling NewSubscriberAPIServer
@@ -41,14 +40,6 @@ type Options struct {
 	ChannelClient channel.ChannelAPIClient
 	AccountClient account.AccountAPIClient
 	JWTSigningKey []byte
-}
-
-func newHasher(salt string) (*hashids.HashID, error) {
-	hd := hashids.NewData()
-	hd.Salt = salt
-	hd.MinLength = 30
-
-	return hashids.NewWithData(hd)
 }
 
 // NewSubscriberAPIServer factory creates a subscriber API server
@@ -84,24 +75,23 @@ func NewSubscriberAPIServer(
 	}
 
 	// Pagination hasher
-	hasher, err := newHasher(string(opt.JWTSigningKey))
+	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
 
 	subscriberAPI := &subscriberAPIServer{
-		sqlDB:         opt.SQLDB,
-		logger:        opt.Logger,
-		authAPI:       authAPI,
-		channelClient: opt.ChannelClient,
-		accountClient: opt.AccountClient,
-		hasher:        hasher,
+		authAPI: authAPI,
+		hasher:  hasher,
+		Options: opt,
 	}
 
 	// Automigration
-	err = subscriberAPI.sqlDB.AutoMigrate(&Subscriber{}).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to automigrate subscriber table: %w", err)
+	if !subscriberAPI.SQLDB.Migrator().HasTable(&Subscriber{}) {
+		err = subscriberAPI.SQLDB.AutoMigrate(&Subscriber{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to automigrate subscriber table: %w", err)
+		}
 	}
 
 	return subscriberAPI, nil
@@ -117,7 +107,7 @@ func (subscriberAPI *subscriberAPIServer) createSubscriber(ID int) error {
 	if err != nil {
 		return errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to json marshal")
 	}
-	err = subscriberAPI.sqlDB.Create(&Subscriber{
+	err = subscriberAPI.SQLDB.Create(&Subscriber{
 		ID:       uint(ID),
 		Channels: channels,
 	}).Error
@@ -136,7 +126,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	}
 
 	// Authorize the request
-	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroup(ctx, subReq.SubscriberId, auth.AdminGroup())
+	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, subReq.SubscriberId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -158,10 +148,10 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	}
 
 	// Start a transaction
-	tx := subscriberAPI.sqlDB.Begin()
+	tx := subscriberAPI.SQLDB.Begin()
 	defer func() {
 		if err := recover(); err != nil {
-			subscriberAPI.logger.Errorf("recovering from panic: %v", err)
+			subscriberAPI.Logger.Errorf("recovering from panic: %v", err)
 		}
 	}()
 
@@ -173,10 +163,10 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	sub := &Subscriber{}
 
 	// Get user channels
-	err = tx.Find(sub, "id=?", ID).Error
+	err = tx.First(sub, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		err = subscriberAPI.createSubscriber(ID)
 		if err != nil {
 			tx.Rollback()
@@ -226,7 +216,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	}
 
 	// Increment channel subscribers
-	_, err = subscriberAPI.channelClient.IncrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
+	_, err = subscriberAPI.ChannelClient.IncrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
 		Id: subReq.ChannelId,
 	}, grpc.WaitForReady(true))
 	if err != nil {
@@ -253,7 +243,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	}
 
 	// Authorize the request
-	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroup(ctx, unSubReq.SubscriberId, auth.AdminGroup())
+	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, unSubReq.SubscriberId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -276,10 +266,10 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	}
 
 	// Start a transaction
-	tx := subscriberAPI.sqlDB.Begin()
+	tx := subscriberAPI.SQLDB.Begin()
 	defer func() {
 		if err := recover(); err != nil {
-			subscriberAPI.logger.Errorf("recovering from panic: %v", err)
+			subscriberAPI.Logger.Errorf("recovering from panic: %v", err)
 		}
 	}()
 
@@ -291,10 +281,10 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	sub := &Subscriber{}
 
 	// Get user channels
-	err = tx.Find(sub, "id=?", ID).Error
+	err = tx.First(sub, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		err = subscriberAPI.createSubscriber(ID)
 		if err != nil {
 			tx.Rollback()
@@ -348,7 +338,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	}
 
 	// Decrement channel subscribers
-	_, err = subscriberAPI.channelClient.DecrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
+	_, err = subscriberAPI.ChannelClient.DecrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
 		Id: channelID,
 	})
 	if err != nil {
@@ -398,7 +388,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.authAPI.AuthorizeGroup(ctx, auth.AdminGroup())
+	payload, err := subscriberAPI.authAPI.AuthorizeGroups(ctx, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -420,7 +410,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 
 	subscribersDB := make([]*Subscriber, 0, pageSize)
 
-	db := subscriberAPI.sqlDB.Limit(pageSize).Order("id DESC")
+	db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
 	if ID != 0 {
 		db = db.Where("id<?", ID)
 	}
@@ -451,12 +441,12 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 			return nil, errs.FromJSONMarshal(err, "channels")
 		}
 
-		if !hasChannel(channels, listReq.Channels) {
+		if !hasChannel(channels, listReq.GetFilter().GetChannels()) {
 			continue
 		}
 
 		// Lets get the user
-		accountPB, err := subscriberAPI.accountClient.GetAccount(ctxGet, &account.GetAccountRequest{
+		accountPB, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
 			AccountId:  fmt.Sprint(subscriberDB.ID),
 			Priviledge: payload.Group == auth.AdminGroup(),
 		})
@@ -502,7 +492,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.authAPI.AuthorizeActorOrGroup(ctx, getReq.SubscriberId, auth.AdminGroup())
+	payload, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.SubscriberId, auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -521,10 +511,10 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 
 	// Get subscriber
 	subscriberDB := &Subscriber{}
-	err = subscriberAPI.sqlDB.First(subscriberDB, "id=?", ID).Error
+	err = subscriberAPI.SQLDB.First(subscriberDB, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		err = subscriberAPI.createSubscriber(ID)
 		if err != nil {
 			return nil, err
@@ -534,7 +524,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	}
 
 	// Get account details
-	accountPB, err := subscriberAPI.accountClient.GetAccount(mdutil.AddFromCtx(ctx), &account.GetAccountRequest{
+	accountPB, err := subscriberAPI.AccountClient.GetAccount(mdutil.AddFromCtx(ctx), &account.GetAccountRequest{
 		AccountId:  getReq.SubscriberId,
 		Priviledge: payload.Group == auth.AdminGroup(),
 	}, grpc.WaitForReady(true))

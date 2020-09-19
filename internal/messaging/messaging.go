@@ -152,11 +152,6 @@ func validateMessage(msg *messaging.Message) error {
 func (api *messagingServer) BroadCastMessage(
 	ctx context.Context, req *messaging.BroadCastMessageRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if req == nil {
-		return nil, errs.NilObject("BroadCastMessageRequest")
-	}
-
 	// Authenticate the request
 	err := api.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -165,6 +160,8 @@ func (api *messagingServer) BroadCastMessage(
 
 	// Validate data
 	switch {
+	case req == nil:
+		return nil, errs.NilObject("BroadCastMessageRequest")
 	case len(req.Channels) == 0:
 		return nil, errs.MissingField("topics")
 	default:
@@ -199,9 +196,11 @@ func (api *messagingServer) sendBroadCastMessage(
 	for nextResults {
 		// Get subscribers
 		subscribersRes, err := api.SubscriberClient.ListSubscribers(ctxGet, &subscriber.ListSubscribersRequest{
-			Channels:  req.GetChannels(),
 			PageSize:  pageSize,
 			PageToken: pageToken,
+			Filter: &subscriber.ListSubscribersFilter{
+				Channels: req.GetChannels(),
+			},
 		})
 		if err != nil {
 			return errs.WrapErrorWithMsg(err, "failed to fetch subscribers")
@@ -262,7 +261,7 @@ func (api *messagingServer) sendBroadCastMessage(
 					if err != nil {
 						api.Logger.Errorf("failed to send email message to destinations: %v", err)
 					}
-				case messaging.SendMethod_SMS:
+				case messaging.SendMethod_SMSV2:
 					_, err = api.SMSClient.SendSMS(ctx2, &sms.SMS{
 						DestinationPhones: phones,
 						Keyword:           msg.Title,
@@ -301,11 +300,6 @@ func (api *messagingServer) sendBroadCastMessage(
 func (api *messagingServer) SendMessage(
 	ctx context.Context, msg *messaging.Message,
 ) (*messaging.SendMessageResponse, error) {
-	// Request must not be nil
-	if msg == nil {
-		return nil, errs.NilObject("Message")
-	}
-
 	// Authenticate request
 	err := api.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -313,9 +307,14 @@ func (api *messagingServer) SendMessage(
 	}
 
 	// Validation
-	err = validateMessage(msg)
-	if err != nil {
-		return nil, err
+	switch {
+	case msg == nil:
+		return nil, errs.NilObject("Message")
+	default:
+		err = validateMessage(msg)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	ctxGet := mdutil.AddFromCtx(ctx)
@@ -343,7 +342,7 @@ func (api *messagingServer) SendMessage(
 			if err != nil {
 				return nil, errs.WrapErrorWithMsg(err, "failed to send email")
 			}
-		case messaging.SendMethod_SMS:
+		case messaging.SendMethod_SMSV2:
 			_, err = api.SMSClient.SendSMS(ctxGet, &sms.SMS{
 				DestinationPhones: []string{subscriberPB.GetPhone()},
 				Keyword:           msg.Title,
@@ -402,11 +401,6 @@ const (
 func (api *messagingServer) ListMessages(
 	ctx context.Context, listReq *messaging.ListMessagesRequest,
 ) (*messaging.Messages, error) {
-	// Requst must not be nil
-	if listReq == nil {
-		return nil, errs.NilObject("ListMessagesRequest")
-	}
-
 	// Authorize request
 	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
 	if err != nil {
@@ -416,6 +410,8 @@ func (api *messagingServer) ListMessages(
 	// Validation
 	var ID int
 	switch {
+	case listReq == nil:
+		return nil, errs.NilObject("ListMessagesRequest")
 	case listReq.GetFilter().GetUserId() != "":
 		ID, err = strconv.Atoi(listReq.GetFilter().GetUserId())
 		if err != nil {
@@ -499,13 +495,8 @@ func (api *messagingServer) ListMessages(
 func (api *messagingServer) ReadAll(
 	ctx context.Context, readReq *messaging.MessageRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if readReq == nil {
-		return nil, errs.NilObject("MessageRequest")
-	}
-
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, readReq.UserId, auth.AdminGroup())
+	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, readReq.GetUserId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -514,6 +505,8 @@ func (api *messagingServer) ReadAll(
 
 	// Validation
 	switch {
+	case readReq == nil:
+		return nil, errs.NilObject("MessageRequest")
 	case readReq.UserId == "":
 		return nil, errs.MissingField("user id")
 	default:

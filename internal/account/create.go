@@ -166,9 +166,9 @@ func (accountAPI *accountAPIServer) CreateAccount(
 				return []messaging.SendMethod{messaging.SendMethod_EMAIL}
 			}
 			if accountPB.Phone != "" {
-				return []messaging.SendMethod{messaging.SendMethod_SMS}
+				return []messaging.SendMethod{messaging.SendMethod_SMSV2}
 			}
-			return []messaging.SendMethod{messaging.SendMethod_EMAIL, messaging.SendMethod_SMS}
+			return []messaging.SendMethod{messaging.SendMethod_EMAIL, messaging.SendMethod_SMSV2}
 		}()
 
 		// CreateAccount message

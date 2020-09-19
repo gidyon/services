@@ -19,7 +19,7 @@ type Subscriber struct {
 	Channels  []byte `gorm:"type:json"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	DeletedAt *time.Time
 }
 
 // TableName returns the name of the table

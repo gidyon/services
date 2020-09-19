@@ -2,6 +2,7 @@ package channel
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -9,38 +10,32 @@ import (
 
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc/grpclog"
+	"gorm.io/gorm"
 
 	"strings"
 
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/gidyon/services/pkg/auth"
+	"github.com/gidyon/services/pkg/utils/encryption"
 	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/jinzhu/gorm"
 )
 
 const channelsPageSize = 20
 
 type channelAPIServer struct {
-	sqlDB   *gorm.DB
 	logger  grpclog.LoggerV2
 	authAPI auth.Interface
 	hasher  *hashids.HashID
+	*Options
 }
 
 // Options contains parameters required while creating a channel API server
 type Options struct {
-	SQLDB         *gorm.DB
+	SQLDBWrites   *gorm.DB
+	SQLDBReads    *gorm.DB
 	Logger        grpclog.LoggerV2
 	JWTSigningKey []byte
-}
-
-func newHasher(salt string) (*hashids.HashID, error) {
-	hd := hashids.NewData()
-	hd.Salt = salt
-	hd.MinLength = 30
-
-	return hashids.NewWithData(hd)
 }
 
 // NewChannelAPIServer is factory for creating channel  APIs
@@ -54,8 +49,10 @@ func NewChannelAPIServer(
 		err = errs.NilObject("context")
 	case opt == nil:
 		err = errs.NilObject("options")
-	case opt.SQLDB == nil:
-		err = errs.NilObject("sqlDB")
+	case opt.SQLDBWrites == nil:
+		err = errs.NilObject("sql db writes")
+	case opt.SQLDBReads == nil:
+		err = errs.NilObject("sql db reads")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
 	case opt.JWTSigningKey == nil:
@@ -72,20 +69,20 @@ func NewChannelAPIServer(
 	}
 
 	// Pagination hasher
-	hasher, err := newHasher(string(opt.JWTSigningKey))
+	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
 
 	channelAPI := &channelAPIServer{
-		sqlDB:   opt.SQLDB,
 		logger:  opt.Logger,
 		authAPI: authAPI,
 		hasher:  hasher,
+		Options: opt,
 	}
 
 	// Automigration
-	err = channelAPI.sqlDB.AutoMigrate(&Channel{}).Error
+	err = channelAPI.SQLDBWrites.AutoMigrate(&Channel{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to automigrate channels table: %w", err)
 	}
@@ -96,11 +93,6 @@ func NewChannelAPIServer(
 func (channelAPI *channelAPIServer) CreateChannel(
 	ctx context.Context, createReq *channel.CreateChannelRequest,
 ) (*channel.CreateChannelResponse, error) {
-	// Request must not be nil
-	if createReq == nil {
-		return nil, errs.NilObject("CreateChannelRequest")
-	}
-
 	// Authenticate the request
 	err := channelAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -110,6 +102,8 @@ func (channelAPI *channelAPIServer) CreateChannel(
 	// Validate the channel payload
 	channelPB := createReq.GetChannel()
 	switch {
+	case createReq == nil:
+		return nil, errs.NilObject("CreateChannelRequest")
 	case channelPB == nil:
 		return nil, errs.NilObject("Channel")
 	case strings.TrimSpace(channelPB.OwnerId) == "":
@@ -128,7 +122,7 @@ func (channelAPI *channelAPIServer) CreateChannel(
 	}
 
 	// Save channel in database
-	err = channelAPI.sqlDB.Create(&channelDB).Error
+	err = channelAPI.SQLDBWrites.Create(&channelDB).Error
 	switch {
 	case err == nil:
 	default:
@@ -143,13 +137,8 @@ func (channelAPI *channelAPIServer) CreateChannel(
 func (channelAPI *channelAPIServer) UpdateChannel(
 	ctx context.Context, updateReq *channel.UpdateChannelRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if updateReq == nil {
-		return nil, errs.NilObject("UpdateChannelRequest")
-	}
-
 	// Authorize the request; must be channel owner
-	_, err := channelAPI.authAPI.AuthorizeActorOrGroup(ctx, updateReq.OwnerId, auth.AdminGroup())
+	_, err := channelAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetOwnerId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +146,8 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 	// Validation
 	var ID int
 	switch {
+	case updateReq == nil:
+		return nil, errs.NilObject("UpdateChannelRequest")
 	case updateReq.Channel == nil:
 		return nil, errs.NilObject("channel")
 	case updateReq.Channel.Id == "":
@@ -174,7 +165,7 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 	}
 
 	// Update model
-	err = channelAPI.sqlDB.Model(channelDB).Where("id=?", ID).
+	err = channelAPI.SQLDBWrites.Model(channelDB).Where("id=?", ID).
 		Omit("id, subscribers").Updates(channelDB).Error
 	switch {
 	case err == nil:
@@ -188,13 +179,8 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 func (channelAPI *channelAPIServer) DeleteChannel(
 	ctx context.Context, delReq *channel.DeleteChannelRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if delReq == nil {
-		return nil, errs.NilObject("DeleteChannelRequest")
-	}
-
 	// Authorize the actor; must be channel owner or admin
-	_, err := channelAPI.authAPI.AuthorizeActorOrGroup(ctx, delReq.OwnerId, auth.AdminGroup())
+	_, err := channelAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.GetOwnerId(), auth.AdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -202,6 +188,8 @@ func (channelAPI *channelAPIServer) DeleteChannel(
 	// Validation
 	var ID int
 	switch {
+	case delReq == nil:
+		return nil, errs.NilObject("DeleteChannelRequest")
 	case delReq.Id == "":
 		return nil, errs.MissingField("channel id")
 	default:
@@ -212,7 +200,7 @@ func (channelAPI *channelAPIServer) DeleteChannel(
 	}
 
 	// Soft delete channel in database
-	err = channelAPI.sqlDB.Delete(&Channel{}, "id=?", ID).Error
+	err = channelAPI.SQLDBWrites.Delete(&Channel{}, "id=?", ID).Error
 	if err != nil {
 		return nil, errs.SQLQueryFailed(err, "DeleteChannel")
 	}
@@ -253,7 +241,7 @@ func (channelAPI *channelAPIServer) ListChannels(
 
 	channelsDB := make([]*Channel, 0, pageSize)
 
-	db := channelAPI.sqlDB.Unscoped().Limit(pageSize).Order("id DESC")
+	db := channelAPI.SQLDBReads.Unscoped().Limit(int(pageSize)).Order("id DESC")
 	if ID != 0 {
 		db = db.Where("id<?", ID)
 	}
@@ -294,11 +282,6 @@ func (channelAPI *channelAPIServer) ListChannels(
 func (channelAPI *channelAPIServer) GetChannel(
 	ctx context.Context, getReq *channel.GetChannelRequest,
 ) (*channel.Channel, error) {
-	// Request must not be nil
-	if getReq == nil {
-		return nil, errs.NilObject("GetChannelRequest")
-	}
-
 	// Authenticate the request
 	err := channelAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -308,6 +291,8 @@ func (channelAPI *channelAPIServer) GetChannel(
 	// Validation
 	var ID int
 	switch {
+	case getReq == nil:
+		return nil, errs.NilObject("GetChannelRequest")
 	case getReq.Id == "":
 		return nil, errs.MissingField("channel id")
 	default:
@@ -319,10 +304,10 @@ func (channelAPI *channelAPIServer) GetChannel(
 
 	channelDB := &Channel{}
 
-	err = channelAPI.sqlDB.Find(channelDB, "id=?", ID).Error
+	err = channelAPI.SQLDBReads.First(channelDB, "id=?", ID).Error
 	switch {
 	case err == nil:
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("channel", getReq.Id)
 	default:
 		return nil, errs.SQLQueryFailed(err, "FIND")
@@ -339,11 +324,6 @@ func (channelAPI *channelAPIServer) GetChannel(
 func (channelAPI *channelAPIServer) IncrementSubscribers(
 	ctx context.Context, incReq *channel.SubscribersRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if incReq == nil {
-		return nil, errs.NilObject("SubscribersRequest")
-	}
-
 	// Authenticate request
 	err := channelAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -353,6 +333,8 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 	// Validation
 	var ID int
 	switch {
+	case incReq == nil:
+		return nil, errs.NilObject("SubscribersRequest")
 	case incReq.Id == "":
 		return nil, errs.MissingField("channel id")
 	default:
@@ -363,7 +345,7 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 	}
 
 	// Increment subscribers in database
-	err = channelAPI.sqlDB.Table(channelsTable).Where("id=?", ID).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("id=?", ID).
 		Update("subscribers", gorm.Expr("subscribers + ?", 1)).Error
 	if err != nil {
 		return nil, errs.SQLQueryFailed(err, "UPDATE")
@@ -375,11 +357,6 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 func (channelAPI *channelAPIServer) DecrementSubscribers(
 	ctx context.Context, incReq *channel.SubscribersRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if incReq == nil {
-		return nil, errs.NilObject("SubscribersRequest")
-	}
-
 	// Authenticate request
 	err := channelAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -389,6 +366,8 @@ func (channelAPI *channelAPIServer) DecrementSubscribers(
 	// Validation
 	var ID int
 	switch {
+	case incReq == nil:
+		return nil, errs.NilObject("SubscribersRequest")
 	case incReq.Id == "":
 		return nil, errs.MissingField("channel id")
 	default:
@@ -399,7 +378,7 @@ func (channelAPI *channelAPIServer) DecrementSubscribers(
 	}
 
 	// Decrement subscribers in database
-	err = channelAPI.sqlDB.Table(channelsTable).Where("id=?", ID).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("id=?", ID).
 		Update("subscribers", gorm.Expr("subscribers - ?", 1)).Error
 	if err != nil {
 		return nil, errs.SQLQueryFailed(err, "UPDATE")
