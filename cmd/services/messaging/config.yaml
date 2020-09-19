@@ -12,7 +12,7 @@ databases:
   address: localhost:3306
   user: root
   password: hakty11
-  schema: ussd
+  schema: services
   metadata:
     name: sqlWrites
     dialect: mysql
@@ -22,7 +22,7 @@ databases:
   address: localhost:3306
   user: root
   password: hakty11
-  schema: ussd
+  schema: services
   metadata:
     name: sqlReads
     dialect: mysql
