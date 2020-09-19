@@ -9,7 +9,6 @@ import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
-
 message CallPayload {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
@@ -37,7 +36,7 @@ service CallAPI {
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
         title: "Call API";
-        description: "API for making a programmatic phone calls"
+        description: "API for making programmatic phone calls"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";

@@ -9,6 +9,7 @@ import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
+// MessageType
 enum MessageType {
     ALL = 0;
     PROMOTIONAL = 1;
@@ -18,6 +19,7 @@ enum MessageType {
     INFO = 5;
 }
 
+// SendMethod
 enum SendMethod {
     SEND_METHOD_UNSPECIFIED = 0;
     EMAIL = 1;
@@ -51,7 +53,7 @@ message BroadCastMessageRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "BroadCastMessageRequest"
-            description: "Request to broadcast message to users"
+            description: "Request to broadcast message to clients"
             required: ["channels", "message"]
 		}
     };
@@ -136,7 +138,7 @@ service Messaging {
     // Broadcasts a message
     rpc BroadCastMessage (BroadCastMessageRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/api/messaging:broadcast"
+            post: "/api/messaging/action:broadcast"
             body: "*"
         };
     };
@@ -144,7 +146,7 @@ service Messaging {
     // Sends message to a single destination
     rpc SendMessage (Message) returns (SendMessageResponse) {
         option (google.api.http) = {
-            post: "/api/messaging:send"
+            post: "/api/messaging/action:send"
             body: "*"
         };
     };
@@ -154,13 +156,13 @@ service Messaging {
         option (google.api.http) = {
             get: "/api/messaging"
             additional_bindings {
-                post: "/api/messaging:list"
+                post: "/api/messaging/action:list"
                 body: "*"
             }
         };
     };
 
-    // Updates all messages status as read
+    // Updates unread messages statuses to read
     rpc ReadAll (MessageRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             patch: "/api/messaging/users/{user_id}:readall"
@@ -178,7 +180,7 @@ service Messaging {
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
         title: "Messaging API";
-        description: "Send, saves and retrives notification messages"
+        description: "Sends, saves and retrives notification messages"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
