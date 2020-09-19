@@ -1,16 +1,90 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "emailing.proto",
-    "version": "version not set"
+    "title": "Emailing API",
+    "description": "Sends emails to client(s)",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/emailing.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/emailing:send": {
+      "get": {
+        "summary": "Sends email",
+        "operationId": "Emailing_SendEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "destinations",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "subject",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "body_content_type",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Emailing"
+        ]
+      }
+    }
+  },
   "definitions": {
     "apisAttachemnt": {
       "type": "object",
@@ -28,7 +102,9 @@
           "type": "string",
           "format": "byte"
         }
-      }
+      },
+      "description": "Attachment contained in the body of the email",
+      "title": "Attachemnt"
     },
     "protobufAny": {
       "type": "object",
@@ -66,5 +142,20 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "BasicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }

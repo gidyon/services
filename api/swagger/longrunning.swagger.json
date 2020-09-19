@@ -1,12 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Messaging API",
-    "description": "Sends, saves and retrives notification messages",
+    "title": "Longrunning Service",
+    "description": "Manages longrunning operations",
     "version": "v1",
     "contact": {
       "name": "Github \u003cGideon Kamau\u003e",
-      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/messaging.proto",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/longrunning.proto",
       "email": "gideonhacer@gmail.com"
     },
     "license": {
@@ -25,15 +25,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/messaging": {
+    "/api/longrunning": {
       "get": {
-        "summary": "Retrieves a collection of messages",
-        "operationId": "Messaging_ListMessages",
+        "summary": "Retrieves collection of long running operations",
+        "operationId": "OperationAPI_ListOperations",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apisMessages"
+              "$ref": "#/definitions/apisListOperationsResponse"
             }
           },
           "default": {
@@ -62,35 +62,90 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "OperationAPI"
+        ]
+      },
+      "post": {
+        "summary": "Creates a long running operation",
+        "operationId": "OperationAPI_CreateOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
           },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "OperationAPI"
+        ]
+      },
+      "patch": {
+        "summary": "Updates a long running operation",
+        "operationId": "OperationAPI_UpdateOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "OperationAPI"
+        ]
+      }
+    },
+    "/api/longrunning/operation_id": {
+      "get": {
+        "summary": "Retrives a single long running operation",
+        "operationId": "OperationAPI_GetOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
           {
-            "name": "filter.type_filters",
+            "name": "operation_id",
             "in": "query",
             "required": false,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "PROMOTIONAL",
-                "REMINDER",
-                "WARNING",
-                "ALERT",
-                "INFO"
-              ]
-            },
-            "collectionFormat": "multi"
+            "type": "string"
           }
         ],
         "tags": [
-          "Messaging"
+          "OperationAPI"
         ]
       }
     },
-    "/api/messaging/action:broadcast": {
-      "post": {
-        "summary": "Broadcasts a message",
-        "operationId": "Messaging_BroadCastMessage",
+    "/api/longrunning/{operation_id}": {
+      "delete": {
+        "summary": "Deletes a long running operation",
+        "operationId": "OperationAPI_DeleteOperation",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -107,312 +162,90 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisBroadCastMessageRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Messaging"
-        ]
-      }
-    },
-    "/api/messaging/action:list": {
-      "post": {
-        "summary": "Retrieves a collection of messages",
-        "operationId": "Messaging_ListMessages2",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisMessages"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisListMessagesRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Messaging"
-        ]
-      }
-    },
-    "/api/messaging/action:send": {
-      "post": {
-        "summary": "Sends message to a single destination",
-        "operationId": "Messaging_SendMessage",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisSendMessageResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisMessage"
-            }
-          }
-        ],
-        "tags": [
-          "Messaging"
-        ]
-      }
-    },
-    "/api/messaging/users/{user_id}:newcount": {
-      "get": {
-        "summary": "Fetches count of new messages",
-        "operationId": "Messaging_GetNewMessagesCount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisNewMessagesCount"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "user_id",
+            "name": "operation_id",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
         "tags": [
-          "Messaging"
-        ]
-      }
-    },
-    "/api/messaging/users/{user_id}:readall": {
-      "patch": {
-        "summary": "Updates unread messages statuses to read",
-        "operationId": "Messaging_ReadAll",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Messaging"
+          "OperationAPI"
         ]
       }
     }
   },
   "definitions": {
-    "apisBroadCastMessageRequest": {
-      "type": "object",
-      "properties": {
-        "channels": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "message": {
-          "$ref": "#/definitions/apisMessage"
-        }
-      },
-      "description": "Request to broadcast message to clients",
-      "title": "BroadCastMessageRequest",
-      "required": [
-        "channels",
-        "message"
-      ]
-    },
-    "apisListMessagesFilter": {
+    "apisListOperationsFilter": {
       "type": "object",
       "properties": {
         "user_id": {
           "type": "string"
-        },
-        "type_filters": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apisMessageType"
-          }
         }
       },
-      "description": "Filter criteria for filtering messages",
-      "title": "ListMessagesFilter"
+      "description": "Filter for long running operations",
+      "title": "ListOperationsFilter"
     },
-    "apisListMessagesRequest": {
+    "apisListOperationsResponse": {
       "type": "object",
       "properties": {
-        "page_token": {
-          "type": "string"
-        },
-        "page_size": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "filter": {
-          "$ref": "#/definitions/apisListMessagesFilter"
-        }
-      },
-      "description": "Request to retrieve a collection of messages",
-      "title": "ListMessagesRequest"
-    },
-    "apisMessage": {
-      "type": "object",
-      "properties": {
-        "message_id": {
-          "type": "string"
-        },
-        "user_id": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "data": {
-          "type": "string"
-        },
-        "link": {
-          "type": "string"
-        },
-        "create_time_seconds": {
-          "type": "string",
-          "format": "int64"
-        },
-        "seen": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "save": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "type": {
-          "$ref": "#/definitions/apisMessageType"
-        },
-        "send_methods": {
+        "operations": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apisSendMethod"
-          }
-        },
-        "details": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "Message to be sent",
-      "title": "Message"
-    },
-    "apisMessageType": {
-      "type": "string",
-      "enum": [
-        "ALL",
-        "PROMOTIONAL",
-        "REMINDER",
-        "WARNING",
-        "ALERT",
-        "INFO"
-      ],
-      "default": "ALL",
-      "title": "MessageType"
-    },
-    "apisMessages": {
-      "type": "object",
-      "properties": {
-        "messages": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apisMessage"
+            "$ref": "#/definitions/gidyonapisOperation"
           }
         },
         "next_page_token": {
           "type": "string"
         }
       },
-      "description": "A collection of messages",
-      "title": "Messages"
+      "description": "Response containing collection of long running operations",
+      "title": "ListOperationsResponse"
     },
-    "apisNewMessagesCount": {
-      "type": "object",
-      "properties": {
-        "count": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "description": "Contains count of new messages",
-      "title": "NewMessagesCount"
-    },
-    "apisSendMessageResponse": {
-      "type": "object",
-      "properties": {
-        "message_id": {
-          "type": "string"
-        }
-      },
-      "description": "Response after sending message containing the message id",
-      "title": "SendMessageResponse"
-    },
-    "apisSendMethod": {
+    "apisOperationStatus": {
       "type": "string",
       "enum": [
-        "SEND_METHOD_UNSPECIFIED",
-        "EMAIL",
-        "SMSV2",
-        "CALL",
-        "PUSH"
+        "OPERATION_STATUS_UNSPECIFIED",
+        "PENDING",
+        "COMPLETED",
+        "FAILED"
       ],
-      "default": "SEND_METHOD_UNSPECIFIED",
-      "title": "SendMethod"
+      "default": "OPERATION_STATUS_UNSPECIFIED",
+      "title": "OperationStatus"
+    },
+    "gidyonapisOperation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/apisOperationStatus"
+        },
+        "timestamp_sec": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "A long running operation",
+      "title": "Operation"
     },
     "protobufAny": {
       "type": "object",

@@ -1,16 +1,78 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "sms.proto",
-    "version": "version not set"
+    "title": "SMS API",
+    "description": "Send text messages to client(s)",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/sms.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/sms:send": {
+      "get": {
+        "summary": "Send an sms to its destination(s)",
+        "operationId": "SMSAPI_SendSMS",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "destination_phones",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SMSAPI"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -48,5 +110,20 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "BasicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }

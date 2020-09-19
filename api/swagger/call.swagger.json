@@ -1,16 +1,78 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "call.proto",
-    "version": "version not set"
+    "title": "Call API",
+    "description": "API for making programmatic phone calls",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/call.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
   },
+  "schemes": [
+    "http",
+    "https"
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/calls:send": {
+      "get": {
+        "summary": "Calls a user programmatically",
+        "operationId": "CallAPI_Call",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "destination_phones",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "CallAPI"
+        ]
+      }
+    }
+  },
   "definitions": {
     "protobufAny": {
       "type": "object",
@@ -48,5 +110,20 @@
         }
       }
     }
-  }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "BasicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }

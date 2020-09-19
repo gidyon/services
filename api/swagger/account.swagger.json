@@ -1,17 +1,17 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Accounts Service - Gideon Kamau",
-    "description": "Manages user accounts and sign in user to their accounts",
-    "version": "0.1",
+    "title": "Accounts Service",
+    "description": "API for managing account activities",
+    "version": "v1",
     "contact": {
       "name": "Github \u003cGideon Kamau\u003e",
       "url": "https://github.com/gidyon/services/blob/master/api/proto/account.proto",
       "email": "gideonhacer@gmail.com"
     },
     "license": {
-      "name": "BSD 3-Clause License",
-      "url": "https://github.com/gidyon/services/blob/master/LICENSE.txt"
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
     }
   },
   "schemes": [
@@ -194,9 +194,9 @@
         ]
       }
     },
-    "/api/accounts/action/activate": {
+    "/api/accounts/action:activate": {
       "get": {
-        "summary": "ActivateAccounts an account",
+        "summary": "Activates an account to being active",
         "operationId": "AccountAPI_ActivateAccount",
         "responses": {
           "200": {
@@ -231,9 +231,44 @@
         ]
       }
     },
-    "/api/accounts/action/change-private": {
+    "/api/accounts/action:batchGet": {
       "get": {
-        "summary": "Request to change private account",
+        "summary": "Retrieves multiple user accounts",
+        "operationId": "AccountAPI_BatchGetAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisBatchGetAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action:change-private": {
+      "get": {
+        "summary": "Request to change private account information",
         "operationId": "AccountAPI_RequestChangePrivateAccount",
         "responses": {
           "200": {
@@ -270,7 +305,7 @@
             "enum": [
               "SEND_METHOD_UNSPECIFIED",
               "EMAIL",
-              "SMS",
+              "SMSV2",
               "CALL",
               "PUSH"
             ],
@@ -282,7 +317,7 @@
         ]
       }
     },
-    "/api/accounts/action/exists": {
+    "/api/accounts/action:exists": {
       "get": {
         "summary": "Checks if an account exists",
         "operationId": "AccountAPI_ExistAccount",
@@ -318,6 +353,150 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action:search": {
+      "get": {
+        "summary": "Searches accounts and linked accounts",
+        "operationId": "AccountAPI_SearchAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisAccounts"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "search_linked_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.filter",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_active_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_inactive_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_blocked_accounts",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_males",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.show_females",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.filter_creation_date",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.created_from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "search_criteria.created_until",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "search_criteria.filter_account_groups",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "search_criteria.groups",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "FULL_VIEW",
+              "LIST_VIEW",
+              "SEARCH_VIEW",
+              "BASIC_VIEW"
+            ],
+            "default": "FULL_VIEW"
           }
         ],
         "tags": [
@@ -555,45 +734,6 @@
         ]
       }
     },
-    "/api/accounts/{account_id}/byadmin": {
-      "patch": {
-        "summary": "Updates account",
-        "operationId": "AccountAPI_AdminUpdateAccount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "account_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisAdminUpdateAccountRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
     "/api/accounts/{account_id}/private": {
       "patch": {
         "summary": "Updates a user private account information",
@@ -633,7 +773,46 @@
         ]
       }
     },
-    "/api/accounts/{account_id}:related": {
+    "/api/accounts/{account_id}:admin": {
+      "patch": {
+        "summary": "Updates account",
+        "operationId": "AccountAPI_AdminUpdateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisAdminUpdateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{account_id}:linked": {
       "get": {
         "summary": "Retrieves deeply linked accounts",
         "operationId": "AccountAPI_GetLinkedAccounts",
@@ -663,185 +842,6 @@
           "AccountAPI"
         ]
       }
-    },
-    "/api/accounts:batchGet": {
-      "get": {
-        "summary": "Retrieves multiple user accounts",
-        "operationId": "AccountAPI_BatchGetAccounts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisBatchGetAccountsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "account_ids",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
-    "/api/accounts:search": {
-      "get": {
-        "summary": "Searches accounts and linked accounts",
-        "operationId": "AccountAPI_SearchAccounts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisAccounts"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "page_token",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "search_linked_accounts",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.filter",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.show_active_accounts",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.show_inactive_accounts",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.show_blocked_accounts",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.show_males",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.show_females",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.filter_creation_date",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.created_from",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "search_criteria.created_until",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "search_criteria.filter_account_groups",
-            "in": "query",
-            "required": false,
-            "type": "boolean",
-            "format": "boolean"
-          },
-          {
-            "name": "search_criteria.groups",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "view",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "FULL_VIEW",
-              "LIST_VIEW",
-              "SEARCH_VIEW",
-              "BASIC_VIEW"
-            ],
-            "default": "FULL_VIEW"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
     }
   },
   "definitions": {
@@ -852,7 +852,8 @@
         "MALE",
         "FEMALE"
       ],
-      "default": "GENDER_UNSPECIFIED"
+      "default": "GENDER_UNSPECIFIED",
+      "title": "Gender"
     },
     "apisAccount": {
       "type": "object",
@@ -903,12 +904,14 @@
     "apisAccountState": {
       "type": "string",
       "enum": [
+        "ACCOUNT_STATE_UNSPECIFIED",
         "BLOCKED",
         "ACTIVE",
         "INACTIVE",
         "DELETED"
       ],
-      "default": "BLOCKED"
+      "default": "ACCOUNT_STATE_UNSPECIFIED",
+      "title": "AccountState"
     },
     "apisAccountView": {
       "type": "string",
@@ -918,7 +921,8 @@
         "SEARCH_VIEW",
         "BASIC_VIEW"
       ],
-      "default": "FULL_VIEW"
+      "default": "FULL_VIEW",
+      "title": "AccountView"
     },
     "apisAccounts": {
       "type": "object",
@@ -938,6 +942,7 @@
     },
     "apisActivateAccountResponse": {
       "type": "object",
+      "description": "Response after activating an account",
       "title": "ActivateAccountResponse"
     },
     "apisAdminUpdateAccountRequest": {
@@ -1020,6 +1025,7 @@
           "type": "string"
         }
       },
+      "description": "Response after creating an account",
       "title": "CreateAccountResponse"
     },
     "apisCriteria": {
@@ -1098,6 +1104,7 @@
           }
         }
       },
+      "description": "Response containing linked accounts",
       "title": "GetLinkedAccountsResponse"
     },
     "apisPrivateAccount": {
@@ -1126,6 +1133,7 @@
           "type": "string"
         }
       },
+      "description": "Response after requesting for the change",
       "title": "RequestChangePrivateAccountResponse"
     },
     "apisSendMethod": {
@@ -1133,12 +1141,12 @@
       "enum": [
         "SEND_METHOD_UNSPECIFIED",
         "EMAIL",
-        "SMS",
+        "SMSV2",
         "CALL",
         "PUSH"
       ],
       "default": "SEND_METHOD_UNSPECIFIED",
-      "title": "SendMethod is the method used to send the message"
+      "title": "SendMethod"
     },
     "apisSignInExternalRequest": {
       "type": "object",
@@ -1150,7 +1158,7 @@
           "type": "string"
         }
       },
-      "description": "Request to sign in using external provider like Google, Facebook or Github",
+      "description": "Request to sign in using an external provider like Google, Facebook or Github",
       "title": "SignInExternalRequest",
       "required": [
         "account",
@@ -1199,7 +1207,8 @@
           "$ref": "#/definitions/apisAccountState"
         }
       },
-      "title": "SignInRequest"
+      "description": "Response after signing in",
+      "title": "SignInResponse"
     },
     "apisUpdateAccountRequest": {
       "type": "object",
@@ -1225,7 +1234,8 @@
         "CHANGE_GROUP",
         "ADMIN_ACTIVATE"
       ],
-      "default": "UPDATE_OPERATION_INSPECIFIED"
+      "default": "UPDATE_OPERATION_INSPECIFIED",
+      "title": "UpdateOperation"
     },
     "apisUpdatePrivateAccountRequest": {
       "type": "object",
