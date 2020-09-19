@@ -1,0 +1,203 @@
+syntax = "proto3";
+
+package gidyon.apis;
+
+import "google/protobuf/empty.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+import "google/api/annotations.proto";
+ 
+
+option go_package="github.com/gidyon/services/pkg/api/longrunning";
+
+// OperationStatus
+enum OperationStatus {
+    OPERATION_STATUS_UNSPECIFIED = 0;
+    PENDING = 1;
+    COMPLETED = 2;
+    FAILED = 3;
+}
+
+message Operation {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Operation"
+			description: "A long running operation"
+		}
+    };
+
+    string id = 1;
+    string user_id = 2;
+    string details = 3;
+    string result = 4;
+    string origin = 5;
+    OperationStatus status = 6;
+    int64 timestamp_sec = 7;
+}
+
+message CreateOperationRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CreateOperationRequest"
+            description: "Request to create a long running operation"
+            required: ["operation"]
+		}
+    };
+
+    Operation operation = 1;
+}
+
+message UpdateOperationRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "UpdateOperationRequest"
+            description: "Request to update a long running operation"
+            required: ["operation_id", "result", "status"]
+		}
+    };
+
+    string operation_id = 1;
+    string result = 2;
+    OperationStatus status = 3;
+}
+
+message DeleteOperationRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "DeleteOperationRequest"
+            description: "Request to delete a long running operation"
+            required: ["operation_id", "user_id"]
+		}
+    };
+
+    string user_id = 1;
+    string operation_id = 2;
+}
+
+message ListOperationsFilter {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListOperationsFilter"
+            description: "Filter for long running operations"
+		}
+    };
+
+    string user_id = 1;
+}
+
+message ListOperationsRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListOperationsRequest"
+            description: "Request to list long running operations"
+		}
+    };
+
+    string page_token = 1;
+    int32 page_size = 2;
+    ListOperationsFilter filter = 3;
+}
+
+message ListOperationsResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListOperationsResponse"
+            description: "Response containing collection of long running operations"
+		}
+    };
+
+    repeated Operation operations = 1;
+    string next_page_token = 2;
+}
+
+message GetOperationRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "GetOperationRequest"
+            description: "Request to get a long running operation"
+            required: ["operation_id"]
+		}
+    };
+
+    string operation_id = 1;
+}
+
+// Manages lifetime of long running operations
+service OperationAPI {
+    // Creates a long running operation
+    rpc CreateOperation (CreateOperationRequest) returns (Operation) {
+        option (google.api.http) = {
+            post: "/api/longrunning"
+        };
+    };
+
+    // Updates a long running operation
+    rpc UpdateOperation (UpdateOperationRequest) returns (Operation) {
+        option (google.api.http) = {
+            patch: "/api/longrunning"
+        };
+    };
+
+    // Deletes a long running operation
+    rpc DeleteOperation (DeleteOperationRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/longrunning/{operation_id}"
+        };
+    };
+
+    // Retrieves collection of long running operations
+    rpc ListOperations (ListOperationsRequest) returns (ListOperationsResponse) {
+        option (google.api.http) = {
+            get: "/api/longrunning"
+        };
+    };
+
+    // Retrives a single long running operation
+    rpc GetOperation (GetOperationRequest) returns (Operation) {
+        option (google.api.http) = {
+            get: "/api/longrunning/operation_id"
+        };
+    };
+}
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Longrunning Service";
+        description: "Manages longrunning operations"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/longrunning.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};
