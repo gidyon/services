@@ -6,9 +6,17 @@ option go_package="github.com/gidyon/services/pkg/api/channel";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
+import "google/api/field_behaviour.proto";
+import "protoc-gen-swagger/options/annotations.proto";
 
-// Channel is a publisher network with subscribers
 message Channel {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Channel"
+            description: "A subscription network"
+		}
+    };
+
     string id = 1;
     string title = 2;
     string description = 3;
@@ -17,56 +25,105 @@ message Channel {
     int32 subscribers = 6;
 }
 
-// CreateChannelRequest is request to create a new channel
 message CreateChannelRequest {
-    Channel channel = 1;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CreateChannelRequest"
+            description: "Request to create a new channel"
+            required: ["channel"]
+		}
+    };
+
+    Channel channel = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// CreateChannelResponse is response after creating a channel
 message CreateChannelResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CreateChannelResponse"
+			description: "Response after creating a channel"
+		}
+    };
+
     string id = 1;
 }
 
-// UpdateChannelRequest request to update a channel resource
 message UpdateChannelRequest {
-    string owner_id = 1;
-    Channel channel = 2;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "UpdateChannelRequest"
+			description: "Request to update a channel resource"
+		}
+    };
+
+    string owner_id = 1 [(google.api.field_behavior) = OPTIONAL];
+    Channel channel = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// DeleteChannelRequest is request to delete a channel resource
 message DeleteChannelRequest {
-    string id = 1;   
-    string owner_id = 2; 
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "DeleteChannelRequest"
+			description: "Request to delete a channel resource"
+		}
+    };
+
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
+    string owner_id = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// ListChannelsRequest is request to retrieve a collection of channels resource
 message ListChannelsRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListChannelsRequest"
+			description: "Request to retrieve a collection of channel resources"
+		}
+    };
+
     string page_token = 1;
     int32 page_size = 2;
 }
 
-// ListChannelsResponse is response containing collection of channel resource
 message ListChannelsResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListChannelsResponse"
+			description: "Response containing a collection of channel resource"
+		}
+    };
+
     repeated Channel channels = 1;
     string next_page_token = 2;
 }
 
-// GetChannelRequest is request to retrieve a channel resource
 message GetChannelRequest {
-    string id = 1;  
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "GetChannelRequest"
+			description: "Request to retrieve a channel resource"
+			required: ["id"]
+		}
+    };
+
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// SubscribersRequest is request to increment r decrement a subscriber
 message SubscribersRequest {
-    string id = 1;
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SubscribersRequest"
+			description: "Request to increment or decrement subscribers for a channel or topic"
+			required: ["id"]
+		}
+    };
+
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Manages channels in a network
+// Manages channels and subscriptions
 service ChannelAPI {
     // Creates a new subscriber channel
     rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse) {
-        // CreateChannel maps to HTTP POST method
-        // channel maps to the body of the request
         option (google.api.http) = {
             post: "/api/channels",
             body: "*"
@@ -75,9 +132,6 @@ service ChannelAPI {
 
     // Updates an existing channel resource
     rpc UpdateChannel (UpdateChannelRequest) returns (google.protobuf.Empty) {
-        // UpdateChannel maps to HTTP PUT method.
-        // channel maps to the body of the request
-        // id maps to URL path parameters
         option (google.api.http) = {
             patch: "/api/channels/{channel.id}",
             body: "*"
@@ -86,8 +140,6 @@ service ChannelAPI {
 
     // Removes a subscribers channel
     rpc DeleteChannel (DeleteChannelRequest) returns (google.protobuf.Empty) {
-        // DeleteChannel maps to HTTP DELETE method
-        // id maps to URL path parameters
         option (google.api.http) = {
             delete: "/api/channels/{id}"
         };
@@ -95,8 +147,6 @@ service ChannelAPI {
 
     // Retrieves a collection of channels resource
     rpc ListChannels (ListChannelsRequest) returns (ListChannelsResponse) {
-        // ListChannels maps to HTTP GET method
-        // page_token and page_size maps to URL query parameters
         option (google.api.http) = {
             get: "/api/channels"
         };
@@ -104,16 +154,65 @@ service ChannelAPI {
 
     // Retrieves a single channel resource
     rpc GetChannel (GetChannelRequest) returns (Channel) {
-        // GetChannel maps to HTTP GET method
-        // id maps to URL path parameters
         option (google.api.http) = {
             get: "/api/channels/{id}"
         };
     }
 
-    // Increment subscribers by one. No RESTful endpoint
-    rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty);
+    // Increment subscribers by one.
+    rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty){
+        option (google.api.http) = {
+            get: "/api/channels/action:incrementsub"
+        };
+    };
 
-    // Decrement subscribers by one. No RESTful endpoint
-    rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty);
+    // Decrement subscribers by one.
+    rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/api/channels/action:decrementSub"
+        };
+    };
 }
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+        title: "Channel Service";
+        description: "Manages channels/topics for subscriptions"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/channel.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+    schemes: HTTP;
+	schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+		security: {
+			key: "BasicAuth";
+			value: {
+				type: TYPE_BASIC;
+			}
+		}
+		security: {
+			key: "ApiKeyAuth";
+			value: {
+				type: TYPE_API_KEY;
+				in: IN_HEADER;
+				name: "Authorization";
+			}
+		}
+	}
+	security: {
+		security_requirement: {
+			key: "ApiKeyAuth";
+			value: {};
+		}
+	}
+};
