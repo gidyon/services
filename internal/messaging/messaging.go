@@ -332,9 +332,15 @@ func (api *messagingServer) SendMessage(
 		switch sendMethod {
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
+			sender := api.EmailSender
+			from, ok := msg.Details["from"]
+			if ok {
+				sender = fmt.Sprintf("%s <%s>", from, api.EmailSender)
+			}
+
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.Email{
 				Destinations:    []string{subscriberPB.GetEmail()},
-				From:            api.EmailSender,
+				From:            sender,
 				Subject:         msg.Title,
 				Body:            msg.Data,
 				BodyContentType: "text/html",
