@@ -73,7 +73,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Admin account must be active
 	if admin.AccountState != account.AccountState_ACTIVE.String() {
-		return nil, errs.WrapMessage(codes.PermissionDenied, "account not active")
+		return nil, errs.WrapMessage(codes.PermissionDenied, "admin account not active")
 	}
 
 	// Admin must be admin
