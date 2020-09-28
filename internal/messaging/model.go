@@ -21,7 +21,7 @@ const (
 type Message struct {
 	UserID      uint   `gorm:"index;not null"`
 	Title       string `gorm:"type:varchar(256);not null"`
-	Message     string `gorm:"type:varchar(512);not null"`
+	Message     string `gorm:"type:varchar(2048);not null"`
 	Link        string `gorm:"type:varchar(512);not null"`
 	Seen        bool   `gorm:"type:tinyint(1);not null;default:0"`
 	Type        int8   `gorm:"type:tinyint(1);not null;default:0"`
