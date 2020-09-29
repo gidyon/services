@@ -125,9 +125,9 @@ config:
   - required: true
     type: sqlDatabase
     address: mysql-slave:3306
-    userFile: /app/secrets/mysql/mysql-replication-user
+    userFile: /app/secrets/mysql/mysql-default-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-replication-password
+    passwordFile: /app/secrets/mysql/mysql-password
     metadata:
       name: sqlReads
       dialect: mysql
