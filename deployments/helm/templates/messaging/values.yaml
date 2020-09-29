@@ -113,6 +113,27 @@ config:
   logLevel: -1
   security:
     insecure: true
+  databases:
+  - required: true
+    type: sqlDatabase
+    address: mysql:3306
+    userFile: /app/secrets/mysql/mysql-default-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-password
+    metadata:
+      name: sqlWrites
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: sqlDatabase
+    address: mysql-slave:3306
+    userFile: /app/secrets/mysql/mysql-default-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-password
+    metadata:
+      name: sqlReads
+      dialect: mysql
+      orm: gorm
   externalServices:
   - name: call
     address: call:8080

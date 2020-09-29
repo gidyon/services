@@ -2,7 +2,7 @@ apiVersion: v2
 name: messaging
 description: Messaging client
 type: application
-version: 0.1.2
+version: 0.2.0
 appVersion: 1.16.0
 
 dependencies:
