@@ -58,7 +58,7 @@ livenessProble:
 
 resources:
   limits:
-    # cpu: 2000m
+    cpu: 2000m
     memory: 128Mi
   requests:
     cpu: 10m
@@ -68,7 +68,7 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 50
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 50
   targetMemoryUtilizationPercentage: 80
 
 # replicaCount: 1
@@ -81,7 +81,8 @@ affinity: {}
 
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
-  symmetricKeysCredentials: "symmetric-keys"
+  mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
