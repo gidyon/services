@@ -83,6 +83,7 @@ affinity: {}
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
   mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  redisCredentials: "redis-credentials" # should contain key redis-root-password
   firebaseCredentials: "firebase-creds" # should contain key creds which is file containing service account info
   symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
@@ -102,6 +103,9 @@ extraVolume:
   - name: mysql-creds
     mountPath: /app/secrets/mysql/
     readOnly: true
+  - name: redis-credentials
+    mountPath: /app/secrets/redis/
+    readOnly: true
   - name: templates
     mountPath: /app/templates/
     readOnly: true
@@ -117,6 +121,9 @@ extraVolumeMount:
   - name: mysql-creds
     secret:
       secretName: mysql-creds
+  - name: redis-credentials
+    secret:
+      secretName: redis-credentials
   - name: firebase-credentials
     secret:
       secretName: firebase-credentials
