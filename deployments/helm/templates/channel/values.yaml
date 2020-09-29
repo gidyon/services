@@ -61,7 +61,7 @@ livenessProble:
 
 resources:
   limits:
-    # cpu: 2000m
+    cpu: 2000m
     memory: 128Mi
   requests:
     cpu: 10m
@@ -71,7 +71,7 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 50
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 50
   targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
@@ -82,7 +82,8 @@ affinity: {}
 
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
-  symmetricKeysCredentials: "symmetric-keys"
+  mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
@@ -108,14 +109,24 @@ config:
   logLevel: -1
   security:
     insecure: true
-  database:
-    sqlDatabase:
-      required: true
-      address: mysql:3306
-      userFile: /app/secrets/mysql/mysql-default-user
-      schemaFile: /app/secrets/mysql/mysql-default-schema
-      passwordFile: /app/secrets/mysql/mysql-password
-      metadata:
-        name: mysql
-        dialect: mysql
-        orm: gorm
+  databases:
+  - required: true
+    type: sqlDatabase
+    address: mysql:3306
+    userFile: /app/secrets/mysql/mysql-default-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-password
+    metadata:
+      name: sqlWrites
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: sqlDatabase
+    address: mysql-slave:3306
+    userFile: /app/secrets/mysql/mysql-replication-user
+    schemaFile: /app/secrets/mysql/mysql-default-schema
+    passwordFile: /app/secrets/mysql/mysql-replication-password
+    metadata:
+      name: sqlReads
+      dialect: mysql
+      orm: gorm
