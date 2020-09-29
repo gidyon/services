@@ -61,7 +61,7 @@ livenessProble:
 
 resources:
   limits:
-    # cpu: 2000m
+    cpu: 2000m
     memory: 128Mi
   requests:
     cpu: 10m
@@ -71,7 +71,7 @@ autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 50
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 50
   targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
@@ -82,14 +82,14 @@ affinity: {}
 
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
-  mySqlCredentials: "mysql-creds"
-  firebaseCredentials: "firebase-creds"
-  symmetricKeysCredentials: "symmetric-keys"
+  mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  firebaseCredentials: "firebase-creds" # should contain key creds which is file containing service account info
+  symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
   - name: APP_NAME
-    value: EMRS
+    value: Cool App
   - name: TEMPLATES_DIR
     value: /app/templates/
   - name: ACTIVATION_URL
@@ -113,10 +113,10 @@ extraVolume:
 extraVolumeMount:
   - name: templates
     configMap:
-      name: account-templates-v1
+      name: account-templates
   - name: mysql-creds
     secret:
-      secretName: mysql-creds-v2
+      secretName: mysql-creds
   - name: firebase-credentials
     secret:
       secretName: firebase-credentials
@@ -143,22 +143,24 @@ config:
       orm: gorm
   - required: true
     type: sqlDatabase
-    address: mysql:3306
-    userFile: /app/secrets/mysql/mysql-default-user
+    address: mysql-slave:3306
+    userFile: /app/secrets/mysql/mysql-replication-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
+    passwordFile: /app/secrets/mysql/mysql-replication-password
     metadata:
       name: sqlReads
       dialect: mysql
       orm: gorm
   - required: true
     type: redisDatabase
-    address: redisdb:6379
+    address: redis-master:6379
+    passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisWrites
   - required: true
     type: redisDatabase
-    address: redisdb:6379
+    address: redis-slave:6379
+    passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisReads
   externalServices:
