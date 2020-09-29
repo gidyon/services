@@ -3,7 +3,21 @@ entries:
   account:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-15T05:04:39.210921+03:00"
+    created: "2020-09-29T11:27:08.663157+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Manages CRUD operations on accounts by admins and owners
+    digest: e113fa1b73d45bf0189917c9a754eb484c447a5989da28190be927f922b34527
+    name: account
+    type: application
+    urls:
+    - account-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
+    appVersion: v1
+    created: "2020-09-29T11:27:08.654066+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -18,7 +32,7 @@ entries:
   call:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-15T05:04:39.221088+03:00"
+    created: "2020-09-29T11:27:08.668322+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -33,7 +47,21 @@ entries:
   channel:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-15T05:04:39.227327+03:00"
+    created: "2020-09-29T11:27:08.676575+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Manages broadcast channels for publishing messages and subscriptions
+    digest: d8a86a6da24cefca957eb4e1697a6a731b19a0fdf553e5dde457e4774cc07037
+    name: channel
+    type: application
+    urls:
+    - channel-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-29T11:27:08.67311+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -48,7 +76,7 @@ entries:
   emailing:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-15T05:04:39.232008+03:00"
+    created: "2020-09-29T11:27:08.681158+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -63,7 +91,21 @@ entries:
   messaging:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-15T05:04:39.237042+03:00"
+    created: "2020-09-29T11:27:08.686918+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Messaging client
+    digest: 4ef0d4779979e6a226680d4292eeb7d47d38e378572c3d20fed1defa2d02c8f7
+    name: messaging
+    type: application
+    urls:
+    - messaging-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-29T11:27:08.68395+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -77,7 +119,7 @@ entries:
     version: 0.1.0
   micro:
   - apiVersion: v2
-    created: "2020-09-15T05:04:39.238833+03:00"
+    created: "2020-09-29T11:27:08.688694+03:00"
     description: Chart boilerplate for creating micro services
     digest: 43bcf6ab38e94099829f7e5af61d1dbcddda4cfc2531c3c03693824b5f2fb285
     name: micro
@@ -88,7 +130,7 @@ entries:
   pusher:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-15T05:04:39.243225+03:00"
+    created: "2020-09-29T11:27:08.691832+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -103,7 +145,7 @@ entries:
   sms:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-15T05:04:39.245793+03:00"
+    created: "2020-09-29T11:27:08.694714+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -118,7 +160,21 @@ entries:
   subscriber:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-15T05:04:39.248179+03:00"
+    created: "2020-09-29T11:27:08.705664+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Manages subscriptions, topics and subscribers
+    digest: ad48641fb45a6ee849b120f00615052eaf1df7f76c0155e2735333f52b571c75
+    name: subscriber
+    type: application
+    urls:
+    - subscriber-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-09-29T11:27:08.700004+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -130,4 +186,4 @@ entries:
     urls:
     - subscriber-0.1.0.tgz
     version: 0.1.0
-generated: "2020-09-15T05:04:39.206234+03:00"
+generated: "2020-09-29T11:27:08.643817+03:00"
