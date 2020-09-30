@@ -90,7 +90,9 @@ existingSecrets:
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
   - name: APP_NAME
-    value: Cool App
+    value: Accounts API
+  - name: EMAIL_DISPLAY_NAME
+    value: Accounts API
   - name: TEMPLATES_DIR
     value: /app/templates/
   - name: ACTIVATION_URL
