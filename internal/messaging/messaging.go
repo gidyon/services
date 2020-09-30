@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
@@ -317,7 +318,8 @@ func (api *messagingServer) SendMessage(
 		}
 	}
 
-	ctxGet := mdutil.AddFromCtx(ctx)
+	ctxGet, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
+	defer cancel()
 
 	// Get subscriber
 	subscriberPB, err := api.SubscriberClient.GetSubscriber(ctxGet, &subscriber.GetSubscriberRequest{
@@ -333,9 +335,9 @@ func (api *messagingServer) SendMessage(
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
 			sender := api.EmailSender
-			from, ok := msg.Details["from"]
+			displayName, ok := msg.Details["display_name"]
 			if ok {
-				sender = fmt.Sprintf("%s <%s>", from, api.EmailSender)
+				sender = fmt.Sprintf("%s <%s>", displayName, api.EmailSender)
 			}
 
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.Email{
