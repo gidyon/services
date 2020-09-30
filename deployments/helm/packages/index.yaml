@@ -3,7 +3,21 @@ entries:
   account:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.798307+03:00"
+    created: "2020-09-30T11:31:55.676285+03:00"
+    dependencies:
+    - name: micro
+      repository: '@micro'
+      version: 0.1.0
+    description: Manages CRUD operations on accounts by admins and owners
+    digest: 6fa179b4d36d6bf98c291525ec37db8ed34f59df1b5abeb35ce50a5a91ca7c41
+    name: account
+    type: application
+    urls:
+    - account-0.2.4.tgz
+    version: 0.2.4
+  - apiVersion: v2
+    appVersion: v1
+    created: "2020-09-30T11:31:55.675006+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -17,7 +31,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.795083+03:00"
+    created: "2020-09-30T11:31:55.666372+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -31,7 +45,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.79136+03:00"
+    created: "2020-09-30T11:31:55.662758+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -45,7 +59,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.789314+03:00"
+    created: "2020-09-30T11:31:55.658782+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -60,7 +74,7 @@ entries:
   call:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.801868+03:00"
+    created: "2020-09-30T11:31:55.679147+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -75,7 +89,7 @@ entries:
   channel:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.814119+03:00"
+    created: "2020-09-30T11:31:55.689404+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -89,7 +103,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.809472+03:00"
+    created: "2020-09-30T11:31:55.686949+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -103,7 +117,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.804853+03:00"
+    created: "2020-09-30T11:31:55.683613+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -118,7 +132,7 @@ entries:
   emailing:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.81853+03:00"
+    created: "2020-09-30T11:31:55.691852+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -133,7 +147,7 @@ entries:
   messaging:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.839251+03:00"
+    created: "2020-09-30T11:31:55.705254+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -147,7 +161,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.834692+03:00"
+    created: "2020-09-30T11:31:55.700555+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -161,7 +175,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.83008+03:00"
+    created: "2020-09-30T11:31:55.698134+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -175,7 +189,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.82475+03:00"
+    created: "2020-09-30T11:31:55.695647+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -189,7 +203,7 @@ entries:
     version: 0.1.0
   micro:
   - apiVersion: v2
-    created: "2020-09-29T12:24:05.841154+03:00"
+    created: "2020-09-30T11:31:55.70642+03:00"
     description: Chart boilerplate for creating micro services
     digest: 43bcf6ab38e94099829f7e5af61d1dbcddda4cfc2531c3c03693824b5f2fb285
     name: micro
@@ -200,7 +214,7 @@ entries:
   pusher:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.843845+03:00"
+    created: "2020-09-30T11:31:55.709153+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -215,7 +229,7 @@ entries:
   sms:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-09-29T12:24:05.846583+03:00"
+    created: "2020-09-30T11:31:55.711724+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -230,7 +244,7 @@ entries:
   subscriber:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.86068+03:00"
+    created: "2020-09-30T11:31:55.721364+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -244,7 +258,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.855918+03:00"
+    created: "2020-09-30T11:31:55.717366+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -258,7 +272,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-09-29T12:24:05.851131+03:00"
+    created: "2020-09-30T11:31:55.714514+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -270,4 +284,4 @@ entries:
     urls:
     - subscriber-0.1.0.tgz
     version: 0.1.0
-generated: "2020-09-29T12:24:05.775616+03:00"
+generated: "2020-09-30T11:31:55.65468+03:00"
