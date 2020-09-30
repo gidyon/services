@@ -89,12 +89,12 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	}
 
 	// Start a transaction
-	tx := accountAPI.sqlDBWrites.Begin(&sql.TxOptions{
+	tx := accountAPI.SQLDBWrites.Begin(&sql.TxOptions{
 		Isolation: sql.IsolationLevel(0),
 	})
 	defer func() {
 		if err := recover(); err != nil {
-			accountAPI.logger.Errorf("recovering from panic: %v", err)
+			accountAPI.Logger.Errorf("recovering from panic: %v", err)
 		}
 	}()
 
@@ -123,7 +123,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 				// Must be admin to update
 				if createReq.GetByAdmin() {
 					// Update account instead
-					err = accountAPI.sqlDBWrites.Table(accountsTable).Updates(accountDB).Error
+					err = accountAPI.SQLDBWrites.Table(accountsTable).Updates(accountDB).Error
 					if err != nil {
 						tx.Rollback()
 						return nil, errs.FailedToUpdate("account", err)
@@ -181,7 +181,8 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			Type:        messaging.MessageType_REMINDER,
 			SendMethods: sendMethods,
 			Details: map[string]string{
-				"app": accountAPI.appName,
+				"app":  accountAPI.appName,
+				"from": os.Getenv("EMAIL_USERNAME"),
 			},
 		}
 
@@ -197,17 +198,21 @@ func (accountAPI *accountAPIServer) CreateAccount(
 				Type:        messaging.MessageType_REMINDER,
 				SendMethods: sendMethods,
 				Details: map[string]string{
-					"app": accountAPI.appName,
+					"app_name":     accountAPI.appName,
+					"display_name": accountAPI.emailDisplayName,
 				},
 			}
 		}
 
 		md := metadata.Pairs(auth.Header(), fmt.Sprintf("%s %s", auth.Scheme(), jwtToken))
 
+		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+		defer cancel()
+
 		// Send message
-		_, err = accountAPI.messagingClient.SendMessage(mdutil.AddMD(ctx, md), messagePB)
+		_, err = accountAPI.MessagingClient.SendMessage(mdutil.AddMD(ctx, md), messagePB)
 		if err != nil {
-			return nil, err
+			accountAPI.Logger.Errorf("error while sending account creation message: %v", err)
 		}
 	}
 

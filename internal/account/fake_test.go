@@ -28,7 +28,7 @@ func createAdmin(accountState account.AccountState) (string, error) {
 	}
 
 	// Save to database
-	err = AccountAPIServer.sqlDBWrites.Create(accountDB).Error
+	err = AccountAPIServer.SQLDBWrites.Create(accountDB).Error
 	if err != nil {
 		return "", err
 	}
@@ -46,7 +46,7 @@ func fakeAccount() *account.Account {
 		Phone:       fakePhone(),
 		Names:       randomdata.SillyName(),
 		BirthDate:   randomdata.FullDate(),
-		Gender:      account.Account_Gender(randomdata.Number(1, len(account.AccountState_name))),
+		Gender:      account.Account_Gender(randomdata.Number(1, len(account.Account_Gender_name))),
 		Nationality: randomdata.Country(randomdata.FullCountry),
 		ProfileUrl:  randomdata.MacAddress(),
 		State:       account.AccountState_ACTIVE,

@@ -61,7 +61,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Get admin
 	admin := &Account{}
-	err = accountAPI.sqlDBWrites.Unscoped().Select("account_state,primary_group").
+	err = accountAPI.SQLDBWrites.Unscoped().Select("account_state,primary_group").
 		First(admin, "account_id=?", ID).Error
 	switch {
 	case err == nil:
@@ -83,7 +83,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 
 	// Get user
 	accountDB := &Account{}
-	err = accountAPI.sqlDBWrites.Unscoped().First(accountDB, "account_id=?", ID2).Error
+	err = accountAPI.SQLDBWrites.Unscoped().First(accountDB, "account_id=?", ID2).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -113,10 +113,10 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	)
 
 	// Start a transaction
-	tx := accountAPI.sqlDBWrites.Begin()
+	tx := accountAPI.SQLDBWrites.Begin()
 	defer func() {
 		if err := recover(); err != nil {
-			accountAPI.logger.Errorln(err)
+			accountAPI.Logger.Errorln(err)
 		}
 	}()
 
@@ -238,8 +238,11 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		return nil, errs.WrapErrorWithMsg(err, "failed to exucute template")
 	}
 
+	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 5*time.Second)
+	defer cancel()
+
 	// Send message to inform necessary audience
-	_, err = accountAPI.messagingClient.SendMessage(mdutil.AddFromCtx(ctx), &messaging.Message{
+	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.Message{
 		UserId:      updateReq.AccountId,
 		Title:       title,
 		Data:        data,
@@ -248,12 +251,13 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		Type:        messageType,
 		SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2, messaging.SendMethod_EMAIL},
 		Details: map[string]string{
-			"email_body": content.String(),
+			"email_body":   content.String(),
+			"app_name":     accountAPI.appName,
+			"display_name": accountAPI.emailDisplayName,
 		},
 	}, grpc.WaitForReady(true))
 	if err != nil {
-		tx.Rollback()
-		return nil, errs.WrapErrorWithMsg(err, "failed to send message")
+		accountAPI.Logger.Errorf("error while sending account changed message: %v", err)
 	}
 
 	// Commit the transaction

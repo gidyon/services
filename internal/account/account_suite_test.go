@@ -58,6 +58,8 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
+	Expect(db.Migrator().DropTable(accountsTable))
+
 	Expect(db.Migrator().AutoMigrate(&Account{})).ShouldNot(HaveOccurred())
 
 	// Redis db
@@ -67,24 +69,25 @@ var _ = BeforeSuite(func() {
 	})
 
 	// Logger
-	logger := micro.NewLogger("account service")
+	Logger := micro.NewLogger("account service")
 
 	// Secure cookie
 	sc := securecookie.New([]byte(randomdata.RandStringRunes(32)), []byte(randomdata.RandStringRunes(32)))
 
 	opt := &Options{
-		AppName:         "UMRS Network",
-		TemplatesDir:    templatesDir,
-		ActivationURL:   randomdata.MacAddress(),
-		JWTSigningKey:   []byte(randomdata.RandStringRunes(32)),
-		SQLDBWrites:     db,
-		SQLDBReads:      db,
-		RedisDBWrites:   redisDB,
-		RedisDBReads:    redisDB,
-		SecureCookie:    sc,
-		Logger:          logger,
-		MessagingClient: mocks.MessagingAPI,
-		FirebaseAuth:    mocks.FirebaseAuthAPI,
+		AppName:          "Accounts API",
+		EmailDisplayName: "Accounts API",
+		TemplatesDir:     templatesDir,
+		ActivationURL:    randomdata.MacAddress(),
+		JWTSigningKey:    []byte(randomdata.RandStringRunes(32)),
+		SQLDBWrites:      db,
+		SQLDBReads:       db,
+		RedisDBWrites:    redisDB,
+		RedisDBReads:     redisDB,
+		SecureCookie:     sc,
+		Logger:           Logger,
+		MessagingClient:  mocks.MessagingAPI,
+		FirebaseAuth:     mocks.FirebaseAuthAPI,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -134,26 +137,22 @@ var _ = BeforeSuite(func() {
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.Logger = logger
-	opt.RedisDBReads = nil
+	opt.Logger = Logger
+	opt.RedisDBWrites = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.RedisDBReads = redisDB
-	opt.JWTSigningKey = nil
-	_, err = NewAccountAPI(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.RedisDBReads = nil
-	_, err = NewAccountAPI(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.RedisDBReads = redisDB
+	opt.RedisDBWrites = redisDB
 	opt.JWTSigningKey = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
 	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
+	opt.RedisDBReads = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.RedisDBReads = redisDB
 	opt.TemplatesDir = ""
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
@@ -163,7 +162,12 @@ var _ = BeforeSuite(func() {
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.AppName = "UMRS Network"
+	opt.AppName = "Accounts API"
+	opt.EmailDisplayName = ""
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.EmailDisplayName = "Accounts API"
 	opt.ActivationURL = ""
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
