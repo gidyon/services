@@ -40,7 +40,7 @@ func fakeSubscriber() *subscriber.Subscriber {
 		Phone:        randomdata.PhoneNumber(),
 		ExternalId:   randomdata.RandStringRunes(10),
 		DeviceToken:  randomdata.MacAddress(),
-		Channels: []*subscriber.Channel{
+		Channels: []*subscriber.ChannelSubcriber{
 			{Name: randomdata.Month(), ChannelId: fmt.Sprint(randomdata.Number(30, 99))},
 			{Name: randomdata.Month(), ChannelId: fmt.Sprint(randomdata.Number(30, 99))},
 			{Name: randomdata.Month(), ChannelId: fmt.Sprint(randomdata.Number(30, 99))},
