@@ -40,6 +40,11 @@ func SuperAdminGroup() string {
 	return "SUPER_ADMIN"
 }
 
+// Admins returns the administrators group
+func Admins() []string {
+	return []string{AdminGroup(), SuperAdminGroup()}
+}
+
 // Interface is a generic authentication and authorization API
 type Interface interface {
 	AuthenticateRequest(context.Context) error
@@ -246,7 +251,7 @@ func (api *authAPI) genToken(
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expires,
 			Issuer:    "gidyon",
-			Audience:  "users,apis",
+			Audience:  "earth",
 		},
 	})
 
