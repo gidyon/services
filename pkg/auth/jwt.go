@@ -19,6 +19,7 @@ var (
 // Payload contains jwt payload
 type Payload struct {
 	ID           string
+	ProjectID    string
 	Names        string
 	PhoneNumber  string
 	EmailAddress string
