@@ -47,7 +47,7 @@ Selector labels
 */}}
 {{- define "micro.selectorLabels" -}}
 name: {{ include "micro.name" . }}
-release: {{ .Release.Name }}
+app: {{ .Release.Name }}
 {{- end }}
 
 {{/*
