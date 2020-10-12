@@ -2,4 +2,4 @@ apiVersion: v2
 name: micro
 description: Chart boilerplate for creating micro services
 type: library
-version: 0.1.0
+version: 0.1.1
