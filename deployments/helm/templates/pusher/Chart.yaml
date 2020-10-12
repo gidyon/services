@@ -2,7 +2,7 @@ apiVersion: v2
 name: pusher
 description: Messaging pusher client that sends push messages
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: v1
 
 dependencies:
