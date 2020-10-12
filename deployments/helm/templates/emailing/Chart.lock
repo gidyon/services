@@ -3,4 +3,4 @@ dependencies:
   repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
   version: 0.1.1
 digest: sha256:2590f27d59bd529a7517841106fd3b4e107530d72728ae53569b9c1f7a193c8a
-generated: "2020-10-12T11:25:19.405355+03:00"
+generated: "2020-10-12T11:27:21.1337+03:00"
