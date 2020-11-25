@@ -37,98 +37,90 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "page_token",
+            "name": "pageToken",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "page_size",
+            "name": "pageSize",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "list_criteria.filter",
+            "name": "listCriteria.filter",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.show_active_accounts",
+            "name": "listCriteria.showActiveAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.show_inactive_accounts",
+            "name": "listCriteria.showInactiveAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.show_blocked_accounts",
+            "name": "listCriteria.showBlockedAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.show_males",
+            "name": "listCriteria.showMales",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.show_females",
+            "name": "listCriteria.showFemales",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.filter_creation_date",
+            "name": "listCriteria.filterCreationDate",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.created_from",
+            "name": "listCriteria.createdFrom",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "list_criteria.created_until",
+            "name": "listCriteria.createdUntil",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "list_criteria.filter_account_groups",
+            "name": "listCriteria.filterAccountGroups",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "list_criteria.groups",
+            "name": "listCriteria.groups",
             "in": "query",
             "required": false,
             "type": "array",
@@ -154,8 +146,7 @@
             "name": "priviledge",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -173,9 +164,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -206,15 +197,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -243,15 +234,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_ids",
+            "name": "accountIds",
             "in": "query",
             "required": false,
             "type": "array",
@@ -278,9 +269,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -292,13 +283,13 @@
             "type": "string"
           },
           {
-            "name": "fallback_url",
+            "name": "fallbackUrl",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "send_method",
+            "name": "sendMethod",
             "in": "query",
             "required": false,
             "type": "string",
@@ -329,9 +320,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -349,7 +340,7 @@
             "type": "string"
           },
           {
-            "name": "external_id",
+            "name": "projectId",
             "in": "query",
             "required": false,
             "type": "string"
@@ -372,9 +363,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -386,97 +377,88 @@
             "type": "string"
           },
           {
-            "name": "page_token",
+            "name": "pageToken",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "page_size",
+            "name": "pageSize",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "search_linked_accounts",
+            "name": "searchLinkedAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.filter",
+            "name": "searchCriteria.filter",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.show_active_accounts",
+            "name": "searchCriteria.showActiveAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.show_inactive_accounts",
+            "name": "searchCriteria.showInactiveAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.show_blocked_accounts",
+            "name": "searchCriteria.showBlockedAccounts",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.show_males",
+            "name": "searchCriteria.showMales",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.show_females",
+            "name": "searchCriteria.showFemales",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.filter_creation_date",
+            "name": "searchCriteria.filterCreationDate",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.created_from",
+            "name": "searchCriteria.createdFrom",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "search_criteria.created_until",
+            "name": "searchCriteria.createdUntil",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "search_criteria.filter_account_groups",
+            "name": "searchCriteria.filterAccountGroups",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           },
           {
-            "name": "search_criteria.groups",
+            "name": "searchCriteria.groups",
             "in": "query",
             "required": false,
             "type": "array",
@@ -516,9 +498,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -550,9 +532,9 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
@@ -584,27 +566,27 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "refresh_token",
+            "name": "refreshToken",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "account_group",
+            "name": "accountGroup",
             "in": "query",
             "required": false,
             "type": "string"
@@ -615,7 +597,7 @@
         ]
       }
     },
-    "/api/accounts/{account.account_id}": {
+    "/api/accounts/{account.accountId}": {
       "patch": {
         "summary": "Updates a user account",
         "operationId": "AccountAPI_UpdateAccount",
@@ -627,15 +609,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account.account_id",
+            "name": "account.accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -654,7 +636,7 @@
         ]
       }
     },
-    "/api/accounts/{account_id}": {
+    "/api/accounts/{accountId}": {
       "get": {
         "summary": "Retrieves a user account",
         "operationId": "AccountAPI_GetAccount",
@@ -666,15 +648,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -696,8 +678,7 @@
             "name": "priviledge",
             "in": "query",
             "required": false,
-            "type": "boolean",
-            "format": "boolean"
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -715,15 +696,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -734,7 +715,7 @@
         ]
       }
     },
-    "/api/accounts/{account_id}/private": {
+    "/api/accounts/{accountId}/private": {
       "patch": {
         "summary": "Updates a user private account information",
         "operationId": "AccountAPI_UpdatePrivateAccount",
@@ -746,15 +727,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -773,7 +754,7 @@
         ]
       }
     },
-    "/api/accounts/{account_id}:admin": {
+    "/api/accounts/{accountId}:admin": {
       "patch": {
         "summary": "Updates account",
         "operationId": "AccountAPI_AdminUpdateAccount",
@@ -785,15 +766,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -812,7 +793,7 @@
         ]
       }
     },
-    "/api/accounts/{account_id}:linked": {
+    "/api/accounts/{accountId}:linked": {
       "get": {
         "summary": "Retrieves deeply linked accounts",
         "operationId": "AccountAPI_GetLinkedAccounts",
@@ -824,15 +805,15 @@
             }
           },
           "default": {
-            "description": "An unexpected error response",
+            "description": "An unexpected error response.",
             "schema": {
-              "$ref": "#/definitions/runtimeError"
+              "$ref": "#/definitions/rpcStatus"
             }
           }
         },
         "parameters": [
           {
-            "name": "account_id",
+            "name": "accountId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -858,10 +839,10 @@
     "apisAccount": {
       "type": "object",
       "properties": {
-        "account_id": {
+        "accountId": {
           "type": "string"
         },
-        "external_id": {
+        "projectId": {
           "type": "string"
         },
         "email": {
@@ -870,13 +851,13 @@
         "phone": {
           "type": "string"
         },
-        "device_token": {
+        "deviceToken": {
           "type": "string"
         },
         "names": {
           "type": "string"
         },
-        "birth_date": {
+        "birthDate": {
           "type": "string"
         },
         "gender": {
@@ -885,13 +866,13 @@
         "nationality": {
           "type": "string"
         },
-        "profile_url": {
+        "profileUrl": {
           "type": "string"
         },
         "group": {
           "type": "string"
         },
-        "linked_accounts": {
+        "linkedAccounts": {
           "type": "string"
         },
         "state": {
@@ -927,7 +908,7 @@
     "apisAccounts": {
       "type": "object",
       "properties": {
-        "next_page_token": {
+        "nextPageToken": {
           "type": "string"
         },
         "accounts": {
@@ -948,13 +929,13 @@
     "apisAdminUpdateAccountRequest": {
       "type": "object",
       "properties": {
-        "account_id": {
+        "accountId": {
           "type": "string"
         },
-        "admin_id": {
+        "adminId": {
           "type": "string"
         },
-        "update_operation": {
+        "updateOperation": {
           "$ref": "#/definitions/apisUpdateOperation"
         },
         "reason": {
@@ -993,23 +974,23 @@
         "account": {
           "$ref": "#/definitions/apisAccount"
         },
-        "private_account": {
+        "privateAccount": {
           "$ref": "#/definitions/apisPrivateAccount"
         },
-        "update_only": {
-          "type": "boolean",
-          "format": "boolean"
+        "notify": {
+          "type": "boolean"
         },
-        "by_admin": {
-          "type": "boolean",
-          "format": "boolean"
+        "updateOnly": {
+          "type": "boolean"
         },
-        "admin_id": {
+        "byAdmin": {
+          "type": "boolean"
+        },
+        "adminId": {
           "type": "string"
         },
-        "notify": {
-          "type": "boolean",
-          "format": "boolean"
+        "projectId": {
+          "type": "string"
         }
       },
       "description": "Request to create an account",
@@ -1021,7 +1002,7 @@
     "apisCreateAccountResponse": {
       "type": "object",
       "properties": {
-        "account_id": {
+        "accountId": {
           "type": "string"
         }
       },
@@ -1032,44 +1013,36 @@
       "type": "object",
       "properties": {
         "filter": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
-        "show_active_accounts": {
-          "type": "boolean",
-          "format": "boolean"
+        "showActiveAccounts": {
+          "type": "boolean"
         },
-        "show_inactive_accounts": {
-          "type": "boolean",
-          "format": "boolean"
+        "showInactiveAccounts": {
+          "type": "boolean"
         },
-        "show_blocked_accounts": {
-          "type": "boolean",
-          "format": "boolean"
+        "showBlockedAccounts": {
+          "type": "boolean"
         },
-        "show_males": {
-          "type": "boolean",
-          "format": "boolean"
+        "showMales": {
+          "type": "boolean"
         },
-        "show_females": {
-          "type": "boolean",
-          "format": "boolean"
+        "showFemales": {
+          "type": "boolean"
         },
-        "filter_creation_date": {
-          "type": "boolean",
-          "format": "boolean"
+        "filterCreationDate": {
+          "type": "boolean"
         },
-        "created_from": {
+        "createdFrom": {
           "type": "string",
           "format": "int64"
         },
-        "created_until": {
+        "createdUntil": {
           "type": "string",
           "format": "int64"
         },
-        "filter_account_groups": {
-          "type": "boolean",
-          "format": "boolean"
+        "filterAccountGroups": {
+          "type": "boolean"
         },
         "groups": {
           "type": "array",
@@ -1085,10 +1058,9 @@
       "type": "object",
       "properties": {
         "exists": {
-          "type": "boolean",
-          "format": "boolean"
+          "type": "boolean"
         },
-        "account_id": {
+        "accountId": {
           "type": "string"
         }
       },
@@ -1113,13 +1085,13 @@
         "password": {
           "type": "string"
         },
-        "confirm_password": {
+        "confirmPassword": {
           "type": "string"
         },
-        "security_question": {
+        "securityQuestion": {
           "type": "string"
         },
-        "security_answer": {
+        "securityAnswer": {
           "type": "string"
         }
       },
@@ -1129,7 +1101,7 @@
     "apisRequestChangePrivateAccountResponse": {
       "type": "object",
       "properties": {
-        "response_message": {
+        "responseMessage": {
           "type": "string"
         }
       },
@@ -1154,7 +1126,10 @@
         "account": {
           "$ref": "#/definitions/apisAccount"
         },
-        "auth_token": {
+        "authToken": {
+          "type": "string"
+        },
+        "projectId": {
           "type": "string"
         }
       },
@@ -1176,6 +1151,9 @@
         },
         "group": {
           "type": "string"
+        },
+        "projectId": {
+          "type": "string"
         }
       },
       "description": "Request to sign in to an account",
@@ -1188,16 +1166,16 @@
     "apisSignInResponse": {
       "type": "object",
       "properties": {
-        "session_id": {
+        "sessionId": {
           "type": "string"
         },
-        "account_id": {
+        "accountId": {
           "type": "string"
         },
         "token": {
           "type": "string"
         },
-        "refresh_token": {
+        "refreshToken": {
           "type": "string"
         },
         "group": {
@@ -1240,13 +1218,13 @@
     "apisUpdatePrivateAccountRequest": {
       "type": "object",
       "properties": {
-        "account_id": {
+        "accountId": {
           "type": "string"
         },
-        "private_account": {
+        "privateAccount": {
           "$ref": "#/definitions/apisPrivateAccount"
         },
-        "change_token": {
+        "changeToken": {
           "type": "string"
         }
       },
@@ -1261,7 +1239,7 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "type_url": {
+        "typeUrl": {
           "type": "string",
           "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         },
@@ -1273,12 +1251,9 @@
       },
       "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := ptypes.MarshalAny(foo)\n     ...\n     foo := \u0026pb.Foo{}\n     if err := ptypes.UnmarshalAny(any, foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
-    "runtimeError": {
+    "rpcStatus": {
       "type": "object",
       "properties": {
-        "error": {
-          "type": "string"
-        },
         "code": {
           "type": "integer",
           "format": "int32"

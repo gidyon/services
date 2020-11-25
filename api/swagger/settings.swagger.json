@@ -1,23 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Subscriber Service",
-    "description": "Manages subscribers for channel(s)",
-    "version": "v1",
-    "contact": {
-      "name": "Github \u003cGideon Kamau\u003e",
-      "url": "https://github.com/gidyon/services/blob/master/api/proto/subscriber.proto",
-      "email": "gideonhacer@gmail.com"
-    },
-    "license": {
-      "name": "MIT License",
-      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
-    }
+    "title": "settings.proto",
+    "version": "version not set"
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
   "consumes": [
     "application/json"
   ],
@@ -25,15 +11,38 @@
     "application/json"
   ],
   "paths": {
-    "/api/subscribers": {
+    "/api/settings": {
+      "patch": {
+        "summary": "Updates a user setting preferences",
+        "operationId": "SettingsAPI_UpdateSetting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisUpdateSettingResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "SettingsAPI"
+        ]
+      }
+    },
+    "/api/settings/{ownerId}": {
       "get": {
-        "summary": "Lists subscribers for a channel",
-        "operationId": "SubscriberAPI_ListSubscribers",
+        "summary": "Retrieves a collection of settings resource",
+        "operationId": "SettingsAPI_GetSettings",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apisListSubscribersResponse"
+              "$ref": "#/definitions/apisGetSettingsResponse"
             }
           },
           "default": {
@@ -45,226 +54,66 @@
         },
         "parameters": [
           {
-            "name": "pageToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "filter.channels",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          }
-        ],
-        "tags": [
-          "SubscriberAPI"
-        ]
-      }
-    },
-    "/api/subscribers/action:subscribe": {
-      "post": {
-        "summary": "Subscribes a user to a channel",
-        "operationId": "SubscriberAPI_Subscribe",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisSubscriberRequest"
-            }
-          }
-        ],
-        "tags": [
-          "SubscriberAPI"
-        ]
-      }
-    },
-    "/api/subscribers/action:unsubscribe": {
-      "post": {
-        "summary": "Unsubscribes a user from a channel",
-        "operationId": "SubscriberAPI_Unsubscribe",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisSubscriberRequest"
-            }
-          }
-        ],
-        "tags": [
-          "SubscriberAPI"
-        ]
-      }
-    },
-    "/api/subscribers/{subscriberId}": {
-      "get": {
-        "summary": "GetSubscriber retrieves information about a single subscriber",
-        "operationId": "SubscriberAPI_GetSubscriber",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisSubscriber"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "subscriberId",
+            "name": "ownerId",
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
-          "SubscriberAPI"
+          "SettingsAPI"
         ]
       }
     }
   },
   "definitions": {
-    "apisChannelSubcriber": {
+    "apisGetSettingsResponse": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "channelId": {
-          "type": "string"
-        }
-      },
-      "description": "The subscription",
-      "title": "ChannelSubcriber",
-      "required": [
-        "name",
-        "channel_id"
-      ]
-    },
-    "apisListSubscribersFilter": {
-      "type": "object",
-      "properties": {
-        "channels": {
-          "type": "array",
-          "items": {
-            "type": "string"
+        "settings": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/apisSetting"
           }
         }
       },
-      "description": "Filters for retrieving subscribers",
-      "title": "ListSubscribersFilter"
+      "description": "Response containing a collection of settings resources",
+      "title": "GetSettingsResponse"
     },
-    "apisListSubscribersResponse": {
+    "apisSetting": {
       "type": "object",
       "properties": {
-        "subscribers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apisSubscriber"
-          }
+        "key": {
+          "type": "string"
         },
-        "nextPageToken": {
+        "value": {
+          "type": "string"
+        },
+        "domain": {
           "type": "string"
         }
       },
-      "description": "Response containing collection of subscribers",
-      "title": "ListSubscribersResponse"
+      "description": "Party preferences and settings",
+      "title": "Setting"
     },
-    "apisSubscriber": {
+    "apisUpdateSettingResponse": {
       "type": "object",
       "properties": {
-        "subscriberId": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        },
-        "externalId": {
-          "type": "string"
-        },
-        "deviceToken": {
-          "type": "string"
-        },
-        "channels": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/apisChannelSubcriber"
+        "settings": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/apisSetting"
           }
         }
       },
-      "description": "Party that subscribes to a channel",
-      "title": "Subscriber"
-    },
-    "apisSubscriberRequest": {
-      "type": "object",
-      "properties": {
-        "subscriberId": {
-          "type": "string"
-        },
-        "channelId": {
-          "type": "string"
-        },
-        "channelName": {
-          "type": "string"
-        }
-      },
-      "description": "Request to subscribes an entity to a channel",
-      "title": "SubscriberRequest",
-      "required": [
-        "subscriber_id",
-        "channel_id"
-      ]
+      "description": "Response containing the updated settings",
+      "title": "UpdateSettingResponse"
     },
     "protobufAny": {
       "type": "object",
@@ -299,20 +148,5 @@
         }
       }
     }
-  },
-  "securityDefinitions": {
-    "ApiKeyAuth": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
-    },
-    "BasicAuth": {
-      "type": "basic"
-    }
-  },
-  "security": [
-    {
-      "ApiKeyAuth": []
-    }
-  ]
+  }
 }
