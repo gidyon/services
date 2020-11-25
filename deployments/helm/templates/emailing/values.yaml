@@ -88,22 +88,22 @@ extraEnv:
 - name: SMTP_HOST
   valueFrom:
     secretKeyRef:
-      name: smtp-creds
+      name: smtp-credentials
       key: host
 - name: SMTP_PORT
   valueFrom:
     secretKeyRef:
-      name: smtp-creds
+      name: smtp-credentials
       key: port
 - name: SMTP_USERNAME
   valueFrom:
     secretKeyRef:
-      name: smtp-creds
+      name: smtp-credentials
       key: username
 - name: SMTP_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: smtp-creds
+      name: smtp-credentials
       key: password
 
 # extraVolume contains additional volumes supplied by user
