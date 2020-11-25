@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package gidyon.apis;
+
+option go_package="github.com/gidyon/services/pkg/api/settings";
+
+import "protoc-gen-swagger/options/annotations.proto";
+import "google/api/field_behaviour.proto";
+import "google/api/annotations.proto";
+
+message Setting {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Setting"
+			description: "Party preferences and settings"
+		}
+    };
+
+    string key = 1 [(google.api.field_behavior) = REQUIRED];
+    string value = 2 [(google.api.field_behavior) = REQUIRED];
+    string domain = 3;
+}
+
+message Settings {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "Settings"
+			description: "Settings resources"
+		}
+    };
+
+    map<string, Setting> settings = 1;
+}
+
+message UpdateSettingRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "UpdateSettingRequest"
+            description: "Request to update settings resource"
+            required: ["owner_id"]
+		}
+    };
+
+    string owner_id = 1 [(google.api.field_behavior) = REQUIRED];
+    map<string, Setting> settings = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateSettingResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "UpdateSettingResponse"
+			description: "Response containing the updated settings"
+		}
+    };
+
+    map<string, Setting> settings = 2;
+}
+
+message GetSettingsRequest {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "GetSettingsRequest"
+            description: "Request to retrieve settings resources"
+            required: ["owner_id"]
+		}
+    };
+
+    string owner_id = 1 [(google.api.field_behavior) = REQUIRED];
+    string domain = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message GetSettingsResponse {
+    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "GetSettingsResponse"
+            description: "Response containing a collection of settings resources"
+		}
+    };
+
+    map<string, Setting> settings = 2;
+}
+
+// Manages settings and preferences for a party
+service SettingsAPI {
+    // Updates a user setting preferences
+    rpc UpdateSetting (UpdateSettingRequest) returns (UpdateSettingResponse){
+        option (google.api.http) = {
+            patch: "/api/settings",
+        }; 
+    };
+
+    // Retrieves a collection of settings resource
+    rpc GetSettings (GetSettingsRequest) returns (GetSettingsResponse) {
+        option (google.api.http) = {
+            get: "/api/settings/{owner_id}",
+        }; 
+    };
+}
