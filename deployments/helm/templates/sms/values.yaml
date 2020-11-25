@@ -88,27 +88,27 @@ extraEnv:
 - name: SMS_API_KEY
   valueFrom:
     secretKeyRef:
-      name: sms-creds
+      name: sms-credentials
       key: sms-api-key
 - name: SMS_AUTH_TOKEN
   valueFrom:
     secretKeyRef:
-      name: sms-creds
+      name: sms-credentials
       key: sms-auth-token
 - name: SMS_API_USERNAME
   valueFrom:
     secretKeyRef:
-      name: sms-creds
+      name: sms-credentials
       key: sms-api-username
 - name: SMS_API_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: sms-creds
+      name: sms-credentials
       key: sms-api-password
 - name: SMS_API_URL
   valueFrom:
     secretKeyRef:
-      name: sms-creds
+      name: sms-credentials
       key: sms-api-url
 
 # extraVolume contains additional volumes supplied by user
