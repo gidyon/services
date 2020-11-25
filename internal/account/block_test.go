@@ -77,6 +77,7 @@ var _ = Describe("Blocking account £block", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -118,6 +119,7 @@ var _ = Describe("Blocking account £block", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())

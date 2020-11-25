@@ -24,6 +24,7 @@ import (
 const channelsPageSize = 20
 
 type channelAPIServer struct {
+	channel.UnimplementedChannelAPIServer
 	logger  grpclog.LoggerV2
 	authAPI auth.Interface
 	hasher  *hashids.HashID

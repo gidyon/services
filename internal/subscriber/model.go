@@ -34,7 +34,7 @@ func GetSubscriberPB(subscriberDB *Subscriber, userPB *account.Account) (*subscr
 		Email:        userPB.Email,
 		Phone:        userPB.Phone,
 		DeviceToken:  userPB.DeviceToken,
-		Channels:     []*subscriber.Channel{},
+		Channels:     []*subscriber.ChannelSubcriber{},
 	}
 
 	// safe json unmarshal

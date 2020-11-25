@@ -11,6 +11,7 @@ import (
 )
 
 type callAPIServer struct {
+	call.UnimplementedCallAPIServer
 	logger  grpclog.LoggerV2
 	authAPI auth.Interface
 }

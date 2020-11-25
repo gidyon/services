@@ -32,6 +32,7 @@ import (
 var emptyMsg = &empty.Empty{}
 
 type messagingServer struct {
+	messaging.UnimplementedMessagingServer
 	hasher  *hashids.HashID
 	authAPI auth.Interface
 	*Options

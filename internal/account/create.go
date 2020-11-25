@@ -36,6 +36,8 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	// Validation
 	switch {
+	case createReq.ProjectId == "":
+		err = errs.MissingField("project id")
 	case accountPB.Group == "":
 		err = errs.MissingField("group")
 	case accountPB.Names == "":
@@ -49,6 +51,23 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, err
 	}
 
+	// Check if project exists
+
+	// Check if account already exists
+	existRes, err := accountAPI.ExistAccount(ctx, &account.ExistAccountRequest{
+		Email:     accountPB.Email,
+		Phone:     accountPB.Phone,
+		ProjectId: accountPB.ProjectId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Fails if account already exists
+	if existRes.Exists {
+		return nil, errs.WrapMessage(codes.AlreadyExists, "account already exists")
+	}
+
 	accountDB, err := GetAccountDB(accountPB)
 	if err != nil {
 		return nil, err
@@ -58,12 +77,11 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	if createReq.GetByAdmin() {
 		// Authenticate the admin
-		p, err := accountAPI.authAPI.AuthorizeGroups(ctx, auth.AdminGroup())
+		p, err := accountAPI.authAPI.AuthorizeGroups(ctx, auth.Admins()...)
 		if err != nil {
 			return nil, err
 		}
 		if p.ID != createReq.AdminId {
-
 			dev := (os.Getenv("MODE") == "development")
 			if !dev {
 				return nil, errs.WrapMessage(codes.Unauthenticated, "token id and admin id do not match")
@@ -119,17 +137,14 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 		if dbutil.IsDuplicate(err) {
 			// Upsert must be true
-			if createReq.GetUpdateOnly() {
-				// Must be admin to update
-				if createReq.GetByAdmin() {
-					// Update account instead
-					err = accountAPI.SQLDBWrites.Table(accountsTable).Updates(accountDB).Error
-					if err != nil {
-						tx.Rollback()
-						return nil, errs.FailedToUpdate("account", err)
-					}
-					break
+			if createReq.GetUpdateOnly() && createReq.GetByAdmin() {
+				// Update account instead
+				err = accountAPI.SQLDBWrites.Table(accountsTable).Updates(accountDB).Error
+				if err != nil {
+					tx.Rollback()
+					return nil, errs.FailedToUpdate("account", err)
 				}
+				break
 			}
 
 			tx.Rollback()
@@ -148,7 +163,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.FailedToCommitTx(err)
 	}
 
-	if !createReq.GetUpdateOnly() {
+	if !createReq.GetUpdateOnly() && createReq.Notify {
 		// Generate jwt token with expiration of 6 hours
 		jwtToken, err := accountAPI.authAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,

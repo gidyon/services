@@ -22,6 +22,7 @@ type fcmClient interface {
 }
 
 type pushAPIServer struct {
+	push.UnimplementedPushMessagingServer
 	sqlDB     *gorm.DB
 	logger    grpclog.LoggerV2
 	authAPI   auth.Interface

@@ -17,6 +17,7 @@ type dialer interface {
 }
 
 type emailingAPIServer struct {
+	emailing.UnimplementedEmailingServer
 	logger  grpclog.LoggerV2
 	authAPI auth.Interface
 	sender  func(*emailing.Email) error

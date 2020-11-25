@@ -28,7 +28,7 @@ import (
 	"github.com/gidyon/services/pkg/utils/templateutil"
 
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/go-redis/redis"
+	redis "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc"
@@ -43,6 +43,7 @@ type cookier interface {
 }
 
 type accountAPIServer struct {
+	account.UnimplementedAccountAPIServer
 	activationURL    string
 	appName          string
 	emailDisplayName string
@@ -165,10 +166,12 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		}
 	}
 
-	// Create a full text search index
-	err = dbutil.CreateFullTextIndex(accountAPI.SQLDBWrites, accountsTable, "email", "phone")
-	if err != nil {
-		return nil, errs.WrapErrorWithMsg(err, "failed to create full text index")
+	if !accountAPI.SQLDBWrites.Migrator().HasIndex(&Account{}, dbutil.FullTextIndex) {
+		// Create a full text search index
+		err = dbutil.CreateFullTextIndex(accountAPI.SQLDBWrites, accountsTable, "names", "email", "phone", "linked_accounts")
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to create full text index")
+		}
 	}
 
 	return accountAPI, nil
@@ -185,6 +188,8 @@ func (accountAPI *accountAPIServer) SignInExternal(
 	// Validation
 	var err error
 	switch {
+	case signInReq.ProjectId == "":
+		err = errs.MissingField("project id")
 	case signInReq.Account == nil:
 		err = errs.NilObject("account")
 	case signInReq.Account.Names == "":
@@ -222,6 +227,7 @@ func (accountAPI *accountAPIServer) SignInExternal(
 		ID = accountDB.AccountID
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Create user
+		signInReq.Account.ProjectId = signInReq.ProjectId
 		accountDB, err = GetAccountDB(signInReq.Account)
 		if err != nil {
 			return nil, err
@@ -272,7 +278,7 @@ func (accountAPI *accountAPIServer) RefreshSession(
 	}
 
 	// Ensure that refresh token already exists
-	ok, err := accountAPI.RedisDBWrites.SIsMember(refreshTokenSet(), req.RefreshToken).Result()
+	ok, err := accountAPI.RedisDBWrites.SIsMember(ctx, refreshTokenSet(), req.RefreshToken).Result()
 	switch {
 	case err == nil:
 		if !ok {
@@ -329,7 +335,7 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 
 	// Retrieve token claims
 	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(
-		auth.AddTokenMD(ctx, activateReq.Token), activateReq.Token, auth.AdminGroup(),
+		auth.AddTokenMD(ctx, activateReq.Token), activateReq.Token, auth.Admins()...,
 	)
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
@@ -393,7 +399,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +433,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	switch {
 	case accountDB.AccountState == account.AccountState_BLOCKED.String(),
 		accountDB.AccountState == account.AccountState_DELETED.String():
-		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked or deleted")
 	}
 
 	accountDBX, err := GetAccountDB(updateReq.Account)
@@ -512,7 +518,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	uniqueNumber := rand.Intn(499999) + 500000
 
 	// Set token with expiration of 6 hours
-	err = accountAPI.RedisDBWrites.Set(updateToken(accountID), uniqueNumber, time.Duration(time.Hour*6)).Err()
+	err = accountAPI.RedisDBWrites.Set(ctx, updateToken(accountID), uniqueNumber, time.Duration(time.Hour*6)).Err()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "SET")
 	}
@@ -565,7 +571,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -605,7 +611,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	// Hash the password if not empty
 	if updatePrivateReq.PrivateAccount.Password != "" {
 		// Lets get the update token
-		token, err := accountAPI.RedisDBWrites.Get(updateToken(updatePrivateReq.AccountId)).Result()
+		token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(updatePrivateReq.AccountId)).Result()
 		switch {
 		case err == nil:
 		case err == redis.Nil:
@@ -654,7 +660,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.AdminGroup())
+	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -705,7 +711,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	}
 
 	// Authorization
-	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.AdminGroup())
+	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -787,21 +793,24 @@ func (accountAPI *accountAPIServer) ExistAccount(
 	}
 
 	var (
-		externalID = existReq.GetExternalId()
-		email      = existReq.GetEmail()
-		phone      = existReq.GetPhone()
+		projectID = existReq.GetProjectId()
+		email     = existReq.GetEmail()
+		phone     = existReq.GetPhone()
 	)
 
 	// Validation
-	if email == "" && phone == "" && externalID == "" {
+	switch {
+	case projectID == "":
+		return nil, errs.MissingField("project id")
+	case email == "" && phone == "":
 		return nil, errs.MissingField("email, phone or external id")
 	}
 
 	accountDB := &Account{}
 
 	// Query for account with email or phone
-	err = accountAPI.SQLDBWrites.Select("account_id,email,phone,external_id").
-		First(accountDB, "email=? OR phone=? OR external_id=?", email, phone, externalID).Error
+	err = accountAPI.SQLDBWrites.Select("account_id,email,phone").
+		First(accountDB, "email=? OR phone=? AND project_id=?", email, phone, projectID).Error
 	switch {
 	case err == nil:
 		// Account exist
@@ -858,8 +867,17 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	// Apply filter criterias
 	db := generateWhereCondition(accountAPI.SQLDBReads, listReq.GetListCriteria())
 
-	if payload.Group == auth.AdminGroup() {
-		db = db.Unscoped()
+	// For admins
+	for _, group := range auth.Admins() {
+		if payload.Group == group {
+			db = db.Unscoped()
+			break
+		}
+	}
+
+	// Apply project project
+	if payload.ProjectID != "" {
+		db = db.Where("project_id=?", payload.ProjectID)
 	}
 
 	// Order by ID
@@ -943,8 +961,17 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Apply filter criterias
 	db := generateWhereCondition(accountAPI.SQLDBReads, searchReq.GetSearchCriteria())
 
-	if payload.Group == auth.AdminGroup() {
-		db = db.Unscoped()
+	// For admins
+	for _, group := range auth.Admins() {
+		if payload.Group == group {
+			db = db.Unscoped()
+			break
+		}
+	}
+
+	// Apply project project
+	if payload.ProjectID != "" {
+		db = db.Where("project_id=?", payload.ProjectID)
 	}
 
 	// Order by ID
@@ -952,13 +979,9 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 
 	parsedQuery := dbutil.ParseQuery(searchReq.Query)
 
-	if searchReq.SearchLinkedAccounts {
-		err = db.Find(&accountsDB, "MATCH(email, phone, linked_accounts) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
-			Error
-	} else {
-		err = db.Find(&accountsDB, "MATCH(email, phone) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
-			Error
-	}
+	// "names", "email", "phone", "linked_accounts"
+	err = db.Find(&accountsDB, "MATCH(names, email, phone, linked_accounts) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
+		Error
 	switch {
 	case err == nil:
 	default:

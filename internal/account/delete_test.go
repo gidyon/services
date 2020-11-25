@@ -62,6 +62,7 @@ var _ = Describe("Deleting Account @delete", func() {
 				createRes, err := AccountAPI.CreateAccount(ctx, &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))

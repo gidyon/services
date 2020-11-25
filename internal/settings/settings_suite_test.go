@@ -1,90 +1,106 @@
-package operation
+package settings
 
 import (
 	"context"
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
-	"github.com/gidyon/services/pkg/api/operation"
+	"github.com/gidyon/micro/pkg/conn"
+	"github.com/gidyon/services/pkg/api/settings"
 	"github.com/gidyon/services/pkg/mocks"
-	redis "github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
 
-func TestOperation(t *testing.T) {
+func TestSettings(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Operation Suite")
+	RunSpecs(t, "Settings Suite")
 }
 
 var (
-	OperationAPIService *operationAPIService
-	OperationAPI        operation.OperationAPIServer
+	SettingsAPIServer *settingsAPIServer
+	SettingsAPI       settings.SettingsAPIServer
 )
 
-const redisAddress = "localhost:6379"
+const (
+	dbAddress = "localhost:3306"
+	schema    = "services"
+)
+
+func startDB() (*gorm.DB, error) {
+	return conn.OpenGormConn(&conn.DBOptions{
+		Dialect:  "mysql",
+		Address:  "localhost:3306",
+		User:     "root",
+		Password: "hakty11",
+		Schema:   schema,
+	})
+}
 
 var _ = BeforeSuite(func() {
-	rand.Seed(time.Now().UnixNano())
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var err error
+	// Start real database
+	db, err := startDB()
+	Expect(err).ShouldNot(HaveOccurred())
 
-	logger := micro.NewLogger("operation_app")
-
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:    redisAddress,
-		Network: "tcp",
-	})
+	logger := micro.NewLogger("settings_app")
 
 	opt := &Options{
-		RedisClient:   redisClient,
+		SQLDB:         db,
 		Logger:        logger,
 		JWTSigningKey: []byte(randomdata.RandStringRunes(32)),
 	}
 
-	// Create operation API
-	OperationAPI, err = NewOperationAPIService(ctx, opt)
+	// Drop table
+	Expect(db.Migrator().DropTable(settingsTable)).ShouldNot(HaveOccurred())
+
+	// Auto migrate
+	Expect(db.Migrator().AutoMigrate(&Model{})).ShouldNot(HaveOccurred())
+
+	// Create settings API
+	SettingsAPI, err = NewSettingsAPI(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	var ok bool
-	OperationAPIService, ok = OperationAPI.(*operationAPIService)
+	SettingsAPIServer, ok = SettingsAPI.(*settingsAPIServer)
 	Expect(ok).Should(BeTrue())
 
-	OperationAPIService.authAPI = mocks.AuthAPI
+	SettingsAPIServer.authAPI = mocks.AuthAPI
 
 	// Pasing incorrect payload
-	_, err = NewOperationAPIService(nil, opt)
+	_, err = NewSettingsAPI(nil, opt)
 	Expect(err).Should(HaveOccurred())
 
-	_, err = NewOperationAPIService(ctx, nil)
+	_, err = NewSettingsAPI(ctx, nil)
 	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDB = nil
+	_, err = NewSettingsAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.SQLDB = db
 	opt.Logger = nil
-	_, err = NewOperationAPIService(ctx, opt)
+	_, err = NewSettingsAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
 	opt.JWTSigningKey = nil
-	_, err = NewOperationAPIService(ctx, opt)
+	_, err = NewSettingsAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
 	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
-	opt.RedisClient = nil
-	_, err = NewOperationAPIService(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.RedisClient = redisClient
+	_, err = NewSettingsAPI(ctx, opt)
+	Expect(err).ShouldNot(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
-	Expect(OperationAPIService.redisDB.Close()).ShouldNot(HaveOccurred())
+	// Expect(SettingsAPIServer.sqlDB.Close()).ShouldNot(HaveOccurred())
 })
 
 // Declarations for Ginkgo DSL

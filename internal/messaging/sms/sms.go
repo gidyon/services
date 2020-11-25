@@ -13,6 +13,7 @@ import (
 type sendSMSFunc func(*Options, *sms.SMS) error
 
 type smsAPIServer struct {
+	sms.UnimplementedSMSAPIServer
 	logger  grpclog.LoggerV2
 	authAPI auth.Interface
 	sendSMS sendSMSFunc

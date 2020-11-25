@@ -81,6 +81,7 @@ var _ = Describe("Update Account @update", func() {
 					createReq := &account.CreateAccountRequest{
 						Account:        fakeAccount(),
 						PrivateAccount: fakePrivateAccount(),
+						ProjectId:      "1",
 					}
 					// Create user account
 					createReq.Account.Group = auth.User()
@@ -196,6 +197,7 @@ var _ = Describe("Updating private account @updateprivate", func() {
 			createRes, err := AccountAPI.CreateAccount(ctx, &account.CreateAccountRequest{
 				Account:        accountPB,
 				PrivateAccount: fakePrivateAccount(),
+				ProjectId:      "1",
 			})
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -219,7 +221,7 @@ var _ = Describe("Updating private account @updateprivate", func() {
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(updateRes).ShouldNot(BeNil())
 
-				v, err := AccountAPIServer.RedisDBWrites.Get(updateToken(accountID)).Result()
+				v, err := AccountAPIServer.RedisDBWrites.Get(ctx, (accountID)).Result()
 				Expect(err).ShouldNot(HaveOccurred())
 				token = v
 			})

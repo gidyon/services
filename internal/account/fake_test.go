@@ -41,6 +41,7 @@ func createAdmin(accountState account.AccountState) (string, error) {
 func fakeAccount() *account.Account {
 	// randPayload := randomdata.RandStringRunes(10)
 	return &account.Account{
+		ProjectId:   "1",
 		AccountId:   randomdata.RandStringRunes(32),
 		Email:       randomdata.Email(),
 		Phone:       fakePhone(),

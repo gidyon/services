@@ -133,9 +133,10 @@ func (accountAPI *accountAPIServer) updateSession(
 				found = true
 				// Generates JWT
 				token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
-					ID:    fmt.Sprint(accountDB.AccountID),
-					Names: accountDB.Names,
-					Group: signInGroup,
+					ID:        fmt.Sprint(accountDB.AccountID),
+					Names:     accountDB.Names,
+					Group:     signInGroup,
+					ProjectID: accountDB.ProjectID,
 				}, time.Now().Add(time.Duration(dur)*time.Minute))
 				if err != nil {
 					return nil,
@@ -152,9 +153,10 @@ func (accountAPI *accountAPIServer) updateSession(
 		signInGroup = accountDB.PrimaryGroup
 		// Generate JWT
 		token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
-			ID:    accountID,
-			Names: accountDB.Names,
-			Group: accountDB.PrimaryGroup,
+			ID:        accountID,
+			Names:     accountDB.Names,
+			Group:     accountDB.PrimaryGroup,
+			ProjectID: accountDB.ProjectID,
 		}, time.Now().Add(time.Duration(dur)*time.Minute))
 		if err != nil {
 			return nil,
@@ -163,7 +165,7 @@ func (accountAPI *accountAPIServer) updateSession(
 	}
 
 	// Set refresh token
-	err = accountAPI.RedisDBWrites.SAdd(refreshTokenSet(), refreshToken, 0).Err()
+	err = accountAPI.RedisDBWrites.SAdd(ctx, refreshTokenSet(), refreshToken, 0).Err()
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set refresh token")
 	}

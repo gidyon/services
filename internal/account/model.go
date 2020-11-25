@@ -14,9 +14,9 @@ const accountsTable = "accounts"
 // Account contains profile information stored in the database
 type Account struct {
 	AccountID        uint   `gorm:"primaryKey;autoIncrement"`
-	Email            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
-	Phone            string `gorm:"index:query_index;type:varchar(50);unique;not null"`
-	ExternalID       string `gorm:"index:query_index;type:varchar(50);unique;not null"`
+	ProjectID        string `gorm:"index:query_index;type:varchar(50);not null"`
+	Email            string `gorm:"index:query_index;type:varchar(50);not null"`
+	Phone            string `gorm:"index:query_index;type:varchar(50);not null"`
 	DeviceToken      string `gorm:"type:varchar(256)"`
 	Names            string `gorm:"type:varchar(50);not null"`
 	BirthDate        string `gorm:"type:varchar(30);"`
@@ -57,7 +57,7 @@ func (u *Account) AfterCreate(tx *gorm.DB) error {
 			return err
 		}
 	}
-	if u.ExternalID == "" {
+	if u.ProjectID == "" {
 		err = tx.Model(u).Update("external_id", accountID).Error
 		if err != nil {
 			return err
@@ -76,8 +76,8 @@ func (u *Account) AfterFind(tx *gorm.DB) (err error) {
 	if u.Phone == accountID {
 		u.Phone = ""
 	}
-	if u.ExternalID == accountID {
-		u.ExternalID = ""
+	if u.ProjectID == accountID {
+		u.ProjectID = ""
 	}
 	return
 }
@@ -90,7 +90,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 
 	accountPB := &account.Account{
 		AccountId:      fmt.Sprint(accountDB.AccountID),
-		ExternalId:     accountDB.ExternalID,
+		ProjectId:      accountDB.ProjectID,
 		Email:          accountDB.Email,
 		Phone:          accountDB.Phone,
 		DeviceToken:    accountDB.DeviceToken,
@@ -114,9 +114,9 @@ func GetAccountDB(accountPB *account.Account) (*Account, error) {
 	}
 
 	accountDB := &Account{
+		ProjectID:      accountPB.ProjectId,
 		Email:          accountPB.Email,
 		Phone:          accountPB.Phone,
-		ExternalID:     accountPB.ExternalId,
 		DeviceToken:    accountPB.DeviceToken,
 		Names:          accountPB.Names,
 		BirthDate:      accountPB.BirthDate,
@@ -139,13 +139,13 @@ func GetAccountPBView(accountPB *account.Account, view account.AccountView) *acc
 	switch view {
 	case account.AccountView_SEARCH_VIEW, account.AccountView_LIST_VIEW:
 		return &account.Account{
-			AccountId:  accountPB.AccountId,
-			Email:      accountPB.Email,
-			Phone:      accountPB.Phone,
-			ExternalId: accountPB.ExternalId,
-			Names:      accountPB.Names,
-			Group:      accountPB.Group,
-			State:      accountPB.State,
+			AccountId: accountPB.AccountId,
+			Email:     accountPB.Email,
+			Phone:     accountPB.Phone,
+			ProjectId: accountPB.ProjectId,
+			Names:     accountPB.Names,
+			Group:     accountPB.Group,
+			State:     accountPB.State,
 		}
 	default:
 		return accountPB

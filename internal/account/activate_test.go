@@ -76,6 +76,7 @@ var _ = Describe("Activating user Account @activate", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)

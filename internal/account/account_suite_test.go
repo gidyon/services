@@ -15,7 +15,7 @@ import (
 	"github.com/gidyon/micro/pkg/conn"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/mocks"
-	"github.com/go-redis/redis"
+	redis "github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 
@@ -58,8 +58,7 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
-	Expect(db.Migrator().DropTable(accountsTable))
-
+	Expect(db.Migrator().DropTable(accountsTable)).ShouldNot(HaveOccurred())
 	Expect(db.Migrator().AutoMigrate(&Account{})).ShouldNot(HaveOccurred())
 
 	// Redis db

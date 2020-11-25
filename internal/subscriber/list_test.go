@@ -104,7 +104,7 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 	})
 })
 
-func getChannelNames(channelsPB []*subscriber.Channel) []string {
+func getChannelNames(channelsPB []*subscriber.ChannelSubcriber) []string {
 	channels := make([]string, 0, len(channelsPB))
 	for _, channelPB := range channelsPB {
 		channels = append(channels, channelPB.ChannelId)

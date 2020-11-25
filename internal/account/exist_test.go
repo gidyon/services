@@ -17,8 +17,9 @@ var _ = Describe("Checking whether Phone or Email @exist", func() {
 
 	BeforeEach(func() {
 		existReq = &account.ExistAccountRequest{
-			Email: randomdata.Email(),
-			Phone: randomdata.PhoneNumber(),
+			Email:     randomdata.Email(),
+			Phone:     randomdata.PhoneNumber(),
+			ProjectId: "1",
 		}
 		ctx = context.Background()
 	})
@@ -33,10 +34,16 @@ var _ = Describe("Checking whether Phone or Email @exist", func() {
 				Expect(existRes).Should(BeNil())
 			})
 
-			It("should fail when the external id, email and phone are missing", func() {
-				existReq.ExternalId = ""
+			It("should fail when email and phone are missing", func() {
 				existReq.Email = ""
 				existReq.Phone = ""
+				existRes, err := AccountAPI.ExistAccount(ctx, existReq)
+				Expect(err).Should(HaveOccurred())
+				Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
+				Expect(existRes).Should(BeNil())
+			})
+			It("should fail when project id missing", func() {
+				existReq.ProjectId = ""
 				existRes, err := AccountAPI.ExistAccount(ctx, existReq)
 				Expect(err).Should(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -75,6 +82,7 @@ var _ = Describe("Checking whether Phone or Email @exist", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())

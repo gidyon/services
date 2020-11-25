@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -28,6 +29,7 @@ import (
 )
 
 type subscriberAPIServer struct {
+	subscriber.UnimplementedSubscriberAPIServer
 	authAPI auth.Interface
 	hasher  *hashids.HashID
 	*Options
@@ -98,7 +100,7 @@ func NewSubscriberAPIServer(
 }
 
 func (subscriberAPI *subscriberAPIServer) createSubscriber(ID int) error {
-	channels, err := json.Marshal([]*subscriber.Channel{
+	channels, err := json.Marshal([]*subscriber.ChannelSubcriber{
 		{
 			Name:      "public",
 			ChannelId: "0",
@@ -177,7 +179,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		return nil, errs.SQLQueryFailed(err, "Get")
 	}
 
-	channels := []*subscriber.Channel{}
+	channels := []*subscriber.ChannelSubcriber{}
 
 	// safe json unmarshal
 	if len(sub.Channels) > 0 {
@@ -196,7 +198,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	}
 
 	// Add channel
-	channels = append(channels, &subscriber.Channel{
+	channels = append(channels, &subscriber.ChannelSubcriber{
 		Name:      subReq.ChannelName,
 		ChannelId: subReq.ChannelId,
 	})
@@ -215,8 +217,11 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		return nil, errs.SQLQueryFailed(err, "Subscribe")
 	}
 
+	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
+	defer cancel()
+
 	// Increment channel subscribers
-	_, err = subscriberAPI.ChannelClient.IncrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
+	_, err = subscriberAPI.ChannelClient.IncrementSubscribers(ctx, &channel.SubscribersRequest{
 		Id: subReq.ChannelId,
 	}, grpc.WaitForReady(true))
 	if err != nil {
@@ -297,7 +302,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		return nil, errs.SQLQueryFailed(err, "Get")
 	}
 
-	channels := []*subscriber.Channel{}
+	channels := []*subscriber.ChannelSubcriber{}
 
 	// safe json unmarshal
 	if len(sub.Channels) > 0 {
@@ -337,8 +342,11 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		return nil, errs.SQLQueryFailed(err, "Unsubscribe")
 	}
 
+	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
+	defer cancel()
+
 	// Decrement channel subscribers
-	_, err = subscriberAPI.ChannelClient.DecrementSubscribers(mdutil.AddFromCtx(ctx), &channel.SubscribersRequest{
+	_, err = subscriberAPI.ChannelClient.DecrementSubscribers(ctx, &channel.SubscribersRequest{
 		Id: channelID,
 	})
 	if err != nil {
@@ -367,7 +375,7 @@ func existChannel(channels []string, channel string) bool {
 	return false
 }
 
-func hasChannel(subscriberChannels []*subscriber.Channel, channels []string) bool {
+func hasChannel(subscriberChannels []*subscriber.ChannelSubcriber, channels []string) bool {
 	if len(channels) == 0 {
 		return true
 	}
@@ -434,7 +442,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 			continue
 		}
 
-		channels := make([]*subscriber.Channel, 0)
+		channels := make([]*subscriber.ChannelSubcriber, 0)
 
 		err = json.Unmarshal(subscriberDB.Channels, &channels)
 		if err != nil {
@@ -523,8 +531,11 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 		return nil, errs.SQLQueryFailed(err, "GET")
 	}
 
+	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
+	defer cancel()
+
 	// Get account details
-	accountPB, err := subscriberAPI.AccountClient.GetAccount(mdutil.AddFromCtx(ctx), &account.GetAccountRequest{
+	accountPB, err := subscriberAPI.AccountClient.GetAccount(ctx, &account.GetAccountRequest{
 		AccountId:  getReq.SubscriberId,
 		Priviledge: payload.Group == auth.AdminGroup(),
 	}, grpc.WaitForReady(true))

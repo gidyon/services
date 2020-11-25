@@ -85,6 +85,7 @@ var _ = Describe("SignIn Account @signIn", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -125,7 +126,8 @@ var _ = Describe("SignIn Account @signIn", func() {
 			Context("Lets create an account first", func() {
 				It("should create account without error", func() {
 					createReq := &account.CreateAccountRequest{
-						Account: fakeAccount(),
+						Account:   fakeAccount(),
+						ProjectId: "1",
 					}
 					createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 					Expect(err).ShouldNot(HaveOccurred())

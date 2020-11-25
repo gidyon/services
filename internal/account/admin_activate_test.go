@@ -76,6 +76,7 @@ var _ = Describe("Admin activating an account @admin_activate", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -117,6 +118,7 @@ var _ = Describe("Admin activating an account @admin_activate", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
+					ProjectId:      "1",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())

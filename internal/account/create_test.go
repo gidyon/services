@@ -21,6 +21,7 @@ var _ = Describe("Creating Account @create", func() {
 		createReq = &account.CreateAccountRequest{
 			Account:        fakeAccount(),
 			PrivateAccount: fakePrivateAccount(),
+			ProjectId:      "1",
 		}
 		ctx = context.Background()
 	})
@@ -37,6 +38,13 @@ var _ = Describe("Creating Account @create", func() {
 		})
 
 		When("Creating account with some missing request fields", func() {
+			It("should fail when projevt id is missing", func() {
+				createReq.ProjectId = ""
+				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
+				Expect(err).Should(HaveOccurred())
+				Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
+				Expect(createRes).Should(BeNil())
+			})
 			It("should fail when names is missing", func() {
 				createReq.Account.Names = ""
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
