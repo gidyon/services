@@ -1,7 +1,7 @@
 SERVICE := ussdapidoc
 
 compile:
-	@GOOS=linux go build -i -v -o service .
+	@GOOS=linux CGO_ENABLED=0 go build -a -installsuffix cgo -v -o service .
 
 docker_build:
 ifdef tag

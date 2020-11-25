@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+message Project {
+    string project_id = 1;
+    string project_name = 2;
+    string owner_names = 3;
+    string owner_email = 4;
+}
+
+message CreateProjectRequest {
+
+}
+
+message UpdateProjectRequest {
+
+}
+
+message GetProjectRequest {
+
+}
+
+message DeleteProjectRequest {
+
+}
+
+message ExistProjectRequest {
+
+}
+
+message ExistProjectResponse {
+
+}
+
+message ListProjectsRequest {
+
+}
+
+message ListProjectsResponse {
+
+}
+
+service ProjectAPI {
+    rpc CreateProject (CreateProjectRequest) returns (Project);
+    rpc UpdateProject (UpdateProjectRequest) returns (Project);
+    rpc GetProject (GetProjectRequest) returns (Project);
+    rpc DeleteProject (DeleteProjectRequest) returns (google.protobuf.Empty);
+    rpc ExistProject (ExistProjectRequest) returns (ExistProjectResponse);
+    rpc ListProjects (ListProjectsRequest) returns (ListProjectsResponse);
+}

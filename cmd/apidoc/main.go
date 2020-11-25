@@ -8,8 +8,8 @@ import (
 
 var (
 	port     = flag.String("port", ":9090", "Port to listen to")
-	certFile = flag.String("cert", "/Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "PKI Public Key file")
-	keyFile  = flag.String("key", "/Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem", "PKI Private Key file")
+	certFile = flag.String("cert", "/home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "PKI Public Key file")
+	keyFile  = flag.String("key", "/home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem", "PKI Private Key file")
 	insecure = flag.Bool("insecure", false, "Whether to use insecure http")
 )
 
