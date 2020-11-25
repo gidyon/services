@@ -8,7 +8,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
-	"github.com/gidyon/services/pkg/api/operation"
+	"github.com/gidyon/services/pkg/api/longrunning"
 	"github.com/gidyon/services/pkg/mocks"
 	redis "github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
@@ -24,7 +24,7 @@ func TestOperation(t *testing.T) {
 
 var (
 	OperationAPIService *operationAPIService
-	OperationAPI        operation.OperationAPIServer
+	OperationAPI        longrunning.OperationAPIServer
 )
 
 const redisAddress = "localhost:6379"
