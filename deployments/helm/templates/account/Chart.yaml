@@ -2,7 +2,7 @@ apiVersion: v2
 name: account
 description: Manages CRUD operations on accounts by admins and owners
 type: application
-version: 0.2.5
+version: 0.2.6
 appVersion: v1
 
 dependencies:
