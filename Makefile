@@ -27,54 +27,59 @@ TEMPLATES_DIR := /Users/jessegitaka/go/src/github.com/gidyon/services/templates/
 ACTIVATION_URL := https://google.com
 
 protoc_longrunning:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/longrunning longrunning.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/longrunning --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/longrunning longrunning.proto
 	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/longrunning longrunning.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) longrunning.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) longrunning.proto
 
 protoc_account:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/account account.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/account --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account account.proto
 	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account account.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) account.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) account.proto
 
 protoc_messaging:
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/messaging messaging.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging messaging.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging messaging.proto
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) messaging.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) messaging.proto
 	
 protoc_emailing:
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/messaging/emailing emailing.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/emailing --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/emailing emailing.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/emailing emailing.proto
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) emailing.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) emailing.proto
 
 protoc_pusher:
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/messaging/pusher pusher.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/pusher --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/pusher pusher.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/pusher pusher.proto
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) pusher.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) pusher.proto
 
 protoc_sms:
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/messaging/sms sms.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/sms --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/sms sms.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/sms sms.proto
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) sms.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) sms.proto
 
 protoc_call:
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/messaging/call call.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/call --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/call call.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/call call.proto
-	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) call.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) call.proto
 
 protoc_channel:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/channel channel.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/channel --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/channel channel.proto
 	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/channel channel.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) channel.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) channel.proto
 
 protoc_subscriber:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/subscriber subscriber.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/subscriber --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/subscriber subscriber.proto
 	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/subscriber subscriber.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --swagger_out=logtostderr=true:$(SWAGGER_DOC_OUT_PATH) subscriber.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) subscriber.proto
+
+protoc_settings:
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/settings --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/settings settings.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/settings settings.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) settings.proto
 
 protoc_error:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go_opt=paths=source_relative --go_out=plugins=grpc:$(API_OUT_PATH)/usererror error.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/usererror --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/usererror error.proto
 
-protoc_all: protoc_account protoc_messaging protoc_emailing protoc_pusher protoc_sms protoc_call protoc_channel protoc_subscriber protoc_longrunning
+protoc_all: protoc_account protoc_messaging protoc_emailing protoc_pusher protoc_sms protoc_call protoc_channel protoc_subscriber protoc_settings protoc_longrunning
 
 cp_doc:
 	@cp -r $(SWAGGER_DOC_OUT_PATH)/ cmd/apidoc/dist/swagger/
@@ -101,13 +106,13 @@ run_call_service:
 	cd cmd/services/messaging/cmd/call && make run
 
 run_email_service:
-	cd cmd/services/messaging/cmd/emailing && make run
+	cd cmd/services/emailing && make run
 
 run_push_service:
-	cd cmd/services/messaging/cmd/pusher && make run
+	cd cmd/services/pusher && make run
 
 run_sms_service:
-	cd cmd/services/messaging/cmd/sms && make run
+	cd cmd/services/sms && make run
 
 run_all: run_account_service run_call_service run_channel_service run_email_service run_longrunning_service run_messaging_service run_push_service run_sms_service run_subscriber_service
 
