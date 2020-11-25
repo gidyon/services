@@ -81,7 +81,7 @@ affinity: {}
 
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
-  mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  mySqlCredentials: "mysql-credentials" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
   symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
 # extraEnv contains additional environment variables suppliws by the user
@@ -89,20 +89,20 @@ extraEnv:
 - name: SENDER_EMAIL_ADDRESS
   valueFrom:
     secretKeyRef:
-      name: smtp-creds
+      name: smtp-credentials
       key: username
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
-- name: mysql-creds
+- name: mysql-credentials
   mountPath: /app/secrets/mysql/
   readOnly: true
 
 # extraVolumeMount specifies volume mounts for extraVolume
 extraVolumeMount:
-- name: mysql-creds
+- name: mysql-credentials
   secret:
-    secretName: mysql-creds
+    secretName: mysql-credentials
 
 # config contains values for the service configuration
 config:
