@@ -31,7 +31,7 @@ gotest:
 	@cd $(PROJECT_ROOT)/internal/messaging/emailing && ginkgo -cover
 	
 compile:
-	@GOOS=linux go build -i -v -o service .
+	@GOOS=linux CGO_ENABLED=0 go build -a -installsuffix cgo -v -o service .
 
 docker_build:
 	@docker build -t $(image) .

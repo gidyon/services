@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/gorilla/securecookie"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	"github.com/gidyon/micro"
 	httpmiddleware "github.com/gidyon/micro/pkg/http"
@@ -137,18 +137,19 @@ func main() {
 
 		// Create account API instance
 		accountAPI, err := account_app.NewAccountAPI(ctx, &account_app.Options{
-			AppName:         os.Getenv("APP_NAME"),
-			TemplatesDir:    os.Getenv("TEMPLATES_DIR"),
-			ActivationURL:   os.Getenv("ACTIVATION_URL"),
-			JWTSigningKey:   []byte(os.Getenv("JWT_SIGNING_KEY")),
-			SQLDBWrites:     app.GormDBByName("sqlWrites"),
-			SQLDBReads:      app.GormDBByName("sqlReads"),
-			RedisDBWrites:   app.RedisClientByName("redisWrites"),
-			RedisDBReads:    app.RedisClientByName("redisReads"),
-			Logger:          app.Logger(),
-			SecureCookie:    sc,
-			MessagingClient: messaging.NewMessagingClient(messagingCC),
-			FirebaseAuth:    firebaseAuth,
+			AppName:          os.Getenv("APP_NAME"),
+			EmailDisplayName: os.Getenv("EMAIL_DISPLAY_NAME"),
+			TemplatesDir:     os.Getenv("TEMPLATES_DIR"),
+			ActivationURL:    os.Getenv("ACTIVATION_URL"),
+			JWTSigningKey:    []byte(os.Getenv("JWT_SIGNING_KEY")),
+			SQLDBWrites:      app.GormDBByName("sqlWrites"),
+			SQLDBReads:       app.GormDBByName("sqlReads"),
+			RedisDBWrites:    app.RedisClientByName("redisWrites"),
+			RedisDBReads:     app.RedisClientByName("redisReads"),
+			Logger:           app.Logger(),
+			SecureCookie:     sc,
+			MessagingClient:  messaging.NewMessagingClient(messagingCC),
+			FirebaseAuth:     firebaseAuth,
 		})
 		errs.Panic(err)
 

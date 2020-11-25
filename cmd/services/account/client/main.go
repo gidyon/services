@@ -23,7 +23,7 @@ func main() {
 	// handleErr(err)
 
 	// creds := credentials.NewClientTLSFromCert(clientTLS.RootCAs, "")
-	creds, err := credentials.NewClientTLSFromFile("/Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "")
+	creds, err := credentials.NewClientTLSFromFile("/home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "")
 	handleErr(err)
 
 	dopts := []grpc.DialOption{grpc.WithTransportCredentials(creds)}

@@ -85,7 +85,7 @@ func main() {
 
 		// Create subscriber API
 		subscriberAPI, err := subscriber_app.NewSubscriberAPIServer(ctx, &subscriber_app.Options{
-			SQLDB:         app.GormDB(),
+			SQLDB:         app.GormDBByName("sqlWrites"),
 			Logger:        app.Logger(),
 			ChannelClient: channel.NewChannelAPIClient(channelCC),
 			AccountClient: account.NewAccountAPIClient(accountCC),

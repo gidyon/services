@@ -25,7 +25,7 @@ func main() {
 	defer cancel()
 
 	log.Println("calling remote conn")
-	tlsCreds, err := credentials.NewClientTLSFromFile("/Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "localhost")
+	tlsCreds, err := credentials.NewClientTLSFromFile("/home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem", "localhost")
 	handleErr(err)
 
 	cc, err := conn.DialService(ctx, &conn.GRPCDialOptions{
