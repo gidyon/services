@@ -142,7 +142,7 @@ config:
   databases:
   - required: true
     type: sqlDatabase
-    address: mysql.databases:3306
+    address: mysql:3306
     userFile: /app/secrets/mysql/mysql-default-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
     passwordFile: /app/secrets/mysql/mysql-password
@@ -152,7 +152,7 @@ config:
       orm: gorm
   - required: true
     type: sqlDatabase
-    address: mysql-slave.databases:3306
+    address: mysql-slave:3306
     userFile: /app/secrets/mysql/mysql-default-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
     passwordFile: /app/secrets/mysql/mysql-password
@@ -162,13 +162,13 @@ config:
       orm: gorm
   - required: true
     type: redisDatabase
-    address: redis-master.databases:6379
+    address: redis-master:6379
     passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisWrites
   - required: true
     type: redisDatabase
-    address: redis-slave.databases:6379
+    address: redis-slave:6379
     passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisReads
