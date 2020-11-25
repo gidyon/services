@@ -82,9 +82,9 @@ affinity: {}
 
 # existingSecrets are secrets that should already exist for the container to run correctly
 existingSecrets:
-  mySqlCredentials: "mysql-creds" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
+  mySqlCredentials: "mysql-credentials" # should contain keys mysql-root-password,mysql-replication-password,mysql-password,mysql-default-user,mysql-default-schema,mysql-replication-user
   redisCredentials: "redis-credentials" # should contain key redis-root-password
-  firebaseCredentials: "firebase-creds" # should contain key creds which is file containing service account info
+  firebaseCredentials: "firebase-credentials" # should contain key creds which is file containing service account info
   symmetricKeysCredentials: "symmetric-keys" # should contain keys jwt-signing-key,api-hash-key,api-block-key,fcm-server-key
 
 # extraEnv contains additional environment variables suppliws by the user
@@ -102,7 +102,7 @@ extraEnv:
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
-  - name: mysql-creds
+  - name: mysql-credentials
     mountPath: /app/secrets/mysql/
     readOnly: true
   - name: redis-credentials
@@ -120,9 +120,9 @@ extraVolumeMount:
   - name: templates
     configMap:
       name: account-templates
-  - name: mysql-creds
+  - name: mysql-credentials
     secret:
-      secretName: mysql-creds
+      secretName: mysql-credentials
   - name: redis-credentials
     secret:
       secretName: redis-credentials
@@ -142,7 +142,7 @@ config:
   databases:
   - required: true
     type: sqlDatabase
-    address: mysql:3306
+    address: mysql.databases:3306
     userFile: /app/secrets/mysql/mysql-default-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
     passwordFile: /app/secrets/mysql/mysql-password
@@ -152,7 +152,7 @@ config:
       orm: gorm
   - required: true
     type: sqlDatabase
-    address: mysql-slave:3306
+    address: mysql-slave.databases:3306
     userFile: /app/secrets/mysql/mysql-default-user
     schemaFile: /app/secrets/mysql/mysql-default-schema
     passwordFile: /app/secrets/mysql/mysql-password
@@ -162,13 +162,13 @@ config:
       orm: gorm
   - required: true
     type: redisDatabase
-    address: redis-master:6379
+    address: redis-master.databases:6379
     passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisWrites
   - required: true
     type: redisDatabase
-    address: redis-slave:6379
+    address: redis-slave.databases:6379
     passwordFile: /app/secrets/redis/redis-root-password
     metadata:
       name: redisReads
