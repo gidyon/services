@@ -9,10 +9,10 @@ import (
 	"github.com/gidyon/micro/utils/healthcheck"
 	"github.com/gorilla/securecookie"
 
-	operation_app "github.com/gidyon/services/internal/operation"
+	longrunning_app "github.com/gidyon/services/internal/longrunning"
 
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
-	"github.com/gidyon/services/pkg/api/operation"
+	"github.com/gidyon/services/pkg/api/longrunning"
 	"github.com/gidyon/services/pkg/auth"
 	"github.com/gidyon/services/pkg/utils/encryption"
 	"github.com/gidyon/services/pkg/utils/errs"
@@ -67,15 +67,15 @@ func main() {
 	}))
 
 	app.Start(ctx, func() error {
-		operationAPI, err := operation_app.NewOperationAPIService(ctx, &operation_app.Options{
+		longrunningAPI, err := longrunning_app.NewOperationAPIService(ctx, &longrunning_app.Options{
 			RedisClient:   app.RedisClient(),
 			Logger:        app.Logger(),
 			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
 		})
 		errs.Panic(err)
 
-		operation.RegisterOperationAPIServer(app.GRPCServer(), operationAPI)
-		operation.RegisterOperationAPIHandler(ctx, app.RuntimeMux(), app.ClientConn())
+		longrunning.RegisterOperationAPIServer(app.GRPCServer(), longrunningAPI)
+		longrunning.RegisterOperationAPIHandler(ctx, app.RuntimeMux(), app.ClientConn())
 
 		return nil
 	})
