@@ -2,8 +2,8 @@ serviceName: subscriber
 httpPort: 9090
 logLevel: 1
 security:
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
-  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
   serverName: localhost
 database:
   sqlDatabase:
@@ -20,10 +20,10 @@ externalServices:
 - name: channel
   required: true
   address: localhost:8080
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
 - name: account
   required: true
   address: localhost:7070
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost

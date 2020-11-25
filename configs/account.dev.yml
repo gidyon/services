@@ -2,8 +2,8 @@ serviceName: account
 httpPort: 9011
 logLevel: -1
 security:
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
-  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
   serverName: localhost
 databases:
 - required: true
@@ -40,5 +40,5 @@ externalServices:
 - name: messaging
   required: true
   address: localhost:9070
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost

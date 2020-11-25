@@ -3,8 +3,8 @@ httpPort: 9013
 grpcPort: 9014
 logLevel: -1
 security:
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
-  tlsKey: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
   serverName: localhost
 databases:
 - required: true
@@ -31,25 +31,25 @@ externalServices:
 - name: call
   required: true
   address: localhost:8080
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
 - name: emailing
   required: true
   address: localhost:9015
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
 - name: pusher
   required: true
   address: localhost:8060
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
 - name: sms
   required: true
   address: localhost:8050
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
 - name: subscriber
   required: true
   address: localhost:9060
-  tlsCert: /Users/jessegitaka/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
