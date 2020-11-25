@@ -23,21 +23,22 @@ import (
 const longrunningTTL = time.Hour * 12 * 7
 
 type longrunningAPIService struct {
+	longrunning.UnimplementedOperationAPIServer
 	redisDB *redis.Client
 	logger  grpclog.LoggerV2
 	hasher  *hashids.HashID
 	authAPI auth.Interface
 }
 
-// Options contains parameters passed to NewLongrunningAPIService
+// Options contains parameters passed to NewOperationAPIService
 type Options struct {
 	RedisClient   *redis.Client
 	Logger        grpclog.LoggerV2
 	JWTSigningKey []byte
 }
 
-// NewLongrunningAPIService is factory for creating LongrunningAPIServer singletons
-func NewLongrunningAPIService(ctx context.Context, opt *Options) (longrunning.LongrunningAPIServer, error) {
+// NewOperationAPIService is factory for creating OperationAPIServer singletons
+func NewOperationAPIService(ctx context.Context, opt *Options) (longrunning.OperationAPIServer, error) {
 	// Validation
 	var err error
 	switch {
@@ -56,7 +57,7 @@ func NewLongrunningAPIService(ctx context.Context, opt *Options) (longrunning.Lo
 		return nil, err
 	}
 
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Longrunning API", "users")
+	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Operation API", "users")
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func NewLongrunningAPIService(ctx context.Context, opt *Options) (longrunning.Lo
 	return longrunningAPI, nil
 }
 
-func validateLongrunning(op *longrunning.Longrunning) error {
+func validateOperation(op *longrunning.Operation) error {
 	var err error
 	switch {
 	case op == nil:
@@ -85,7 +86,7 @@ func validateLongrunning(op *longrunning.Longrunning) error {
 		err = errs.MissingField("user id")
 	case op.Details == "":
 		err = errs.MissingField("longrunning details")
-	case op.Status == longrunning.LongrunningStatus_OPERATION_STATUS_UNSPECIFIED:
+	case op.Status == longrunning.OperationStatus_OPERATION_STATUS_UNSPECIFIED:
 		err = errs.MissingField("longrunning status")
 	}
 	return err
@@ -99,7 +100,7 @@ func getOpKey(operatioID string) string {
 	return "longrunnings:" + operatioID
 }
 
-func (longrunningAPI *longrunningAPIService) saveLongrunning(ctx context.Context, op *longrunning.Longrunning) error {
+func (longrunningAPI *longrunningAPIService) saveOperation(ctx context.Context, op *longrunning.Operation) error {
 	// Marshal longrunning to bytes
 	bs, err := proto.Marshal(op)
 	if err != nil {
@@ -121,7 +122,7 @@ func (longrunningAPI *longrunningAPIService) saveLongrunning(ctx context.Context
 	}
 
 	// Save transaction
-	_, err = tx.Exec()
+	_, err = tx.Exec(ctx)
 	if err != nil {
 		return errs.RedisCmdFailed(err, "exec")
 	}
@@ -129,9 +130,9 @@ func (longrunningAPI *longrunningAPIService) saveLongrunning(ctx context.Context
 	return nil
 }
 
-func (longrunningAPI *longrunningAPIService) CreateLongrunning(
-	ctx context.Context, createReq *longrunning.CreateLongrunningRequest,
-) (*longrunning.Longrunning, error) {
+func (longrunningAPI *longrunningAPIService) CreateOperation(
+	ctx context.Context, createReq *longrunning.CreateOperationRequest,
+) (*longrunning.Operation, error) {
 	// Authenticate request
 	err := longrunningAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -141,27 +142,27 @@ func (longrunningAPI *longrunningAPIService) CreateLongrunning(
 	// Validation
 	switch {
 	case createReq == nil:
-		return nil, errs.NilObject("CreateLongrunningRequest")
+		return nil, errs.NilObject("CreateOperationRequest")
 	default:
-		err = validateLongrunning(createReq.Longrunning)
+		err = validateOperation(createReq.Operation)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	createReq.Longrunning.Id = uuid.New().String()
+	createReq.Operation.Id = uuid.New().String()
 
-	err = longrunningAPI.saveLongrunning(ctx, createReq.Longrunning)
+	err = longrunningAPI.saveOperation(ctx, createReq.Operation)
 	if err != nil {
 		return nil, err
 	}
 
-	return createReq.Longrunning, nil
+	return createReq.Operation, nil
 }
 
-func (longrunningAPI *longrunningAPIService) UpdateLongrunning(
-	ctx context.Context, updateReq *longrunning.UpdateLongrunningRequest,
-) (*longrunning.Longrunning, error) {
+func (longrunningAPI *longrunningAPIService) UpdateOperation(
+	ctx context.Context, updateReq *longrunning.UpdateOperationRequest,
+) (*longrunning.Operation, error) {
 	// Authorization
 	err := longrunningAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -171,12 +172,12 @@ func (longrunningAPI *longrunningAPIService) UpdateLongrunning(
 	// Validation
 	switch {
 	case updateReq == nil:
-		return nil, errs.NilObject("UpdateLongrunningRequest")
-	case updateReq.LongrunningId == "":
+		return nil, errs.NilObject("UpdateOperationRequest")
+	case updateReq.OperationId == "":
 		err = errs.MissingField("operarion id")
 	case updateReq.Result == "":
 		err = errs.MissingField("longrunning result")
-	case updateReq.Status == longrunning.LongrunningStatus_OPERATION_STATUS_UNSPECIFIED:
+	case updateReq.Status == longrunning.OperationStatus_OPERATION_STATUS_UNSPECIFIED:
 		err = errs.MissingField("longrunning status")
 	}
 	if err != nil {
@@ -184,16 +185,16 @@ func (longrunningAPI *longrunningAPIService) UpdateLongrunning(
 	}
 
 	// Get the longrunning
-	opStr, err := longrunningAPI.redisDB.Get(ctx, getOpKey(updateReq.LongrunningId)).Result()
+	opStr, err := longrunningAPI.redisDB.Get(ctx, getOpKey(updateReq.OperationId)).Result()
 	switch {
 	case err == nil:
 	case errors.Is(err, redis.Nil):
-		return nil, errs.WrapMessagef(codes.NotFound, "longrunning with id %v not found", updateReq.LongrunningId)
+		return nil, errs.WrapMessagef(codes.NotFound, "longrunning with id %v not found", updateReq.OperationId)
 	default:
 		return nil, errs.RedisCmdFailed(err, "get")
 	}
 
-	opPB := &longrunning.Longrunning{}
+	opPB := &longrunning.Operation{}
 
 	// Proto unmarshal
 	err = proto.Unmarshal([]byte(opStr), opPB)
@@ -211,7 +212,7 @@ func (longrunningAPI *longrunningAPIService) UpdateLongrunning(
 	}
 
 	// Save updated longrunning
-	err = longrunningAPI.redisDB.Set(ctx, getOpKey(updateReq.LongrunningId), bs, longrunningTTL).Err()
+	err = longrunningAPI.redisDB.Set(ctx, getOpKey(updateReq.OperationId), bs, longrunningTTL).Err()
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +220,8 @@ func (longrunningAPI *longrunningAPIService) UpdateLongrunning(
 	return opPB, nil
 }
 
-func (longrunningAPI *longrunningAPIService) DeleteLongrunning(
-	ctx context.Context, delReq *longrunning.DeleteLongrunningRequest,
+func (longrunningAPI *longrunningAPIService) DeleteOperation(
+	ctx context.Context, delReq *longrunning.DeleteOperationRequest,
 ) (*empty.Empty, error) {
 	// Authorize actor
 	_, err := longrunningAPI.authAPI.AuthorizeActor(ctx, delReq.GetUserId())
@@ -231,10 +232,10 @@ func (longrunningAPI *longrunningAPIService) DeleteLongrunning(
 	// Validation
 	switch {
 	case delReq == nil:
-		return nil, errs.NilObject("DeleteLongrunningRequest")
+		return nil, errs.NilObject("DeleteOperationRequest")
 	case delReq.UserId == "":
 		err = errs.MissingField("user id")
-	case delReq.LongrunningId == "":
+	case delReq.OperationId == "":
 		err = errs.MissingField("longrunning id")
 	}
 	if err != nil {
@@ -247,7 +248,7 @@ func (longrunningAPI *longrunningAPIService) DeleteLongrunning(
 	}
 
 	for i, op := range ops {
-		if op == delReq.LongrunningId {
+		if op == delReq.OperationId {
 			ops = append(ops[:i], ops[i+1:]...)
 		}
 	}
@@ -257,7 +258,7 @@ func (longrunningAPI *longrunningAPIService) DeleteLongrunning(
 		return nil, errs.RedisCmdFailed(err, "del")
 	}
 
-	err = longrunningAPI.redisDB.Del(ctx, getOpKey(delReq.LongrunningId)).Err()
+	err = longrunningAPI.redisDB.Del(ctx, getOpKey(delReq.OperationId)).Err()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "del")
 	}
@@ -274,9 +275,9 @@ func (longrunningAPI *longrunningAPIService) DeleteLongrunning(
 
 const defaultPageSize = 20
 
-func (longrunningAPI *longrunningAPIService) ListLongrunnings(
-	ctx context.Context, listReq *longrunning.ListLongrunningsRequest,
-) (*longrunning.ListLongrunningsResponse, error) {
+func (longrunningAPI *longrunningAPIService) ListOperations(
+	ctx context.Context, listReq *longrunning.ListOperationsRequest,
+) (*longrunning.ListOperationsResponse, error) {
 	// Authentication
 	_, err := longrunningAPI.authAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
 	if err != nil {
@@ -288,7 +289,7 @@ func (longrunningAPI *longrunningAPIService) ListLongrunnings(
 	// Validation
 	switch {
 	case listReq == nil:
-		return nil, errs.NilObject("ListLongrunningsRequest")
+		return nil, errs.NilObject("ListOperationsRequest")
 	case userID == "":
 		return nil, errs.MissingField("user id")
 	}
@@ -314,7 +315,7 @@ func (longrunningAPI *longrunningAPIService) ListLongrunnings(
 		return nil, errs.RedisCmdFailed(err, "lrange")
 	}
 
-	longrunningsPB := make([]*longrunning.Longrunning, 0, len(opKeys))
+	longrunningsPB := make([]*longrunning.Operation, 0, len(opKeys))
 
 	for _, val := range opKeys {
 		// Get longrunning
@@ -323,7 +324,7 @@ func (longrunningAPI *longrunningAPIService) ListLongrunnings(
 			return nil, errs.RedisCmdFailed(err, "get")
 		}
 
-		opPB := &longrunning.Longrunning{}
+		opPB := &longrunning.Operation{}
 		// Unmarshal longrunning
 		err = proto.Unmarshal([]byte(val), opPB)
 		if err != nil {
@@ -342,15 +343,15 @@ func (longrunningAPI *longrunningAPIService) ListLongrunnings(
 		}
 	}
 
-	return &longrunning.ListLongrunningsResponse{
-		Longrunnings:  longrunningsPB,
+	return &longrunning.ListOperationsResponse{
+		Operations:    longrunningsPB,
 		NextPageToken: token,
 	}, nil
 }
 
-func (longrunningAPI *longrunningAPIService) GetLongrunning(
-	ctx context.Context, getReq *longrunning.GetLongrunningRequest,
-) (*longrunning.Longrunning, error) {
+func (longrunningAPI *longrunningAPIService) GetOperation(
+	ctx context.Context, getReq *longrunning.GetOperationRequest,
+) (*longrunning.Operation, error) {
 	// Authentication
 	err := longrunningAPI.authAPI.AuthenticateRequest(ctx)
 	if err != nil {
@@ -360,8 +361,8 @@ func (longrunningAPI *longrunningAPIService) GetLongrunning(
 	// Validation
 	switch {
 	case getReq == nil:
-		return nil, errs.NilObject("GetLongrunningRequest")
-	case getReq.LongrunningId == "":
+		return nil, errs.NilObject("GetOperationRequest")
+	case getReq.OperationId == "":
 		err = errs.MissingField("longrunning id")
 	}
 	if err != nil {
@@ -369,16 +370,16 @@ func (longrunningAPI *longrunningAPIService) GetLongrunning(
 	}
 
 	// Get longrunning
-	val, err := longrunningAPI.redisDB.Get(ctx, getOpKey(getReq.LongrunningId)).Result()
+	val, err := longrunningAPI.redisDB.Get(ctx, getOpKey(getReq.OperationId)).Result()
 	switch {
 	case err == nil:
 	case errors.Is(err, redis.Nil):
-		return nil, errs.WrapMessagef(codes.NotFound, "longrunning with id %v not found", getReq.LongrunningId)
+		return nil, errs.WrapMessagef(codes.NotFound, "longrunning with id %v not found", getReq.OperationId)
 	default:
 		return nil, errs.RedisCmdFailed(err, "get")
 	}
 
-	opPB := &longrunning.Longrunning{}
+	opPB := &longrunning.Operation{}
 	// Unmarshal longrunning
 	err = proto.Unmarshal([]byte(val), opPB)
 	if err != nil {
