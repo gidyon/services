@@ -24,13 +24,13 @@ message Subscriber {
     string phone = 3;
     string external_id = 4;
     string device_token = 5;
-    repeated Channel channels = 6;
+    repeated ChannelSubcriber channels = 6;
 }
 
-message Channel {
+message ChannelSubcriber {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
-			title: "Channel"
+			title: "ChannelSubcriber"
             description: "The subscription"
             required:["name", "channel_id"]
 		}
