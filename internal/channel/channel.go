@@ -14,10 +14,9 @@ import (
 
 	"strings"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -25,18 +24,17 @@ const channelsPageSize = 20
 
 type channelAPIServer struct {
 	channel.UnimplementedChannelAPIServer
-	logger  grpclog.LoggerV2
-	authAPI auth.Interface
-	hasher  *hashids.HashID
+	logger grpclog.LoggerV2
 	*Options
 }
 
 // Options contains parameters required while creating a channel API server
 type Options struct {
-	SQLDBWrites   *gorm.DB
-	SQLDBReads    *gorm.DB
-	Logger        grpclog.LoggerV2
-	JWTSigningKey []byte
+	SQLDBWrites      *gorm.DB
+	SQLDBReads       *gorm.DB
+	Logger           grpclog.LoggerV2
+	PaginationHasher *hashids.HashID
+	AuthAPI          auth.API
 }
 
 // NewChannelAPIServer is factory for creating channel  APIs
@@ -56,36 +54,26 @@ func NewChannelAPIServer(
 		err = errs.NilObject("sql db reads")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
-	case opt.JWTSigningKey == nil:
-		err = errs.MissingField("jwt signing key")
+	case opt.PaginationHasher == nil:
+		err = errs.MissingField("pagination hasher")
+	case opt.AuthAPI == nil:
+		err = errs.MissingField("authentication API")
 	}
 	if err != nil {
 		return nil, err
-	}
-
-	// Authentication API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Channel", "users")
-	if err != nil {
-		return nil, err
-	}
-
-	// Pagination hasher
-	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
 
 	channelAPI := &channelAPIServer{
 		logger:  opt.Logger,
-		authAPI: authAPI,
-		hasher:  hasher,
 		Options: opt,
 	}
 
 	// Automigration
-	err = channelAPI.SQLDBWrites.AutoMigrate(&Channel{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to automigrate channels table: %w", err)
+	if !channelAPI.SQLDBWrites.Migrator().HasTable(&Channel{}) {
+		err = channelAPI.SQLDBWrites.AutoMigrate(&Channel{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to automigrate channels table: %w", err)
+		}
 	}
 
 	return channelAPI, nil
@@ -95,7 +83,7 @@ func (channelAPI *channelAPIServer) CreateChannel(
 	ctx context.Context, createReq *channel.CreateChannelRequest,
 ) (*channel.CreateChannelResponse, error) {
 	// Authenticate the request
-	err := channelAPI.authAPI.AuthenticateRequest(ctx)
+	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +127,7 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 	ctx context.Context, updateReq *channel.UpdateChannelRequest,
 ) (*empty.Empty, error) {
 	// Authorize the request; must be channel owner
-	_, err := channelAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetOwnerId(), auth.AdminGroup())
+	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updateReq.GetOwnerId(), auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +169,7 @@ func (channelAPI *channelAPIServer) DeleteChannel(
 	ctx context.Context, delReq *channel.DeleteChannelRequest,
 ) (*empty.Empty, error) {
 	// Authorize the actor; must be channel owner or admin
-	_, err := channelAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.GetOwnerId(), auth.AdminGroup())
+	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroups(ctx, delReq.GetOwnerId(), auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +208,7 @@ func (channelAPI *channelAPIServer) ListChannels(
 	}
 
 	// Authenticate the request;
-	err := channelAPI.authAPI.AuthenticateRequest(ctx)
+	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +221,7 @@ func (channelAPI *channelAPIServer) ListChannels(
 	var ID uint
 	pageToken := listReq.GetPageToken()
 	if pageToken != "" {
-		ids, err := channelAPI.hasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := channelAPI.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
@@ -268,7 +256,7 @@ func (channelAPI *channelAPIServer) ListChannels(
 	var token = pageToken
 	if int(pageSize) == len(channelsDB) {
 		// Next page token
-		token, err = channelAPI.hasher.EncodeInt64([]int64{int64(ID)})
+		token, err = channelAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}
@@ -284,7 +272,7 @@ func (channelAPI *channelAPIServer) GetChannel(
 	ctx context.Context, getReq *channel.GetChannelRequest,
 ) (*channel.Channel, error) {
 	// Authenticate the request
-	err := channelAPI.authAPI.AuthenticateRequest(ctx)
+	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +314,7 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 	ctx context.Context, incReq *channel.SubscribersRequest,
 ) (*empty.Empty, error) {
 	// Authenticate request
-	err := channelAPI.authAPI.AuthenticateRequest(ctx)
+	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +347,7 @@ func (channelAPI *channelAPIServer) DecrementSubscribers(
 	ctx context.Context, incReq *channel.SubscribersRequest,
 ) (*empty.Empty, error) {
 	// Authenticate request
-	err := channelAPI.authAPI.AuthenticateRequest(ctx)
+	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}

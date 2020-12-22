@@ -7,8 +7,9 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/conn"
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/utils/encryption"
 	"github.com/gidyon/services/pkg/api/channel"
-	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 
@@ -51,11 +52,17 @@ var _ = BeforeSuite(func() {
 
 	logger := micro.NewLogger("channel_app")
 
+	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
+	Expect(err).ShouldNot(HaveOccurred())
+
+	authAPI := micro_mock.AuthAPI
+
 	opt := &Options{
-		SQLDBWrites:   db,
-		SQLDBReads:    db,
-		Logger:        logger,
-		JWTSigningKey: []byte(randomdata.RandStringRunes(32)),
+		SQLDBWrites:      db,
+		SQLDBReads:       db,
+		Logger:           logger,
+		AuthAPI:          authAPI,
+		PaginationHasher: paginationHasher,
 	}
 
 	// Create channel API
@@ -65,8 +72,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	ChannelAPIServer, ok = ChannelAPI.(*channelAPIServer)
 	Expect(ok).Should(BeTrue())
-
-	ChannelAPIServer.authAPI = mocks.AuthAPI
 
 	// Pasing incorrect payload
 	_, err = NewChannelAPIServer(nil, opt)
@@ -90,11 +95,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.PaginationHasher = nil
 	_, err = NewChannelAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
+	opt.PaginationHasher = paginationHasher
+	opt.AuthAPI = nil
+	_, err = NewChannelAPIServer(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.AuthAPI = authAPI
 	_, err = NewChannelAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 
