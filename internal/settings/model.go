@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/settings"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"gorm.io/gorm"
 )
 

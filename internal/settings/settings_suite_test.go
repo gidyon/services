@@ -7,8 +7,8 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/conn"
+	"github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/settings"
-	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 

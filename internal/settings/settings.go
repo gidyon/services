@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/settings"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc/grpclog"
 	"gorm.io/gorm"
@@ -18,7 +18,7 @@ import (
 type settingsAPIServer struct {
 	settings.UnimplementedSettingsAPIServer
 	hasher  *hashids.HashID
-	authAPI auth.Interface
+	authAPI auth.API
 	*Options
 }
 
