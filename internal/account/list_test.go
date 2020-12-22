@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -58,15 +58,17 @@ var _ = Describe("Listing accounts @list", func() {
 	Describe("Calling ListAccounts with correct request payload", func() {
 		Context("Lets create one account first", func() {
 			It("should create the account without any error", func() {
-				createReq := &account.CreateAccountRequest{
-					Account:        fakeAccount(),
-					PrivateAccount: fakePrivateAccount(),
-					ProjectId:      "1",
+				for i := 0; i < 100; i++ {
+					createReq := &account.CreateAccountRequest{
+						Account:        fakeAccount(),
+						PrivateAccount: fakePrivateAccount(),
+						ProjectId:      "1",
+					}
+					createRes, err := AccountAPI.CreateAccount(ctx, createReq)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(status.Code(err)).Should(Equal(codes.OK))
+					Expect(createRes).ShouldNot(BeNil())
 				}
-				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(status.Code(err)).Should(Equal(codes.OK))
-				Expect(createRes).ShouldNot(BeNil())
 			})
 
 			Describe("Calling ListAccounts", func() {
