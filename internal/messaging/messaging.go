@@ -7,15 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 	"github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
 	"github.com/gidyon/services/pkg/api/subscriber"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/gidyon/services/pkg/utils/mdutil"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -33,8 +32,6 @@ var emptyMsg = &empty.Empty{}
 
 type messagingServer struct {
 	messaging.UnimplementedMessagingServer
-	hasher  *hashids.HashID
-	authAPI auth.Interface
 	*Options
 }
 
@@ -43,13 +40,14 @@ type Options struct {
 	SQLDBWrites      *gorm.DB
 	SQLDBReads       *gorm.DB
 	Logger           grpclog.LoggerV2
-	JWTSigningKey    []byte
 	EmailSender      string
 	EmailClient      emailing.EmailingClient
 	CallClient       call.CallAPIClient
 	PushClient       pusher.PushMessagingClient
 	SMSClient        sms.SMSAPIClient
 	SubscriberClient subscriber.SubscriberAPIClient
+	PaginationHasher *hashids.HashID
+	AuthAPI          auth.API
 }
 
 // NewMessagingServer is factory for creating MessagingServer APIs
@@ -65,8 +63,10 @@ func NewMessagingServer(ctx context.Context, opt *Options) (messaging.MessagingS
 		err = errors.New("sql writes is required")
 	case opt.SQLDBReads == nil:
 		err = errors.New("sql reads is required")
-	case opt.JWTSigningKey == nil:
-		err = errors.New("jwt signing key is required")
+	case opt.PaginationHasher == nil:
+		err = errs.MissingField("pagination PaginationHasher")
+	case opt.AuthAPI == nil:
+		err = errs.MissingField("authentication API")
 	case opt.Logger == nil:
 		err = errors.New("logger is required")
 	case opt.EmailClient == nil:
@@ -86,28 +86,16 @@ func NewMessagingServer(ctx context.Context, opt *Options) (messaging.MessagingS
 		return nil, err
 	}
 
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Messaging API", "users")
-	if err != nil {
-		return nil, err
-	}
-
-	// Pagination
-	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate hash id: %v", err)
-	}
-
 	api := &messagingServer{
-		hasher:  hasher,
-		authAPI: authAPI,
 		Options: opt,
 	}
 
 	// Automigration
-	err = api.SQLDBWrites.AutoMigrate(&Message{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to automigrate: %v", err)
+	if !api.SQLDBWrites.Migrator().HasTable(&Message{}) {
+		err = api.SQLDBWrites.AutoMigrate(&Message{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to automigrate: %v", err)
+		}
 	}
 
 	return api, nil
@@ -130,23 +118,6 @@ func validateMessage(msg *messaging.Message) error {
 	case len(msg.SendMethods) == 0:
 		err = errs.MissingField("send methods")
 	default:
-		// send methods
-		unknown := true
-		for _, sendMethod := range msg.SendMethods {
-			if sendMethod != messaging.SendMethod_SEND_METHOD_UNSPECIFIED {
-				unknown = false
-				break
-			}
-		}
-		if unknown {
-			return errs.MissingField("send methods")
-		}
-
-		// validate user id
-		_, err = strconv.Atoi(msg.UserId)
-		if err != nil {
-			return errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse user id in message to integer")
-		}
 	}
 	return err
 }
@@ -154,13 +125,9 @@ func validateMessage(msg *messaging.Message) error {
 func (api *messagingServer) BroadCastMessage(
 	ctx context.Context, req *messaging.BroadCastMessageRequest,
 ) (*empty.Empty, error) {
-	// Authenticate the request
-	err := api.authAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var err error
 
-	// Validate data
+	// Validatation
 	switch {
 	case req == nil:
 		return nil, errs.NilObject("BroadCastMessageRequest")
@@ -171,6 +138,12 @@ func (api *messagingServer) BroadCastMessage(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// Authenticate the request
+	err = api.AuthAPI.AuthenticateRequest(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	// Send broadcast
@@ -197,13 +170,14 @@ func (api *messagingServer) sendBroadCastMessage(
 
 	for nextResults {
 		// Get subscribers
-		subscribersRes, err := api.SubscriberClient.ListSubscribers(ctxGet, &subscriber.ListSubscribersRequest{
-			PageSize:  pageSize,
-			PageToken: pageToken,
-			Filter: &subscriber.ListSubscribersFilter{
-				Channels: req.GetChannels(),
-			},
-		})
+		subscribersRes, err := api.SubscriberClient.ListSubscribers(
+			ctxGet, &subscriber.ListSubscribersRequest{
+				PageSize:  pageSize,
+				PageToken: pageToken,
+				Filter: &subscriber.ListSubscribersFilter{
+					Channels: req.GetChannels(),
+				},
+			})
 		if err != nil {
 			return errs.WrapErrorWithMsg(err, "failed to fetch subscribers")
 		}
@@ -253,9 +227,14 @@ func (api *messagingServer) sendBroadCastMessage(
 				switch sendMethod {
 				case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 				case messaging.SendMethod_EMAIL:
+					sender := firstVal(msg.Details["sender"], api.EmailSender)
+					displayName, ok := msg.Details["display_name"]
+					if ok {
+						sender = fmt.Sprintf("%s <%s>", displayName, sender)
+					}
 					_, err = api.EmailClient.SendEmail(ctx2, &emailing.Email{
 						Destinations:    emails,
-						From:            api.EmailSender,
+						From:            sender,
 						Subject:         msg.Title,
 						Body:            msg.Data,
 						BodyContentType: "text/html",
@@ -299,11 +278,20 @@ func (api *messagingServer) sendBroadCastMessage(
 	return nil
 }
 
+func firstVal(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 func (api *messagingServer) SendMessage(
 	ctx context.Context, msg *messaging.Message,
 ) (*messaging.SendMessageResponse, error) {
 	// Authenticate request
-	err := api.authAPI.AuthenticateRequest(ctx)
+	err := api.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -335,10 +323,10 @@ func (api *messagingServer) SendMessage(
 		switch sendMethod {
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
-			sender := api.EmailSender
+			sender := firstVal(msg.Details["sender"], api.EmailSender)
 			displayName, ok := msg.Details["display_name"]
 			if ok {
-				sender = fmt.Sprintf("%s <%s>", displayName, api.EmailSender)
+				sender = fmt.Sprintf("%s <%s>", displayName, sender)
 			}
 
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.Email{
@@ -411,7 +399,7 @@ func (api *messagingServer) ListMessages(
 	ctx context.Context, listReq *messaging.ListMessagesRequest,
 ) (*messaging.Messages, error) {
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
+	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -436,7 +424,7 @@ func (api *messagingServer) ListMessages(
 	var id uint
 	pageToken := listReq.GetPageToken()
 	if pageToken != "" {
-		ids, err := api.hasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := api.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
@@ -489,7 +477,7 @@ func (api *messagingServer) ListMessages(
 	var token string
 	if int(pageSize) == len(messagesDB) {
 		// Next page token
-		token, err = api.hasher.EncodeInt64([]int64{int64(id)})
+		token, err = api.PaginationHasher.EncodeInt64([]int64{int64(id)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}
@@ -505,7 +493,7 @@ func (api *messagingServer) ReadAll(
 	ctx context.Context, readReq *messaging.MessageRequest,
 ) (*empty.Empty, error) {
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, readReq.GetUserId(), auth.AdminGroup())
+	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, readReq.GetUserId(), auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -538,13 +526,8 @@ func (api *messagingServer) ReadAll(
 func (api *messagingServer) GetNewMessagesCount(
 	ctx context.Context, getReq *messaging.MessageRequest,
 ) (*messaging.NewMessagesCount, error) {
-	// Request must not be nil
-	if getReq == nil {
-		return nil, errs.NilObject("MessageRequest")
-	}
-
 	// Authorize request
-	_, err := api.authAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.AdminGroup())
+	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -553,6 +536,8 @@ func (api *messagingServer) GetNewMessagesCount(
 
 	// Validation
 	switch {
+	case getReq == nil:
+		return nil, errs.NilObject("MessageRequest")
 	case getReq.UserId == "":
 		return nil, errs.MissingField("user id")
 	default:
