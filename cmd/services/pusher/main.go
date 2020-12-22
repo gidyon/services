@@ -3,14 +3,19 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/utils/healthcheck"
+	"github.com/gidyon/micro/pkg/healthcheck"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	pusher_app "github.com/gidyon/services/internal/messaging/pusher"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/pusher"
-	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
@@ -32,6 +37,21 @@ func main() {
 	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
 
+	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+
+	// Authentication API
+	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	errs.Panic(err)
+
+	// Generate jwt token
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	if err == nil {
+		app.Logger().Infof("Test jwt is %s", token)
+	}
+
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+
 	// Readiness health check
 	app.AddEndpoint("/api/pusher/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
 		Service:      app,
@@ -46,12 +66,19 @@ func main() {
 		AutoMigrator: func() error { return nil },
 	}))
 
+	// Servemux option for JSON Marshaling
+	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			EmitUnpopulated: true,
+		},
+	}))
+
 	app.Start(ctx, func() error {
 		// Create pusher API
 		pusherAPI, err := pusher_app.NewPushMessagingServer(ctx, &pusher_app.Options{
-			Logger:        app.Logger(),
-			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
-			FCMServerKey:  os.Getenv("FCM_SERVER_KEY"),
+			Logger:       app.Logger(),
+			AuthAPI:      authAPI,
+			FCMServerKey: os.Getenv("FCM_SERVER_KEY"),
 		})
 		errs.Panic(err)
 

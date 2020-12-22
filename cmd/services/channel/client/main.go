@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/gidyon/micro/pkg/conn"
+	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/channel"
-	"github.com/gidyon/services/pkg/utils/mdutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"

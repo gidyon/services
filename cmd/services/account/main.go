@@ -11,25 +11,28 @@ import (
 	firebase "firebase.google.com/go"
 	"github.com/Pallinder/go-randomdata"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	"github.com/gidyon/micro"
 	httpmiddleware "github.com/gidyon/micro/pkg/http"
+	"github.com/gidyon/micro/utils/encryption"
 
-	"github.com/gidyon/micro/utils/healthcheck"
+	"github.com/gidyon/micro/pkg/healthcheck"
 
 	account_app "github.com/gidyon/services/internal/account"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 )
 
 func main() {
@@ -51,6 +54,21 @@ func main() {
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
 	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
+
+	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+
+	// Authentication API
+	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	errs.Panic(err)
+
+	// Generate jwt token
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	if err == nil {
+		app.Logger().Infof("Test jwt is %s", token)
+	}
+
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
 
 	// Readiness health check
 	app.AddEndpoint("/api/accounts/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
@@ -94,12 +112,24 @@ func main() {
 		}),
 	)
 
-	app.AddEndpointFunc("/api/accounts/token/admin", func(w http.ResponseWriter, r *http.Request) {
-		authAPI, err := auth.NewAPI([]byte(os.Getenv("JWT_SIGNING_KEY")), "me", "me")
+	// Default token
+	app.AddEndpointFunc("/api/accounts/action/get-default-jwt", func(w http.ResponseWriter, r *http.Request) {
+		token, err := authAPI.GenToken(ctx, &auth.Payload{}, time.Now().Add(time.Hour*24*365))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		w.Header().Set("content-type", "application/json")
+
+		err = json.NewEncoder(w).Encode(map[string]string{"default_token": token})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+
+	app.AddEndpointFunc("/api/accounts/token/admin", func(w http.ResponseWriter, r *http.Request) {
 
 		token, err := authAPI.GenToken(r.Context(), &auth.Payload{
 			ID:          fmt.Sprint(1),
@@ -121,6 +151,13 @@ func main() {
 		}
 	})
 
+	// Servemux option for JSON Marshaling
+	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			EmitUnpopulated: true,
+		},
+	}))
+
 	// 5. Bootstrapping service
 	app.Start(ctx, func() error {
 		// Connect to messaging service
@@ -128,11 +165,17 @@ func main() {
 		errs.Panic(err)
 		app.Logger().Infoln("connected to messaging service")
 
+		// Firebase app
 		opt := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
 		firebaseApp, err := firebase.NewApp(ctx, nil, opt)
 		errs.Panic(err)
 
+		// Firebase auth
 		firebaseAuth, err := firebaseApp.Auth(ctx)
+		errs.Panic(err)
+
+		// Pagination hasher
+		paginationHasher, err := encryption.NewHasher(string(jwtKey))
 		errs.Panic(err)
 
 		// Create account API instance
@@ -141,7 +184,8 @@ func main() {
 			EmailDisplayName: os.Getenv("EMAIL_DISPLAY_NAME"),
 			TemplatesDir:     os.Getenv("TEMPLATES_DIR"),
 			ActivationURL:    os.Getenv("ACTIVATION_URL"),
-			JWTSigningKey:    []byte(os.Getenv("JWT_SIGNING_KEY")),
+			AuthAPI:          authAPI,
+			PaginationHasher: paginationHasher,
 			SQLDBWrites:      app.GormDBByName("sqlWrites"),
 			SQLDBReads:       app.GormDBByName("sqlReads"),
 			RedisDBWrites:    app.RedisClientByName("redisWrites"),

@@ -3,19 +3,23 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/utils/healthcheck"
+	"github.com/gidyon/micro/pkg/healthcheck"
 	"github.com/gorilla/securecookie"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	channel_app "github.com/gidyon/services/internal/channel"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
 	httpmiddleware "github.com/gidyon/micro/pkg/http"
+	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	"github.com/gidyon/micro/pkg/config"
 )
@@ -42,6 +46,21 @@ func main() {
 	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
 
+	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+
+	// Authentication API
+	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	errs.Panic(err)
+
+	// Generate jwt token
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	if err == nil {
+		app.Logger().Infof("Test jwt is %s", token)
+	}
+
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+
 	// Readiness health check
 	app.AddEndpoint("/api/channels/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
 		Service:      app,
@@ -66,13 +85,25 @@ func main() {
 		CookieName:   auth.JWTCookie(),
 	}))
 
+	// Servemux option for JSON Marshaling
+	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			EmitUnpopulated: true,
+		},
+	}))
+
 	app.Start(ctx, func() error {
+		// Pagination hasher
+		paginationHasher, err := encryption.NewHasher(string(jwtKey))
+		errs.Panic(err)
+
 		// Create channel tracing instance
 		channelAPI, err := channel_app.NewChannelAPIServer(ctx, &channel_app.Options{
-			SQLDBWrites:   app.GormDBByName("sqlWrites"),
-			SQLDBReads:    app.GormDBByName("sqlReads"),
-			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
-			Logger:        app.Logger(),
+			SQLDBWrites:      app.GormDBByName("sqlWrites"),
+			SQLDBReads:       app.GormDBByName("sqlReads"),
+			Logger:           app.Logger(),
+			AuthAPI:          authAPI,
+			PaginationHasher: paginationHasher,
 		})
 		errs.Panic(err)
 

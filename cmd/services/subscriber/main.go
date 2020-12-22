@@ -3,24 +3,28 @@ package main
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/gidyon/micro"
 	"github.com/gorilla/securecookie"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/gidyon/micro/pkg/healthcheck"
 	httpmiddleware "github.com/gidyon/micro/pkg/http"
-	"github.com/gidyon/micro/utils/healthcheck"
 
 	subscriber_app "github.com/gidyon/services/internal/subscriber"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/gidyon/services/pkg/api/subscriber"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 )
 
 func main() {
@@ -44,6 +48,21 @@ func main() {
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
 	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
+
+	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+
+	// Authentication API
+	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	errs.Panic(err)
+
+	// Generate jwt token
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	if err == nil {
+		app.Logger().Infof("Test jwt is %s", token)
+	}
+
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
 
 	// Readiness health check
 	app.AddEndpoint("/api/subscribers/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
@@ -69,8 +88,19 @@ func main() {
 		CookieName:   auth.JWTCookie(),
 	}))
 
+	// Servemux option for JSON Marshaling
+	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			EmitUnpopulated: true,
+		},
+	}))
+
 	// Start service
 	app.Start(ctx, func() error {
+		// Pagination hasher
+		paginationHasher, err := encryption.NewHasher(string(jwtKey))
+		errs.Panic(err)
+
 		// Connect to account service
 		accountCC, err := app.DialExternalService(ctx, "account")
 		errs.Panic(err)
@@ -85,11 +115,12 @@ func main() {
 
 		// Create subscriber API
 		subscriberAPI, err := subscriber_app.NewSubscriberAPIServer(ctx, &subscriber_app.Options{
-			SQLDB:         app.GormDBByName("sqlWrites"),
-			Logger:        app.Logger(),
-			ChannelClient: channel.NewChannelAPIClient(channelCC),
-			AccountClient: account.NewAccountAPIClient(accountCC),
-			JWTSigningKey: []byte(os.Getenv("JWT_SIGNING_KEY")),
+			SQLDB:            app.GormDBByName("sqlWrites"),
+			Logger:           app.Logger(),
+			ChannelClient:    channel.NewChannelAPIClient(channelCC),
+			AccountClient:    account.NewAccountAPIClient(accountCC),
+			AuthAPI:          authAPI,
+			PaginationHasher: paginationHasher,
 		})
 		errs.Panic(err)
 
