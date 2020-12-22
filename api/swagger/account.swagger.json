@@ -185,44 +185,7 @@
         ]
       }
     },
-    "/api/accounts/action:activate": {
-      "get": {
-        "summary": "Activates an account to being active",
-        "operationId": "AccountAPI_ActivateAccount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisActivateAccountResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "accountId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "token",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
-    "/api/accounts/action:batchGet": {
+    "/api/accounts/action/batch-get": {
       "get": {
         "summary": "Retrieves multiple user accounts",
         "operationId": "AccountAPI_BatchGetAccounts",
@@ -257,7 +220,161 @@
         ]
       }
     },
-    "/api/accounts/action:change-private": {
+    "/api/accounts/action/exists": {
+      "get": {
+        "summary": "Checks if an account exists",
+        "operationId": "AccountAPI_ExistAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisExistAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/login": {
+      "post": {
+        "summary": "Signs in a user into their account",
+        "operationId": "AccountAPI_SignIn",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/action/login-external": {
+      "post": {
+        "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
+        "operationId": "AccountAPI_SignInExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/action/refresh-session": {
+      "get": {
+        "summary": "Fetch new JWT using refresh token and updates session",
+        "operationId": "AccountAPI_RefreshSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "refreshToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "accountId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "accountGroup",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/request-change-private-account": {
       "get": {
         "summary": "Request to change private account information",
         "operationId": "AccountAPI_RequestChangePrivateAccount",
@@ -301,46 +418,21 @@
               "PUSH"
             ],
             "default": "SEND_METHOD_UNSPECIFIED"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
-    "/api/accounts/action:exists": {
-      "get": {
-        "summary": "Checks if an account exists",
-        "operationId": "AccountAPI_ExistAccount",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisExistAccountResponse"
-            }
           },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
           {
-            "name": "email",
+            "name": "sender.emailSender",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "phone",
+            "name": "sender.emailDisplayName",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "projectId",
+            "name": "sender.appName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -351,7 +443,7 @@
         ]
       }
     },
-    "/api/accounts/action:search": {
+    "/api/accounts/action/search": {
       "get": {
         "summary": "Searches accounts and linked accounts",
         "operationId": "AccountAPI_SearchAccounts",
@@ -486,117 +578,6 @@
         ]
       }
     },
-    "/api/accounts/login": {
-      "post": {
-        "summary": "Signs in a user into their account",
-        "operationId": "AccountAPI_SignIn",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisSignInResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisSignInRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ],
-        "security": []
-      }
-    },
-    "/api/accounts/login/external": {
-      "post": {
-        "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
-        "operationId": "AccountAPI_SignInExternal",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisSignInResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisSignInExternalRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ],
-        "security": []
-      }
-    },
-    "/api/accounts/login/refresh": {
-      "get": {
-        "summary": "Fetch new JWT using refresh token and updates session",
-        "operationId": "AccountAPI_RefreshSession",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apisSignInResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "refreshToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "accountId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "accountGroup",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "AccountAPI"
-        ]
-      }
-    },
     "/api/accounts/{account.accountId}": {
       "patch": {
         "summary": "Updates a user account",
@@ -715,15 +696,15 @@
         ]
       }
     },
-    "/api/accounts/{accountId}/private": {
-      "patch": {
-        "summary": "Updates a user private account information",
-        "operationId": "AccountAPI_UpdatePrivateAccount",
+    "/api/accounts/{accountId}/action/activate-account": {
+      "get": {
+        "summary": "Activates an account to being active",
+        "operationId": "AccountAPI_ActivateAccount",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "properties": {}
+              "$ref": "#/definitions/apisActivateAccountResponse"
             }
           },
           "default": {
@@ -741,12 +722,10 @@
             "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apisUpdatePrivateAccountRequest"
-            }
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -754,7 +733,7 @@
         ]
       }
     },
-    "/api/accounts/{accountId}:admin": {
+    "/api/accounts/{accountId}/action/admin-update-account": {
       "patch": {
         "summary": "Updates account",
         "operationId": "AccountAPI_AdminUpdateAccount",
@@ -793,7 +772,7 @@
         ]
       }
     },
-    "/api/accounts/{accountId}:linked": {
+    "/api/accounts/{accountId}/action/get-linked-accounts": {
       "get": {
         "summary": "Retrieves deeply linked accounts",
         "operationId": "AccountAPI_GetLinkedAccounts",
@@ -817,6 +796,45 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{accountId}/action/update-private-account": {
+      "patch": {
+        "summary": "Updates a user private account information",
+        "operationId": "AccountAPI_UpdatePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountRequest"
+            }
           }
         ],
         "tags": [
@@ -946,6 +964,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "sender": {
+          "$ref": "#/definitions/apisSender"
+        },
+        "notify": {
+          "type": "boolean"
         }
       },
       "description": "Request to update an account data by admininstrator",
@@ -991,6 +1015,9 @@
         },
         "projectId": {
           "type": "string"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisSender"
         }
       },
       "description": "Request to create an account",
@@ -1062,6 +1089,12 @@
         },
         "accountId": {
           "type": "string"
+        },
+        "existingFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "title": "ExistAccountResponse"
@@ -1119,6 +1152,22 @@
       ],
       "default": "SEND_METHOD_UNSPECIFIED",
       "title": "SendMethod"
+    },
+    "apisSender": {
+      "type": "object",
+      "properties": {
+        "emailSender": {
+          "type": "string"
+        },
+        "emailDisplayName": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string"
+        }
+      },
+      "description": "Options for email,sms,call",
+      "title": "Sender"
     },
     "apisSignInExternalRequest": {
       "type": "object",
@@ -1241,7 +1290,7 @@
       "properties": {
         "typeUrl": {
           "type": "string",
-          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
         },
         "value": {
           "type": "string",
