@@ -15,19 +15,19 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"gorm.io/gorm"
+	"gorm.io/hints"
 
 	"google.golang.org/grpc/grpclog"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/dbutil"
+	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/utils/mdutil"
+	"github.com/gidyon/micro/utils/templateutil"
 	"github.com/gidyon/services/internal/pkg/fauth"
-	"github.com/gidyon/services/pkg/api/messaging"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/dbutil"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/gidyon/services/pkg/utils/mdutil"
-	"github.com/gidyon/services/pkg/utils/templateutil"
-
 	"github.com/gidyon/services/pkg/api/account"
+	"github.com/gidyon/services/pkg/api/messaging"
+
 	redis "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/speps/go-hashids"
@@ -44,32 +44,30 @@ type cookier interface {
 
 type accountAPIServer struct {
 	account.UnimplementedAccountAPIServer
-	activationURL    string
-	appName          string
-	emailDisplayName string
-	authAPI          auth.Interface
-	tpl              *template.Template
-	hasher           *hashids.HashID
-	cookier          cookier
-	setCookie        func(context.Context, string) error
+	activationURL string
+	tpl           *template.Template
+	cookier       cookier
+	setCookie     func(context.Context, string) error
 	*Options
 }
 
 // Options contain parameters for NewAccountAPI
 type Options struct {
-	AppName          string
-	EmailDisplayName string
-	TemplatesDir     string
-	ActivationURL    string
-	JWTSigningKey    []byte
-	SQLDBWrites      *gorm.DB
-	SQLDBReads       *gorm.DB
-	RedisDBWrites    *redis.Client
-	RedisDBReads     *redis.Client
-	SecureCookie     *securecookie.SecureCookie
-	Logger           grpclog.LoggerV2
-	MessagingClient  messaging.MessagingClient
-	FirebaseAuth     fauth.FirebaseAuthClient
+	AppName            string
+	EmailDisplayName   string
+	DefaultEmailSender string
+	TemplatesDir       string
+	ActivationURL      string
+	PaginationHasher   *hashids.HashID
+	AuthAPI            auth.API
+	SQLDBWrites        *gorm.DB
+	SQLDBReads         *gorm.DB
+	RedisDBWrites      *redis.Client
+	RedisDBReads       *redis.Client
+	SecureCookie       *securecookie.SecureCookie
+	Logger             grpclog.LoggerV2
+	MessagingClient    messaging.MessagingClient
+	FirebaseAuth       fauth.FirebaseAuthClient
 }
 
 // NewAccountAPI creates an account API singleton
@@ -89,8 +87,10 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		err = errs.MissingField("templates directory")
 	case opt.ActivationURL == "":
 		err = errs.MissingField("activation url")
-	case opt.JWTSigningKey == nil:
-		err = errs.MissingField("jwt token")
+	case opt.PaginationHasher == nil:
+		err = errs.MissingField("pagination PaginationHasher")
+	case opt.AuthAPI == nil:
+		err = errs.MissingField("authentication API")
 	case opt.SQLDBWrites == nil:
 		err = errs.NilObject("sql writes db")
 	case opt.SQLDBReads == nil:
@@ -112,26 +112,10 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		return nil, err
 	}
 
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Accounts Service", "users")
-	if err != nil {
-		return nil, err
-	}
-
-	// Pagination hasher
-	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
-	if err != nil {
-		return nil, errs.WrapErrorWithMsg(err, "failed to generate hash id")
-	}
-
 	// Account API
 	accountAPI := &accountAPIServer{
-		activationURL:    opt.ActivationURL,
-		appName:          opt.AppName,
-		emailDisplayName: opt.EmailDisplayName,
-		authAPI:          authAPI,
-		hasher:           hasher,
-		cookier:          opt.SecureCookie,
+		activationURL: opt.ActivationURL,
+		cookier:       opt.SecureCookie,
 		setCookie: func(ctx context.Context, cookie string) error {
 			err := grpc.SetHeader(ctx, metadata.Pairs("set-cookie", cookie))
 			if err != nil {
@@ -180,14 +164,11 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 func (accountAPI *accountAPIServer) SignInExternal(
 	ctx context.Context, signInReq *account.SignInExternalRequest,
 ) (*account.SignInResponse, error) {
-	// Request must not be nil
-	if signInReq == nil {
-		return nil, errs.NilObject("SignInExternalRequest")
-	}
-
 	// Validation
 	var err error
 	switch {
+	case signInReq == nil:
+		err = errs.NilObject("sign in request")
 	case signInReq.ProjectId == "":
 		err = errs.MissingField("project id")
 	case signInReq.Account == nil:
@@ -209,11 +190,10 @@ func (accountAPI *accountAPIServer) SignInExternal(
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to verify firebase ID token")
 	}
 
-	accountDB := &Account{}
-
-	shouldUpdateUser := true
-
-	var ID uint
+	var (
+		accountDB = &Account{}
+		ID        uint
+	)
 
 	// Get user
 	switch {
@@ -237,18 +217,16 @@ func (accountAPI *accountAPIServer) SignInExternal(
 		if err != nil {
 			return nil, errs.FailedToSave("account", err)
 		}
-		shouldUpdateUser = false
-		ID = accountDB.AccountID
+		return accountAPI.updateSession(ctx, accountDB, "")
 	default:
 		return nil, errs.FailedToSave("account", err)
 	}
 
-	if shouldUpdateUser {
-		err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id= ?", ID).
-			Updates(accountDB).Error
-		if err != nil {
-			return nil, errs.FailedToUpdate("account", err)
-		}
+	// Update account
+	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id= ?", ID).
+		Updates(accountDB).Error
+	if err != nil {
+		return nil, errs.FailedToUpdate("account", err)
 	}
 
 	return accountAPI.updateSession(ctx, accountDB, "")
@@ -257,15 +235,14 @@ func (accountAPI *accountAPIServer) SignInExternal(
 func (accountAPI *accountAPIServer) RefreshSession(
 	ctx context.Context, req *account.RefreshSessionRequest,
 ) (*account.SignInResponse, error) {
-	// Request must not be nil
-	if req == nil {
-		return nil, errs.NilObject("RefreshSessionRequest")
-	}
-
+	var (
+		ID  int
+		err error
+	)
 	// Validation
-	var ID int
-	var err error
 	switch {
+	case req == nil:
+		return nil, errs.NilObject("RefreshSessionRequest")
 	case req.RefreshToken == "":
 		return nil, errs.NilObject("refresh token")
 	case req.AccountId == "":
@@ -313,15 +290,14 @@ func (accountAPI *accountAPIServer) RefreshSession(
 func (accountAPI *accountAPIServer) ActivateAccount(
 	ctx context.Context, activateReq *account.ActivateAccountRequest,
 ) (*account.ActivateAccountResponse, error) {
-	// Request must not be nil
-	if activateReq == nil {
-		return nil, errs.NilObject("ActivateAccountRequest")
-	}
-
+	var (
+		ID  int
+		err error
+	)
 	// Validation 1
-	var ID int
-	var err error
 	switch {
+	case activateReq == nil:
+		return nil, errs.NilObject("ActivateAccountRequest")
 	case activateReq.Token == "":
 		return nil, errs.MissingField("token")
 	case activateReq.AccountId == "":
@@ -334,8 +310,8 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	}
 
 	// Retrieve token claims
-	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(
-		auth.AddTokenMD(ctx, activateReq.Token), activateReq.Token, auth.Admins()...,
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(
+		auth.AddTokenMD(ctx, activateReq.Token), activateReq.AccountId, auth.Admins()...,
 	)
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
@@ -352,7 +328,7 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 
 	// Compare if account account_id matches or if activated by admin
 	isOwner := payload.ID == activateReq.AccountId
-	isAdmin := payload.Group == auth.AdminGroup()
+	isAdmin := inGroup(payload.Group, auth.Admins())
 	if !isOwner && !isAdmin {
 		if !dev {
 			switch {
@@ -393,19 +369,11 @@ func emailOrPhone(err error, accountDB *Account) string {
 func (accountAPI *accountAPIServer) UpdateAccount(
 	ctx context.Context, updateReq *account.UpdateAccountRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if updateReq == nil {
-		return nil, errs.NilObject("UpdateRequest")
-	}
-
-	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.Admins()...)
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	// Validation
 	switch {
+	case updateReq == nil:
+		return nil, errs.NilObject("UpdateRequest")
 	case updateReq.Account == nil:
 		return nil, errs.NilObject("Account")
 	case updateReq.Account.AccountId == "":
@@ -415,6 +383,12 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 		if err != nil {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "account id is incorrect")
 		}
+	}
+
+	// Authorization
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.Admins()...)
+	if err != nil {
+		return nil, err
 	}
 
 	// GetAccount the account details from database
@@ -465,19 +439,12 @@ func updateToken(accountID string) string {
 func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	ctx context.Context, req *account.RequestChangePrivateAccountRequest,
 ) (*account.RequestChangePrivateAccountResponse, error) {
-	// Request must not be nil
-	if req == nil {
-		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
-	}
-
-	// Authentication
-	err := accountAPI.authAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
-	}
+	var err error
 
 	// Validation
 	switch {
+	case req == nil:
+		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
 	case req.Payload == "":
 		return nil, errs.MissingField("payload")
 	case req.FallbackUrl == "":
@@ -510,7 +477,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Authorize the actor
-	_, err = accountAPI.authAPI.AuthorizeActorOrGroups(ctx, accountID, auth.AdminGroup())
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, accountID, auth.Admins()...)
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to authorize actor")
 	}
@@ -518,13 +485,15 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	uniqueNumber := rand.Intn(499999) + 500000
 
 	// Set token with expiration of 6 hours
-	err = accountAPI.RedisDBWrites.Set(ctx, updateToken(accountID), uniqueNumber, time.Duration(time.Hour*6)).Err()
+	err = accountAPI.RedisDBWrites.Set(
+		ctx, updateToken(accountID), uniqueNumber, time.Duration(time.Hour*6),
+	).Err()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "SET")
 	}
 
 	// GetAccount jwt
-	jwtToken, err := accountAPI.authAPI.GenToken(ctx, &auth.Payload{
+	jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 		ID:    accountID,
 		Names: accountDB.Names,
 	}, time.Now().Add(6*time.Hour))
@@ -549,8 +518,9 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		Type:        messaging.MessageType_ALERT,
 		SendMethods: []messaging.SendMethod{req.SendMethod},
 		Details: map[string]string{
-			"origin": "Accounts API",
-			"app":    accountAPI.appName,
+			"app_name":     firstVal(req.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
+			"display_name": firstVal(req.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
+			"sender":       firstVal(req.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
 		},
 	})
 	if err != nil {
@@ -565,20 +535,13 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	ctx context.Context, updatePrivateReq *account.UpdatePrivateAccountRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if updatePrivateReq == nil {
-		return nil, errs.NilObject("UpdatePrivateRequest")
-	}
-
-	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.Admins()...)
-	if err != nil {
-		return nil, err
-	}
+	var err error
 
 	// Validation
 	var ID int
 	switch {
+	case updatePrivateReq == nil:
+		return nil, errs.NilObject("UpdatePrivateRequest")
 	case updatePrivateReq.AccountId == "":
 		return nil, errs.MissingField("account id")
 	case updatePrivateReq.PrivateAccount == nil:
@@ -590,6 +553,12 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 		if err != nil {
 			return nil, errs.IncorrectVal("account id")
 		}
+	}
+
+	// Authorization
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.Admins()...)
+	if err != nil {
+		return nil, err
 	}
 
 	// GetAccount the account details from database
@@ -608,22 +577,22 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account not active")
 	}
 
+	// Lets get the update token
+	token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(updatePrivateReq.AccountId)).Result()
+	switch {
+	case err == nil:
+	case err == redis.Nil:
+		return nil, errs.WrapMessage(codes.NotFound, "update token not found")
+	default:
+		return nil, errs.RedisCmdFailed(err, "get token")
+	}
+
+	if token != updatePrivateReq.ChangeToken {
+		return nil, errs.WrapMessage(codes.InvalidArgument, "token is incorrect")
+	}
+
 	// Hash the password if not empty
 	if updatePrivateReq.PrivateAccount.Password != "" {
-		// Lets get the update token
-		token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(updatePrivateReq.AccountId)).Result()
-		switch {
-		case err == nil:
-		case err == redis.Nil:
-			return nil, errs.WrapMessage(codes.NotFound, "update token not found")
-		default:
-			return nil, errs.RedisCmdFailed(err, "get token")
-		}
-
-		if token != updatePrivateReq.ChangeToken {
-			return nil, errs.WrapMessage(codes.InvalidArgument, "token is incorrect")
-		}
-
 		// Passwords must be similar
 		if updatePrivateReq.PrivateAccount.ConfirmPassword != updatePrivateReq.PrivateAccount.Password {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "passwords do not match")
@@ -660,7 +629,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.Admins()...)
+	_, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -711,7 +680,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	}
 
 	// Authorization
-	payload, err := accountAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.Admins()...)
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -732,7 +701,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	accountDB := &Account{}
 
 	if getReq.Priviledge {
-		if payload.Group == auth.AdminGroup() {
+		if inGroup(payload.Group, auth.Admins()) {
 			err = accountAPI.SQLDBWrites.Unscoped().First(accountDB, "account_id=?", ID).Error
 		} else {
 			err = accountAPI.SQLDBWrites.First(accountDB, "account_id=?", ID).Error
@@ -787,7 +756,7 @@ func (accountAPI *accountAPIServer) ExistAccount(
 	}
 
 	// Authenticate the request
-	err := accountAPI.authAPI.AuthenticateRequest(ctx)
+	err := accountAPI.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -813,10 +782,18 @@ func (accountAPI *accountAPIServer) ExistAccount(
 		First(accountDB, "email=? OR phone=? AND project_id=?", email, phone, projectID).Error
 	switch {
 	case err == nil:
+		existingFields := make([]string, 0)
+		if accountDB.Email == email {
+			existingFields = append(existingFields, "email")
+		}
+		if accountDB.Phone == phone {
+			existingFields = append(existingFields, "phone")
+		}
 		// Account exist
 		return &account.ExistAccountResponse{
-			Exists:    true,
-			AccountId: fmt.Sprint(accountDB.AccountID),
+			Exists:         true,
+			AccountId:      fmt.Sprint(accountDB.AccountID),
+			ExistingFields: existingFields,
 		}, nil
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		// Account doesn't exist
@@ -839,7 +816,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	// Authenticate the request
-	payload, err := accountAPI.authAPI.AuthenticateRequestV2(ctx)
+	payload, err := accountAPI.AuthAPI.AuthenticateRequestV2(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -855,9 +832,11 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	// Get last id from page token
 	pageToken := listReq.GetPageToken()
 	if pageToken != "" {
-		ids, err := accountAPI.hasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
 		if err != nil {
-			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
+			return nil, errs.WrapErrorWithCodeAndMsg(
+				codes.InvalidArgument, err, "failed to parse page token",
+			)
 		}
 		id = uint(ids[0])
 	}
@@ -865,7 +844,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	accountsDB := make([]*Account, 0, pageSize)
 
 	// Apply filter criterias
-	db := generateWhereCondition(accountAPI.SQLDBReads, listReq.GetListCriteria())
+	db := generateWhereCondition(accountAPI.SQLDBReads, listReq.GetListCriteria()).Debug()
 
 	// For admins
 	for _, group := range auth.Admins() {
@@ -875,13 +854,18 @@ func (accountAPI *accountAPIServer) ListAccounts(
 		}
 	}
 
-	// Apply project project
+	// ID filter
+	if id > 0 {
+		db = db.Where("account_id<?", id)
+	}
+
+	// Apply project filter
 	if payload.ProjectID != "" {
 		db = db.Where("project_id=?", payload.ProjectID)
 	}
 
 	// Order by ID
-	db = db.Limit(int(pageSize)).Order("account_id DESC")
+	db = db.Limit(int(pageSize) + 1).Order("account_id DESC").Clauses(hints.ForceIndex("PRIMARY").ForOrderBy())
 
 	err = db.Find(&accountsDB).Error
 	switch {
@@ -891,20 +875,26 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	accountsPB := make([]*account.Account, 0, len(accountsDB))
+	pageSize2 := int(pageSize)
 
-	for _, accountDB := range accountsDB {
+	for i, accountDB := range accountsDB {
 		accountPB, err := GetAccountPB(accountDB)
 		if err != nil {
 			return nil, err
 		}
+
+		if i == pageSize2 {
+			break
+		}
+
 		accountsPB = append(accountsPB, GetAccountPBView(accountPB, listReq.GetView()))
 		id = accountDB.AccountID
 	}
 
 	var token string
-	if int(pageSize) == len(accountsDB) {
+	if len(accountsDB) > pageSize2 {
 		// Next page token
-		token, err = accountAPI.hasher.EncodeInt64([]int64{int64(id)})
+		token, err = accountAPI.PaginationHasher.EncodeInt64([]int64{int64(id)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}
@@ -926,7 +916,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	// Authenticate the request
-	payload, err := accountAPI.authAPI.AuthenticateRequestV2(ctx)
+	payload, err := accountAPI.AuthAPI.AuthenticateRequestV2(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -949,7 +939,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Get last id from page token
 	pageToken := searchReq.GetPageToken()
 	if pageToken != "" {
-		ids, err := accountAPI.hasher.DecodeInt64WithError(searchReq.GetPageToken())
+		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(searchReq.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
@@ -989,20 +979,26 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	accountsPB := make([]*account.Account, 0, len(accountsDB))
+	pageSize2 := int(pageSize)
 
-	for _, accountDB := range accountsDB {
+	for i, accountDB := range accountsDB {
 		accountPB, err := GetAccountPB(accountDB)
 		if err != nil {
 			return nil, err
 		}
+
+		if pageSize2 == i {
+			break
+		}
+
 		accountsPB = append(accountsPB, GetAccountPBView(accountPB, searchReq.GetView()))
 		ID = accountDB.AccountID
 	}
 
 	var token string
-	if int(pageSize) == len(accountsDB) {
+	if len(accountsDB) > pageSize2 {
 		// Next page token
-		token, err = accountAPI.hasher.EncodeInt64([]int64{int64(ID)})
+		token, err = accountAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}

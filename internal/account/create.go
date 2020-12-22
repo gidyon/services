@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/dbutil"
+	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/messaging"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/dbutil"
-	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/gidyon/services/pkg/utils/mdutil"
 
 	"github.com/gidyon/services/pkg/api/account"
 	"google.golang.org/grpc/codes"
@@ -57,7 +57,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	existRes, err := accountAPI.ExistAccount(ctx, &account.ExistAccountRequest{
 		Email:     accountPB.Email,
 		Phone:     accountPB.Phone,
-		ProjectId: accountPB.ProjectId,
+		ProjectId: createReq.ProjectId,
 	})
 	if err != nil {
 		return nil, err
@@ -65,7 +65,11 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	// Fails if account already exists
 	if existRes.Exists {
-		return nil, errs.WrapMessage(codes.AlreadyExists, "account already exists")
+		return nil, errs.WrapMessagef(
+			codes.AlreadyExists,
+			"account with %s already exists",
+			strings.Join(existRes.ExistingFields, " and "),
+		)
 	}
 
 	accountDB, err := GetAccountDB(accountPB)
@@ -73,11 +77,22 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, err
 	}
 
+	// Fix phone number
+	if strings.HasPrefix(accountDB.Phone, "+") {
+		accountDB.Phone = accountDB.Phone[1:]
+	}
+	if strings.HasPrefix(accountPB.Phone, "7") {
+		accountDB.Phone = fmt.Sprint("254", accountDB.Phone)
+	}
+	if strings.HasPrefix(accountPB.Phone, "07") {
+		accountDB.Phone = fmt.Sprint("254", accountDB.Phone[1:])
+	}
+
 	accountState := account.AccountState_INACTIVE
 
 	if createReq.GetByAdmin() {
 		// Authenticate the admin
-		p, err := accountAPI.authAPI.AuthorizeGroups(ctx, auth.Admins()...)
+		p, err := accountAPI.AuthAPI.AuthorizeGroups(ctx, auth.Admins()...)
 		if err != nil {
 			return nil, err
 		}
@@ -91,6 +106,8 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	}
 
 	accountDB.AccountState = accountState.String()
+
+	accountDB.ProjectID = createReq.ProjectId
 
 	accountPrivate := createReq.GetPrivateAccount()
 	if accountPrivate != nil {
@@ -165,7 +182,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	if !createReq.GetUpdateOnly() && createReq.Notify {
 		// Generate jwt token with expiration of 6 hours
-		jwtToken, err := accountAPI.authAPI.GenToken(ctx, &auth.Payload{
+		jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,
 			Names:        accountPB.Names,
 			PhoneNumber:  accountPB.Phone,
@@ -189,32 +206,34 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		// CreateAccount message
 		messagePB := &messaging.Message{
 			UserId:      accountID,
-			Title:       fmt.Sprintf("Activate Your %s account", accountAPI.appName),
-			Data:        fmt.Sprintf("Hello %s. Activate your %s account", accountDB.Names, accountAPI.appName),
+			Title:       fmt.Sprintf("Activate Your %s account", firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
+			Data:        fmt.Sprintf("Hello %s. Activate your %s account", accountDB.Names, firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
 			Link:        fmt.Sprintf("%s?token=%s?&account_id=%s", accountAPI.activationURL, jwtToken, accountID),
 			Save:        true,
 			Type:        messaging.MessageType_REMINDER,
 			SendMethods: sendMethods,
 			Details: map[string]string{
-				"app":  accountAPI.appName,
-				"from": os.Getenv("EMAIL_USERNAME"),
+				"app_name":     firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
+				"display_name": firstVal(createReq.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
+				"sender":       firstVal(createReq.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
 			},
 		}
 
 		if createReq.GetByAdmin() {
 			messagePB = &messaging.Message{
 				UserId: accountID,
-				Title:  fmt.Sprintf("%s created by an administrator", accountAPI.appName),
+				Title:  fmt.Sprintf("%s created by an administrator", firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
 				Data: fmt.Sprintf(
-					"Hello %s. An account has been created for you by our administrator. To signIn to your account, head on to %s website. ",
-					accountDB.Names, accountAPI.appName,
+					"Hello %s. An account has been created for you by our administrator. Sign in to your account, head on to %s website. ",
+					accountDB.Names, firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName),
 				),
 				Save:        true,
 				Type:        messaging.MessageType_REMINDER,
 				SendMethods: sendMethods,
 				Details: map[string]string{
-					"app_name":     accountAPI.appName,
-					"display_name": accountAPI.emailDisplayName,
+					"app_name":     firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
+					"display_name": firstVal(createReq.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
+					"sender":       firstVal(createReq.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
 				},
 			}
 		}
@@ -234,4 +253,13 @@ func (accountAPI *accountAPIServer) CreateAccount(
 	return &account.CreateAccountResponse{
 		AccountId: accountID,
 	}, nil
+}
+
+func firstVal(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
