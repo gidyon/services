@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/services/pkg/api/messaging"
-	"github.com/gidyon/services/pkg/auth"
 
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/google/uuid"

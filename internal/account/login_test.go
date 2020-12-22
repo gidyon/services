@@ -5,8 +5,8 @@ import (
 	"math/rand"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

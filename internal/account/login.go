@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"gorm.io/gorm"
@@ -125,14 +125,17 @@ func (accountAPI *accountAPIServer) updateSession(
 		dur = 30
 	}
 
+	accountAPI.Logger.Infoln("updating group token")
+
 	if signInGroup != "" {
+		accountAPI.Logger.Infoln("group found")
 		var found bool
 		for _, group := range append(secondaryGroups, accountDB.PrimaryGroup) {
 			group := strings.ToUpper(strings.TrimSpace(group))
 			if group == signInGroup {
 				found = true
 				// Generates JWT
-				token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
+				token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 					ID:        fmt.Sprint(accountDB.AccountID),
 					Names:     accountDB.Names,
 					Group:     signInGroup,
@@ -152,7 +155,7 @@ func (accountAPI *accountAPIServer) updateSession(
 	} else {
 		signInGroup = accountDB.PrimaryGroup
 		// Generate JWT
-		token, err = accountAPI.authAPI.GenToken(ctx, &auth.Payload{
+		token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:        accountID,
 			Names:     accountDB.Names,
 			Group:     accountDB.PrimaryGroup,
@@ -164,11 +167,15 @@ func (accountAPI *accountAPIServer) updateSession(
 		}
 	}
 
+	accountAPI.Logger.Infoln("adding token to redis")
+
 	// Set refresh token
 	err = accountAPI.RedisDBWrites.SAdd(ctx, refreshTokenSet(), refreshToken, 0).Err()
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set refresh token")
 	}
+
+	accountAPI.Logger.Infoln("done adding to redis; preparing cookie")
 
 	// Set Cookie in response header
 	encoded, err := accountAPI.cookier.Encode(auth.JWTCookie(), token)
@@ -206,6 +213,8 @@ func (accountAPI *accountAPIServer) updateSession(
 			return nil, err
 		}
 	}
+
+	accountAPI.Logger.Infoln("done !!")
 
 	// Return token
 	return &account.SignInResponse{

@@ -13,6 +13,8 @@ import (
 
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/conn"
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/utils/encryption"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/mocks"
 	redis "github.com/go-redis/redis/v8"
@@ -36,7 +38,7 @@ var (
 const (
 	dbAddress    = "localhost:3306"
 	schema       = "services"
-	templatesDir = "/Users/jessegitaka/go/src/github.com/gidyon/services/internal/account/templates"
+	templatesDir = "/home/gideon/go/src/github.com/gidyon/services/internal/account/templates"
 )
 
 func startDB() (*gorm.DB, error) {
@@ -73,12 +75,18 @@ var _ = BeforeSuite(func() {
 	// Secure cookie
 	sc := securecookie.New([]byte(randomdata.RandStringRunes(32)), []byte(randomdata.RandStringRunes(32)))
 
+	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
+	Expect(err).ShouldNot(HaveOccurred())
+
+	authAPI := micro_mock.AuthAPI
+
 	opt := &Options{
 		AppName:          "Accounts API",
 		EmailDisplayName: "Accounts API",
 		TemplatesDir:     templatesDir,
 		ActivationURL:    randomdata.MacAddress(),
-		JWTSigningKey:    []byte(randomdata.RandStringRunes(32)),
+		PaginationHasher: paginationHasher,
+		AuthAPI:          authAPI,
 		SQLDBWrites:      db,
 		SQLDBReads:       db,
 		RedisDBWrites:    redisDB,
@@ -101,7 +109,6 @@ var _ = BeforeSuite(func() {
 
 	// Mocks
 	AccountAPIServer.cookier = mocks.Cookier
-	AccountAPIServer.authAPI = mocks.AuthAPI
 	AccountAPIServer.setCookie = func(context.Context, string) error {
 		return nil
 	}
@@ -142,11 +149,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.RedisDBWrites = redisDB
-	opt.JWTSigningKey = nil
+	opt.PaginationHasher = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
+	opt.PaginationHasher = paginationHasher
+	opt.AuthAPI = nil
+	_, err = NewAccountAPI(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.AuthAPI = authAPI
 	opt.RedisDBReads = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())
