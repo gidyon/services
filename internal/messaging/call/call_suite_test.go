@@ -7,11 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Pallinder/go-randomdata"
-
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/mocks"
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/call"
-	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/onsi/ginkgo"
@@ -48,8 +47,8 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("call")
 
 	opt := &Options{
-		Logger:        logger,
-		JWTSigningKey: []byte("who can guess :)"),
+		Logger:  logger,
+		AuthAPI: micro_mock.AuthAPI,
 	}
 
 	// Create call server
@@ -59,9 +58,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	CallServer, ok = CallAPI.(*callAPIServer)
 	Expect(ok).Should(BeTrue())
-
-	// Mocks
-	CallServer.authAPI = mocks.AuthAPI
 
 	// Pasing incorrect payload
 	_, err = NewCallAPIServer(nil, opt)
@@ -75,11 +71,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewCallAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(40))
+	opt.AuthAPI = mocks.AuthAPI
 	_, err = NewCallAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 })

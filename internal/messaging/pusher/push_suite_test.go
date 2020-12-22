@@ -9,6 +9,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 
 	"github.com/gidyon/micro"
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
 	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -35,9 +36,9 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("push")
 
 	opt := &Options{
-		Logger:        logger,
-		JWTSigningKey: []byte("who can guess :)"),
-		FCMServerKey:  randomdata.RandStringRunes(64),
+		Logger:       logger,
+		AuthAPI:      micro_mock.AuthAPI,
+		FCMServerKey: randomdata.RandStringRunes(64),
 	}
 
 	// Create push server
@@ -49,7 +50,6 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Mocks
-	PushServer.authAPI = mocks.AuthAPI
 	PushServer.fcmClient = mocks.FCMAPI
 
 	// Pasing incorrect payload
@@ -64,11 +64,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewPushMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(40))
+	opt.AuthAPI = micro_mock.AuthAPI
 	opt.FCMServerKey = ""
 	_, err = NewPushMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())

@@ -10,8 +10,8 @@ import (
 	"github.com/Pallinder/go-randomdata"
 
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
-	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/onsi/ginkgo"
@@ -48,13 +48,13 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("sms")
 
 	opt := &Options{
-		Logger:        logger,
-		JWTSigningKey: []byte("who can guess :)"),
-		APIKey:        randomdata.RandStringRunes(32),
-		AuthToken:     randomdata.MacAddress(),
-		APIUsername:   randomdata.SillyName(),
-		APIPassword:   randomdata.RandStringRunes(15),
-		APIURL:        randomdata.IpV4Address(),
+		Logger:      logger,
+		AuthAPI:     mocks.AuthAPI,
+		APIKey:      randomdata.RandStringRunes(32),
+		AuthToken:   randomdata.MacAddress(),
+		APIUsername: randomdata.SillyName(),
+		APIPassword: randomdata.RandStringRunes(15),
+		APIURL:      randomdata.IpV4Address(),
 	}
 
 	// Create sms server
@@ -66,7 +66,6 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Mocks
-	SMSServer.authAPI = mocks.AuthAPI
 	SMSServer.sendSMS = func(*Options, *sms.SMS) error {
 		return nil
 	}
@@ -83,11 +82,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewSMSAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(40))
+	opt.AuthAPI = mocks.AuthAPI
 	opt.APIKey = ""
 	_, err = NewSMSAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())

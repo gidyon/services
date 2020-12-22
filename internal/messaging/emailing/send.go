@@ -3,8 +3,8 @@ package emailing
 import (
 	"io/ioutil"
 
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"gopkg.in/gomail.v2"
 )
 

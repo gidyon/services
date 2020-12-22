@@ -3,23 +3,22 @@ package call
 import (
 	"context"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/call"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/grpclog"
 )
 
 type callAPIServer struct {
 	call.UnimplementedCallAPIServer
-	logger  grpclog.LoggerV2
-	authAPI auth.Interface
+	*Options
 }
 
 // Options contains the parameters passed while calling NewCallAPIServer
 type Options struct {
-	Logger        grpclog.LoggerV2
-	JWTSigningKey []byte
+	Logger  grpclog.LoggerV2
+	AuthAPI auth.API
 }
 
 // NewCallAPIServer creates a new call API server
@@ -33,23 +32,16 @@ func NewCallAPIServer(ctx context.Context, opt *Options) (call.CallAPIServer, er
 		err = errs.NilObject("options")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
-	case opt.JWTSigningKey == nil:
-		err = errs.NilObject("jwt key")
+	case opt.AuthAPI == nil:
+		err = errs.NilObject("auth API")
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Call API", "users")
 	if err != nil {
 		return nil, err
 	}
 
 	// API
 	callAPI := &callAPIServer{
-		logger:  opt.Logger,
-		authAPI: authAPI,
+		Options: opt,
 	}
 
 	return callAPI, nil
@@ -64,7 +56,7 @@ func (api *callAPIServer) Call(
 	}
 
 	// Authenticate request
-	err := api.authAPI.AuthenticateRequest(ctx)
+	err := api.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}

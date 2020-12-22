@@ -5,9 +5,9 @@ import (
 
 	"gopkg.in/gomail.v2"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/grpclog"
 )
@@ -18,21 +18,19 @@ type dialer interface {
 
 type emailingAPIServer struct {
 	emailing.UnimplementedEmailingServer
-	logger  grpclog.LoggerV2
-	authAPI auth.Interface
-	sender  func(*emailing.Email) error
-	dialer  dialer
-	opt     *Options
+	sender func(*emailing.Email) error
+	dialer dialer
+	*Options
 }
 
 // Options contains the parameters passed while calling NewEmailingAPIServer
 type Options struct {
-	Logger        grpclog.LoggerV2
-	JWTSigningKey []byte
-	SMTPHost      string
-	SMTPPort      int
-	SMTPUsername  string
-	SMTPPassword  string
+	Logger       grpclog.LoggerV2
+	AuthAPI      auth.API
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
 }
 
 // NewEmailingAPIServer is singleton for creating email server APIs
@@ -46,8 +44,8 @@ func NewEmailingAPIServer(ctx context.Context, opt *Options) (emailing.EmailingS
 		err = errs.NilObject("options")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
-	case opt.JWTSigningKey == nil:
-		err = errs.NilObject("jwt key")
+	case opt.AuthAPI == nil:
+		err = errs.NilObject("auth api")
 	case opt.SMTPHost == "":
 		err = errs.MissingField("smtp host")
 	case opt.SMTPPort == 0:
@@ -57,12 +55,6 @@ func NewEmailingAPIServer(ctx context.Context, opt *Options) (emailing.EmailingS
 	case opt.SMTPPassword == "":
 		err = errs.MissingField("smtp password")
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "EMailing API", "users")
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +69,7 @@ func NewEmailingAPIServer(ctx context.Context, opt *Options) (emailing.EmailingS
 
 	// API
 	emailingAPI := &emailingAPIServer{
-		logger:  opt.Logger,
-		authAPI: authAPI,
-		opt:     opt,
+		Options: opt,
 		dialer:  dialer,
 	}
 
@@ -98,7 +88,7 @@ func (api *emailingAPIServer) SendEmail(
 	}
 
 	// Authenticate request
-	err = api.authAPI.AuthenticateRequest(ctx)
+	err = api.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +97,7 @@ func (api *emailingAPIServer) SendEmail(
 	go func() {
 		err = api.sender(sendReq)
 		if err != nil {
-			api.logger.Errorf("failed to send email: %v", err)
+			api.Logger.Errorf("failed to send email: %v", err)
 		}
 	}()
 

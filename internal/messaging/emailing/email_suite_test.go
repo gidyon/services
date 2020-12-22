@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
-	"github.com/gidyon/services/pkg/mocks"
 
 	"github.com/Pallinder/go-randomdata"
 
@@ -36,12 +36,12 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("email")
 
 	opt := &Options{
-		Logger:        logger,
-		JWTSigningKey: []byte("who can guess :)"),
-		SMTPHost:      randomdata.IpV4Address(),
-		SMTPPort:      9090,
-		SMTPUsername:  randomdata.Email(),
-		SMTPPassword:  randomdata.RandStringRunes(15),
+		Logger:       logger,
+		AuthAPI:      mocks.AuthAPI,
+		SMTPHost:     randomdata.IpV4Address(),
+		SMTPPort:     9090,
+		SMTPUsername: randomdata.Email(),
+		SMTPPassword: randomdata.RandStringRunes(15),
 	}
 
 	// Create email server
@@ -53,7 +53,6 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Mocks
-	EmailServer.authAPI = mocks.AuthAPI
 	EmailServer.sender = func(*emailing.Email) error {
 		return nil
 	}
@@ -70,11 +69,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewEmailingAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(40))
+	opt.AuthAPI = mocks.AuthAPI
 	opt.SMTPHost = ""
 	_, err = NewEmailingAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())

@@ -6,11 +6,10 @@ import (
 
 	"github.com/appleboy/go-fcm"
 	"github.com/golang/protobuf/ptypes/empty"
-	"gorm.io/gorm"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	push "github.com/gidyon/services/pkg/api/messaging/pusher"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -23,17 +22,15 @@ type fcmClient interface {
 
 type pushAPIServer struct {
 	push.UnimplementedPushMessagingServer
-	sqlDB     *gorm.DB
-	logger    grpclog.LoggerV2
-	authAPI   auth.Interface
 	fcmClient fcmClient
+	*Options
 }
 
 // Options contains the parameters passed while calling NewPushMessagingServer
 type Options struct {
-	Logger        grpclog.LoggerV2
-	JWTSigningKey []byte
-	FCMServerKey  string
+	AuthAPI      auth.API
+	FCMServerKey string
+	Logger       grpclog.LoggerV2
 }
 
 // NewPushMessagingServer is factory for creating push messaging servers
@@ -44,24 +41,17 @@ func NewPushMessagingServer(ctx context.Context, opt *Options) (push.PushMessagi
 	case ctx == nil:
 		err = errs.NilObject("context")
 	case opt == nil:
-		err = errs.NilObject("logger")
+		err = errs.NilObject("options")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
-	case opt.JWTSigningKey == nil:
-		err = errs.NilObject("jwt key")
+	case opt.AuthAPI == nil:
+		err = errs.NilObject("auth api")
 	case opt.FCMServerKey == "":
 		err = errs.MissingField("fcm server key")
 	}
 	if err != nil {
 		return nil, err
 	}
-
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Pusher API", "users")
-	if err != nil {
-		return nil, err
-	}
-
 	// FCM
 	fcmClient, err := fcm.NewClient(opt.FCMServerKey)
 	if err != nil {
@@ -70,9 +60,8 @@ func NewPushMessagingServer(ctx context.Context, opt *Options) (push.PushMessagi
 
 	// API
 	pushAPI := &pushAPIServer{
-		logger:    opt.Logger,
-		authAPI:   authAPI,
 		fcmClient: fcmClient,
+		Options:   opt,
 	}
 
 	return pushAPI, nil
@@ -89,7 +78,7 @@ func (api *pushAPIServer) SendPushMessage(
 	}
 
 	// Authenticate request
-	err := api.authAPI.AuthenticateRequest(ctx)
+	err := api.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +106,7 @@ func (api *pushAPIServer) SendPushMessage(
 			},
 		})
 		if err != nil {
-			api.logger.Errorf("failed to send message: %v", err)
+			api.Logger.Errorf("failed to send message: %v", err)
 		}
 	}()
 

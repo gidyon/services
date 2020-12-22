@@ -3,9 +3,9 @@ package sms
 import (
 	"context"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/grpclog"
 )
@@ -14,21 +14,19 @@ type sendSMSFunc func(*Options, *sms.SMS) error
 
 type smsAPIServer struct {
 	sms.UnimplementedSMSAPIServer
-	logger  grpclog.LoggerV2
-	authAPI auth.Interface
 	sendSMS sendSMSFunc
-	opt     *Options
+	*Options
 }
 
 // Options contains parameters passed while calling NewSMSAPIServer
 type Options struct {
-	Logger        grpclog.LoggerV2
-	JWTSigningKey []byte
-	APIKey        string
-	AuthToken     string
-	APIUsername   string
-	APIPassword   string
-	APIURL        string
+	Logger      grpclog.LoggerV2
+	AuthAPI     auth.API
+	APIKey      string
+	AuthToken   string
+	APIUsername string
+	APIPassword string
+	APIURL      string
 }
 
 // NewSMSAPIServer creates a new sms API server
@@ -42,8 +40,8 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 		err = errs.NilObject("options")
 	case opt.Logger == nil:
 		err = errs.NilObject("logger")
-	case opt.JWTSigningKey == nil:
-		err = errs.NilObject("jwt key")
+	case opt.AuthAPI == nil:
+		err = errs.NilObject("auth api")
 	case opt.APIKey == "":
 		err = errs.MissingField("api key")
 	case opt.AuthToken == "":
@@ -59,18 +57,10 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 		return nil, err
 	}
 
-	// Auth API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "SMS API", "users")
-	if err != nil {
-		return nil, err
-	}
-
 	// API server
 	smsAPI := &smsAPIServer{
-		logger:  opt.Logger,
-		authAPI: authAPI,
 		sendSMS: sendSmsAT, // uses Africa's talinkg implementation
-		opt:     opt,
+		Options: opt,
 	}
 
 	if smsAPI.sendSMS == nil {
@@ -89,7 +79,7 @@ func (api *smsAPIServer) SendSMS(
 	}
 
 	// Authenticate request
-	err := api.authAPI.AuthenticateRequest(ctx)
+	err := api.AuthAPI.AuthenticateRequest(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +92,9 @@ func (api *smsAPIServer) SendSMS(
 
 	// Send sms
 	go func() {
-		err = api.sendSMS(api.opt, sendReq)
+		err = api.sendSMS(api.Options, sendReq)
 		if err != nil {
-			api.logger.Errorf("failed to send sms: %v", err)
+			api.Logger.Errorf("failed to send sms: %v", err)
 		}
 	}()
 
