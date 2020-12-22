@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	auth "github.com/gidyon/services/pkg/auth"
+	auth "github.com/gidyon/micro/pkg/grpc/auth"
 
 	mock "github.com/stretchr/testify/mock"
 
