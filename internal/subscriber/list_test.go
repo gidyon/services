@@ -54,8 +54,21 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 			pageToken   string
 		)
 
+		Describe("Creating subscribers", func() {
+			It("should succeed", func() {
+				for i := 0; i < 100; i++ {
+					_, err := SubsriberAPI.Subscribe(ctx, &subscriber.SubscriberRequest{
+						SubscriberId: fmt.Sprint(randomdata.Number(999)),
+						ChannelId:    fmt.Sprint(randomdata.Number(99)),
+						ChannelName:  randomdata.Adjective(),
+					})
+					Expect(err).ShouldNot(HaveOccurred())
+				}
+			})
+		})
+
 		Describe("List subscribers when missing channelId", func() {
-			It("should list subscribers for a channel even when page ", func() {
+			It("should list subscribers for a channel even when page", func() {
 				listReq.Filter.Channels = []string{}
 				listReq.PageToken = pageToken
 				listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
