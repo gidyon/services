@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/utils/errs"
 	"gorm.io/gorm"
 )
 
@@ -14,22 +14,22 @@ const accountsTable = "accounts"
 // Account contains profile information stored in the database
 type Account struct {
 	AccountID        uint   `gorm:"primaryKey;autoIncrement"`
-	ProjectID        string `gorm:"index:query_index;type:varchar(50);not null"`
-	Email            string `gorm:"index:query_index;type:varchar(50);not null"`
-	Phone            string `gorm:"index:query_index;type:varchar(50);not null"`
+	ProjectID        string `gorm:"index;type:varchar(50);not null"`
+	Email            string `gorm:"index;type:varchar(50);not null"`
+	Phone            string `gorm:"index;type:varchar(50);not null"`
 	DeviceToken      string `gorm:"type:varchar(256)"`
 	Names            string `gorm:"type:varchar(50);not null"`
 	BirthDate        string `gorm:"type:varchar(30);"`
-	Gender           string `gorm:"index:query_index;type:enum('GENDER_UNSPECIFIED', 'MALE', 'FEMALE');default:'GENDER_UNSPECIFIED';not null"`
+	Gender           string `gorm:"index;type:enum('GENDER_UNSPECIFIED', 'MALE', 'FEMALE');default:'GENDER_UNSPECIFIED';not null"`
 	Nationality      string `gorm:"type:varchar(50);default:'Kenyan'"`
 	ProfileURL       string `gorm:"type:varchar(256)"`
 	LinkedAccounts   string `gorm:"type:varchar(256)"`
 	SecurityQuestion string `gorm:"type:varchar(50)"`
 	SecurityAnswer   string `gorm:"type:varchar(50)"`
 	Password         string `gorm:"type:text"`
-	PrimaryGroup     string `gorm:"index:query_index;type:varchar(50);not null"`
+	PrimaryGroup     string `gorm:"index;type:varchar(50);not null"`
 	SecondaryGroups  []byte `gorm:"type:json"`
-	AccountState     string `gorm:"index:query_index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
+	AccountState     string `gorm:"index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	DeletedAt        gorm.DeletedAt
@@ -58,7 +58,7 @@ func (u *Account) AfterCreate(tx *gorm.DB) error {
 		}
 	}
 	if u.ProjectID == "" {
-		err = tx.Model(u).Update("external_id", accountID).Error
+		err = tx.Model(u).Update("project_id", accountID).Error
 		if err != nil {
 			return err
 		}
@@ -88,6 +88,12 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		return nil, errs.NilObject("account")
 	}
 
+	accountState := account.AccountState(account.AccountState_value[accountDB.AccountState])
+
+	if accountDB.DeletedAt.Valid {
+		accountState = account.AccountState_DELETED
+	}
+
 	accountPB := &account.Account{
 		AccountId:      fmt.Sprint(accountDB.AccountID),
 		ProjectId:      accountDB.ProjectID,
@@ -101,7 +107,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		ProfileUrl:     accountDB.ProfileURL,
 		LinkedAccounts: accountDB.LinkedAccounts,
 		Group:          accountDB.PrimaryGroup,
-		State:          account.AccountState(account.AccountState_value[accountDB.AccountState]),
+		State:          accountState,
 	}
 
 	return accountPB, nil
