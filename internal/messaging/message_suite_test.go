@@ -6,8 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/conn"
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/utils/encryption"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -57,17 +60,21 @@ var _ = BeforeSuite(func() {
 	subscriberClient := mocks.SubscriberAPI
 	logger := micro.NewLogger("messaging")
 
+	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
+	Expect(err).ShouldNot(HaveOccurred())
+
 	opt := &Options{
 		SQLDBWrites:      db,
 		SQLDBReads:       db,
 		Logger:           logger,
-		JWTSigningKey:    []byte("who can guess :)"),
 		EmailSender:      "emrs test team",
 		EmailClient:      emailClient,
 		PushClient:       pushClient,
 		SMSClient:        smsClient,
 		CallClient:       callClient,
 		SubscriberClient: subscriberClient,
+		PaginationHasher: paginationHasher,
+		AuthAPI:          micro_mock.AuthAPI,
 	}
 
 	// Create messaging server
@@ -77,8 +84,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	MessagingServer, ok = MessagingAPI.(*messagingServer)
 	Expect(ok).Should(BeTrue())
-
-	MessagingServer.authAPI = mocks.AuthAPI
 
 	// Pasing incorrect payload
 	_, err = NewMessagingServer(nil, opt)
@@ -107,11 +112,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.EmailSender = "emrs test team"
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte("agiain, damn secured")
+	opt.AuthAPI = micro_mock.AuthAPI
+	opt.PaginationHasher = nil
+	_, err = NewMessagingServer(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.PaginationHasher = paginationHasher
 	opt.PushClient = nil
 	_, err = NewMessagingServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())

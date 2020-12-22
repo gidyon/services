@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"gorm.io/gorm"
 
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging"
-	"github.com/gidyon/services/pkg/utils/errs"
 )
 
 const (
