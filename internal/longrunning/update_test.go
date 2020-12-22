@@ -90,11 +90,11 @@ var _ = Describe("Updating A Operation @update", func() {
 
 				Describe("Getting an updated operation", func() {
 					It("should reflect updated fields", func() {
-						ops, err := OperationAPIService.redisDB.LRange(getUserOpList(userID), 0, -1).Result()
+						ops, err := OperationAPIService.RedisClient.LRange(ctx, getUserOpList(userID), 0, -1).Result()
 						Expect(err).ShouldNot(HaveOccurred())
 						Expect(operationID).Should(BeElementOf(ops))
 
-						opStr, err := OperationAPIService.redisDB.Get(getOpKey(operationID)).Result()
+						opStr, err := OperationAPIService.RedisClient.Get(ctx, getOpKey(operationID)).Result()
 						Expect(err).ShouldNot(HaveOccurred())
 						opPB := &longrunning.Operation{}
 						Expect(proto.Unmarshal([]byte(opStr), opPB)).ShouldNot(HaveOccurred())
@@ -123,7 +123,7 @@ var _ = Describe("Updating A Operation @update", func() {
 
 				Describe("Getting an updated operation", func() {
 					It("should fail because the operation never existed", func() {
-						opStr, err := OperationAPIService.redisDB.Get(getOpKey(operationID)).Result()
+						opStr, err := OperationAPIService.RedisClient.Get(ctx, getOpKey(operationID)).Result()
 						Expect(err).Should(HaveOccurred())
 						Expect(opStr).Should(BeZero())
 					})

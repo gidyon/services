@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/services/pkg/api/operation"
+	"github.com/gidyon/services/pkg/api/longrunning"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,18 +13,18 @@ import (
 var _ = Describe("Getting A Operation @get", func() {
 	var (
 		userID = randomdata.RandStringRunes(32)
-		getReq *operation.GetOperationRequest
+		getReq *longrunning.GetOperationRequest
 		ctx    context.Context
 	)
 
 	BeforeEach(func() {
-		getReq = &operation.GetOperationRequest{
+		getReq = &longrunning.GetOperationRequest{
 			OperationId: randomdata.RandStringRunes(32),
 		}
 		ctx = context.Background()
 	})
 
-	Describe("Getting an operation with incorrect/missing values", func() {
+	Describe("Getting an longrunning with incorrect/missing values", func() {
 		It("should fail when the request is nil", func() {
 			getReq = nil
 			getRes, err := OperationAPIService.GetOperation(ctx, getReq)
@@ -32,14 +32,14 @@ var _ = Describe("Getting A Operation @get", func() {
 			Expect(getRes).Should(BeNil())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
-		It("should fail when operation id is missing", func() {
+		It("should fail when longrunning id is missing", func() {
 			getReq.OperationId = ""
 			getRes, err := OperationAPIService.GetOperation(ctx, getReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(getRes).Should(BeNil())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
-		It("should fail when operation id is incorrect", func() {
+		It("should fail when longrunning id is incorrect", func() {
 			getRes, err := OperationAPIService.GetOperation(ctx, getReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(getRes).Should(BeNil())
@@ -47,12 +47,12 @@ var _ = Describe("Getting A Operation @get", func() {
 		})
 	})
 
-	Describe("Getting a operation with correct/valid request", func() {
-		var operationID string
-		Describe("Lets create the operation first", func() {
-			Describe("Creating an operation", func() {
+	Describe("Getting a longrunning with correct/valid request", func() {
+		var longrunningID string
+		Describe("Lets create the longrunning first", func() {
+			Describe("Creating an longrunning", func() {
 				It("should succeed", func() {
-					createReq := &operation.CreateOperationRequest{
+					createReq := &longrunning.CreateOperationRequest{
 						Operation: mockOperation(),
 					}
 					createReq.Operation.UserId = userID
@@ -60,13 +60,13 @@ var _ = Describe("Getting A Operation @get", func() {
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(createRes).ShouldNot(BeNil())
 					Expect(status.Code(err)).Should(Equal(codes.OK))
-					operationID = createRes.Id
+					longrunningID = createRes.Id
 				})
 			})
 
-			Describe("Getting the operation", func() {
+			Describe("Getting the longrunning", func() {
 				It("should succeed when the request is valid", func() {
-					getReq.OperationId = operationID
+					getReq.OperationId = longrunningID
 					getRes, err := OperationAPIService.GetOperation(ctx, getReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(getRes).ShouldNot(BeNil())
@@ -74,9 +74,9 @@ var _ = Describe("Getting A Operation @get", func() {
 				})
 			})
 
-			Describe("Checking whether the operation exists in cache", func() {
+			Describe("Checking whether the longrunning exists in cache", func() {
 				It("should exist in cache", func() {
-					opStr, err := OperationAPIService.redisDB.Get(ctx, getOpKey(operationID)).Result()
+					opStr, err := OperationAPIService.RedisClient.Get(ctx, getOpKey(longrunningID)).Result()
 					Expect(opStr).ShouldNot(BeZero())
 					Expect(err).ShouldNot(HaveOccurred())
 				})

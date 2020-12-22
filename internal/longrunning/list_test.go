@@ -4,25 +4,25 @@ import (
 	"context"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/services/pkg/api/operation"
+	"github.com/gidyon/services/pkg/api/longrunning"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// List operation for incorrect user
+// List longrunning for incorrect user
 
 var _ = Describe("ListOperations @list", func() {
 	var (
 		userID  = randomdata.RandStringRunes(32)
-		listReq *operation.ListOperationsRequest
+		listReq *longrunning.ListOperationsRequest
 		ctx     context.Context
 	)
 
 	BeforeEach(func() {
-		listReq = &operation.ListOperationsRequest{
+		listReq = &longrunning.ListOperationsRequest{
 			PageToken: "",
 			PageSize:  10,
-			Filter: &operation.ListOperationsFilter{
+			Filter: &longrunning.ListOperationsFilter{
 				UserId: userID,
 			},
 		}
@@ -54,10 +54,10 @@ var _ = Describe("ListOperations @list", func() {
 	})
 
 	Describe("Calling ListOperations with valid values", func() {
-		Describe("Creating multiple operation", func() {
+		Describe("Creating multiple longrunning", func() {
 			for i := 0; i < 10; i++ {
 				It("should succeed", func() {
-					createReq := &operation.CreateOperationRequest{
+					createReq := &longrunning.CreateOperationRequest{
 						Operation: mockOperation(),
 					}
 					createReq.Operation.UserId = userID
@@ -86,7 +86,7 @@ var _ = Describe("ListOperations @list", func() {
 		})
 	})
 
-	Describe("Listing operations with incorrect user id", func() {
+	Describe("Listing longrunnings with incorrect user id", func() {
 		It("should succeed but with no ops!", func() {
 			listReq.Filter.UserId = randomdata.RandStringRunes(32)
 			listRes, err := OperationAPI.ListOperations(ctx, listReq)

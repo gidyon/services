@@ -8,8 +8,9 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/micro"
+	"github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/utils/encryption"
 	"github.com/gidyon/services/pkg/api/longrunning"
-	"github.com/gidyon/services/pkg/mocks"
 	redis "github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 
@@ -23,7 +24,7 @@ func TestOperation(t *testing.T) {
 }
 
 var (
-	OperationAPIService *operationAPIService
+	OperationAPIService *longrunningAPIService
 	OperationAPI        longrunning.OperationAPIServer
 )
 
@@ -37,28 +38,30 @@ var _ = BeforeSuite(func() {
 
 	var err error
 
-	logger := micro.NewLogger("operation_app")
+	logger := micro.NewLogger("longrunning_app")
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:    redisAddress,
 		Network: "tcp",
 	})
 
+	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
+	Expect(err).ShouldNot(HaveOccurred())
+
 	opt := &Options{
-		RedisClient:   redisClient,
-		Logger:        logger,
-		JWTSigningKey: []byte(randomdata.RandStringRunes(32)),
+		RedisClient:      redisClient,
+		Logger:           logger,
+		PaginationHasher: paginationHasher,
+		AuthAPI:          mocks.AuthAPI,
 	}
 
-	// Create operation API
+	// Create longrunning API
 	OperationAPI, err = NewOperationAPIService(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	var ok bool
-	OperationAPIService, ok = OperationAPI.(*operationAPIService)
+	OperationAPIService, ok = OperationAPI.(*longrunningAPIService)
 	Expect(ok).Should(BeTrue())
-
-	OperationAPIService.authAPI = mocks.AuthAPI
 
 	// Pasing incorrect payload
 	_, err = NewOperationAPIService(nil, opt)
@@ -71,11 +74,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.Logger = logger
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewOperationAPIService(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
+	opt.AuthAPI = mocks.AuthAPI
+	opt.PaginationHasher = nil
+	_, err = NewOperationAPIService(ctx, opt)
+	Expect(err).Should(HaveOccurred())
+
+	opt.PaginationHasher = paginationHasher
 	opt.RedisClient = nil
 	_, err = NewOperationAPIService(ctx, opt)
 	Expect(err).Should(HaveOccurred())
@@ -84,7 +92,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	Expect(OperationAPIService.redisDB.Close()).ShouldNot(HaveOccurred())
+	Expect(OperationAPIService.RedisClient.Close()).ShouldNot(HaveOccurred())
 })
 
 // Declarations for Ginkgo DSL
