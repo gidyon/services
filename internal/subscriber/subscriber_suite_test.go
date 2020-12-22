@@ -9,7 +9,9 @@ import (
 
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/conn"
+	"github.com/gidyon/micro/utils/encryption"
 
+	micro_mock "github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/subscriber"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -55,12 +57,18 @@ var _ = BeforeSuite(func() {
 	channelClient := mocks.ChannelAPI
 	accountClient := mocks.AccountAPI
 
+	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
+	Expect(err).ShouldNot(HaveOccurred())
+
+	authAPI := micro_mock.AuthAPI
+
 	opt := &Options{
-		SQLDB:         db,
-		Logger:        logger,
-		ChannelClient: channelClient,
-		AccountClient: accountClient,
-		JWTSigningKey: []byte(randomdata.RandStringRunes(32)),
+		SQLDB:            db,
+		Logger:           logger,
+		ChannelClient:    channelClient,
+		AccountClient:    accountClient,
+		AuthAPI:          authAPI,
+		PaginationHasher: paginationHasher,
 	}
 
 	// Inject stubs to the service
@@ -70,8 +78,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	SubsriberAPIServer, ok = SubsriberAPI.(*subscriberAPIServer)
 	Expect(ok).Should(BeTrue())
-
-	SubsriberAPIServer.authAPI = mocks.AuthAPI
 
 	// Mock failing cases
 	_, err = NewSubscriberAPIServer(nil, opt)
@@ -100,12 +106,16 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.AccountClient = accountClient
-	opt.JWTSigningKey = nil
+	opt.AuthAPI = nil
 	_, err = NewSubscriberAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
 
-	opt.JWTSigningKey = []byte(randomdata.RandStringRunes(32))
+	opt.AuthAPI = authAPI
+	opt.PaginationHasher = nil
+	_, err = NewSubscriberAPIServer(ctx, opt)
+	Expect(err).Should(HaveOccurred())
 
+	opt.PaginationHasher = paginationHasher
 	_, err = NewSubscriberAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 })

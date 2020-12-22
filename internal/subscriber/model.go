@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/utils/errs"
 
 	"github.com/gidyon/services/pkg/api/subscriber"
 )

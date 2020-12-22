@@ -10,16 +10,15 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/gidyon/services/pkg/auth"
-	"github.com/gidyon/services/pkg/utils/encryption"
-	"github.com/gidyon/services/pkg/utils/errs"
-	"github.com/gidyon/services/pkg/utils/mdutil"
+	"github.com/speps/go-hashids"
 	"gorm.io/gorm"
 
 	"github.com/gidyon/services/pkg/api/channel"
 
-	"github.com/speps/go-hashids"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/status"
@@ -30,18 +29,17 @@ import (
 
 type subscriberAPIServer struct {
 	subscriber.UnimplementedSubscriberAPIServer
-	authAPI auth.Interface
-	hasher  *hashids.HashID
 	*Options
 }
 
 // Options are parameters passed while calling NewSubscriberAPIServer
 type Options struct {
-	SQLDB         *gorm.DB
-	Logger        grpclog.LoggerV2
-	ChannelClient channel.ChannelAPIClient
-	AccountClient account.AccountAPIClient
-	JWTSigningKey []byte
+	SQLDB            *gorm.DB
+	Logger           grpclog.LoggerV2
+	ChannelClient    channel.ChannelAPIClient
+	AccountClient    account.AccountAPIClient
+	PaginationHasher *hashids.HashID
+	AuthAPI          auth.API
 }
 
 // NewSubscriberAPIServer factory creates a subscriber API server
@@ -63,28 +61,16 @@ func NewSubscriberAPIServer(
 		err = errs.NilObject("channel client")
 	case opt.AccountClient == nil:
 		err = errs.NilObject("accounts client")
-	case opt.JWTSigningKey == nil:
-		err = errs.NilObject("jwt key")
+	case opt.PaginationHasher == nil:
+		err = errs.MissingField("pagination PaginationHasher")
+	case opt.AuthAPI == nil:
+		err = errs.MissingField("authentication API")
 	}
 	if err != nil {
 		return nil, err
-	}
-
-	// Authentication API
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Subscriber API", "users")
-	if err != nil {
-		return nil, err
-	}
-
-	// Pagination hasher
-	hasher, err := encryption.NewHasher(string(opt.JWTSigningKey))
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate hash id: %v", err)
 	}
 
 	subscriberAPI := &subscriberAPIServer{
-		authAPI: authAPI,
-		hasher:  hasher,
 		Options: opt,
 	}
 
@@ -128,7 +114,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	}
 
 	// Authorize the request
-	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, subReq.SubscriberId, auth.AdminGroup())
+	_, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, subReq.SubscriberId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +234,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	}
 
 	// Authorize the request
-	_, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, unSubReq.SubscriberId, auth.AdminGroup())
+	_, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, unSubReq.SubscriberId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -387,6 +373,15 @@ func hasChannel(subscriberChannels []*subscriber.ChannelSubcriber, channels []st
 	return false
 }
 
+func inGroup(group string, groups []string) bool {
+	for _, grp := range groups {
+		if grp == group {
+			return true
+		}
+	}
+	return false
+}
+
 func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	ctx context.Context, listReq *subscriber.ListSubscribersRequest,
 ) (*subscriber.ListSubscribersResponse, error) {
@@ -396,7 +391,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.authAPI.AuthorizeGroups(ctx, auth.AdminGroup())
+	payload, err := subscriberAPI.AuthAPI.AuthorizeGroups(ctx, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +404,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	var ID uint
 	pageToken := listReq.GetPageToken()
 	if pageToken != "" {
-		ids, err := subscriberAPI.hasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := subscriberAPI.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "bad page token value")
 		}
@@ -456,7 +451,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		// Lets get the user
 		accountPB, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
 			AccountId:  fmt.Sprint(subscriberDB.ID),
-			Priviledge: payload.Group == auth.AdminGroup(),
+			Priviledge: inGroup(payload.Group, auth.Admins()),
 		})
 		switch {
 		case err == nil:
@@ -479,7 +474,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	var token string
 	if int(pageSize) == len(subscribersDB) {
 		// Next page token
-		token, err = subscriberAPI.hasher.EncodeInt64([]int64{int64(ID)})
+		token, err = subscriberAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
 		}
@@ -500,7 +495,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.SubscriberId, auth.AdminGroup())
+	payload, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.SubscriberId, auth.Admins()...)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +532,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	// Get account details
 	accountPB, err := subscriberAPI.AccountClient.GetAccount(ctx, &account.GetAccountRequest{
 		AccountId:  getReq.SubscriberId,
-		Priviledge: payload.Group == auth.AdminGroup(),
+		Priviledge: inGroup(payload.Group, auth.Admins()),
 	}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to get susbcriber profile")
