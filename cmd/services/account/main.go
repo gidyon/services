@@ -180,20 +180,21 @@ func main() {
 
 		// Create account API instance
 		accountAPI, err := account_app.NewAccountAPI(ctx, &account_app.Options{
-			AppName:          os.Getenv("APP_NAME"),
-			EmailDisplayName: os.Getenv("EMAIL_DISPLAY_NAME"),
-			TemplatesDir:     os.Getenv("TEMPLATES_DIR"),
-			ActivationURL:    os.Getenv("ACTIVATION_URL"),
-			AuthAPI:          authAPI,
-			PaginationHasher: paginationHasher,
-			SQLDBWrites:      app.GormDBByName("sqlWrites"),
-			SQLDBReads:       app.GormDBByName("sqlReads"),
-			RedisDBWrites:    app.RedisClientByName("redisWrites"),
-			RedisDBReads:     app.RedisClientByName("redisReads"),
-			Logger:           app.Logger(),
-			SecureCookie:     sc,
-			MessagingClient:  messaging.NewMessagingClient(messagingCC),
-			FirebaseAuth:     firebaseAuth,
+			AppName:            os.Getenv("APP_NAME"),
+			EmailDisplayName:   os.Getenv("EMAIL_DISPLAY_NAME"),
+			DefaultEmailSender: os.Getenv("DEFAULT_EMAIL_SENDER"),
+			TemplatesDir:       os.Getenv("TEMPLATES_DIR"),
+			ActivationURL:      os.Getenv("ACTIVATION_URL"),
+			AuthAPI:            authAPI,
+			PaginationHasher:   paginationHasher,
+			SQLDBWrites:        app.GormDBByName("sqlWrites"),
+			SQLDBReads:         app.GormDBByName("sqlReads"),
+			RedisDBWrites:      app.RedisClientByName("redisWrites"),
+			RedisDBReads:       app.RedisClientByName("redisReads"),
+			Logger:             app.Logger(),
+			SecureCookie:       sc,
+			MessagingClient:    messaging.NewMessagingClient(messagingCC),
+			FirebaseAuth:       firebaseAuth,
 		})
 		errs.Panic(err)
 
