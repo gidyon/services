@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Accounts Service",
-    "description": "API for managing account activities",
+    "description": "API for managing user account",
     "version": "v1",
     "contact": {
       "name": "Github \u003cGideon Kamau\u003e",
@@ -1320,18 +1320,16 @@
     }
   },
   "securityDefinitions": {
-    "ApiKeyAuth": {
+    "bearer": {
       "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
       "name": "Authorization",
       "in": "header"
-    },
-    "BasicAuth": {
-      "type": "basic"
     }
   },
   "security": [
     {
-      "ApiKeyAuth": []
+      "bearer": []
     }
   ]
 }
