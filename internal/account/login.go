@@ -44,16 +44,19 @@ func (accountAPI *accountAPIServer) SignIn(
 		err = errs.MissingField("username")
 	case signInReq.Password == "":
 		err = errs.MissingField("password")
+	case signInReq.ProjectId == "":
+		err = errs.MissingField("project id")
 	}
 	if err != nil {
 		return nil, err
 	}
 
+	// Check whtether account exist
 	accountDB := &Account{}
 
 	// Query for user with email or phone or huduma id
 	err = accountAPI.SQLDBWrites.Select("account_id,names,primary_group,account_state,password").First(
-		accountDB, "phone=? OR email=?", signInReq.Username, signInReq.Username,
+		accountDB, "phone=? OR email=? AND project_id=?", signInReq.Username, signInReq.Username, signInReq.ProjectId,
 	).Error
 	switch {
 	case err == nil:

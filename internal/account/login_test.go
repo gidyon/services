@@ -25,9 +25,10 @@ var _ = Describe("SignIn Account @signIn", func() {
 
 	BeforeEach(func() {
 		signInReq = &account.SignInRequest{
-			Username: randomdata.Email(),
-			Password: randomdata.RandStringRunes(10),
-			Group:    getGroup(),
+			Username:  randomdata.Email(),
+			Password:  randomdata.RandStringRunes(10),
+			Group:     getGroup(),
+			ProjectId: "test",
 		}
 		ctx = context.Background()
 	})
@@ -52,6 +53,13 @@ var _ = Describe("SignIn Account @signIn", func() {
 		})
 		It("should fail when password is missing in the signIn credentials", func() {
 			signInReq.Password = ""
+			signInRes, err := AccountAPI.SignIn(ctx, signInReq)
+			Expect(err).Should(HaveOccurred())
+			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
+			Expect(signInRes).Should(BeNil())
+		})
+		It("should fail when project id is missing in the signIn credentials", func() {
+			signInReq.ProjectId = ""
 			signInRes, err := AccountAPI.SignIn(ctx, signInReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -85,7 +93,7 @@ var _ = Describe("SignIn Account @signIn", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
-					ProjectId:      "1",
+					ProjectId:      "test",
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -127,7 +135,7 @@ var _ = Describe("SignIn Account @signIn", func() {
 				It("should create account without error", func() {
 					createReq := &account.CreateAccountRequest{
 						Account:   fakeAccount(),
-						ProjectId: "1",
+						ProjectId: "test",
 					}
 					createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 					Expect(err).ShouldNot(HaveOccurred())
