@@ -591,7 +591,7 @@ service AccountAPI {
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
         title: "Accounts Service";
-        description: "API for managing account activities"
+        description: "API for managing user account"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
