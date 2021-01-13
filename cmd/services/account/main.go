@@ -10,6 +10,7 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/Pallinder/go-randomdata"
+	"go.uber.org/zap"
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/gidyon/micro"
 	httpmiddleware "github.com/gidyon/micro/pkg/http"
 	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
 
 	"github.com/gidyon/micro/pkg/healthcheck"
 
@@ -47,13 +49,25 @@ func main() {
 	cfg, err := config.New(config.FromFile)
 	errs.Panic(err)
 
-	app, err := micro.NewService(ctx, cfg, nil)
+	// initialize logger
+	errs.Panic(zaplogger.Init(cfg.LogLevel(), ""))
+
+	zaplogger.Log = zaplogger.Log.WithOptions(zap.WithCaller(true))
+
+	appLogger := zaplogger.ZapGrpcLoggerV2(zaplogger.Log)
+
+	app, err := micro.NewService(ctx, cfg, appLogger)
 	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
 	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	app.AddGRPCStreamServerInterceptors(recoverySIs...)
+
+	// Logging middleware
+	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
+	app.AddGRPCUnaryServerInterceptors(logginUIs...)
+	app.AddGRPCStreamServerInterceptors(loggingSIs...)
 
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 

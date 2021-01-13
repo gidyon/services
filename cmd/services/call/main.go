@@ -7,6 +7,8 @@ import (
 
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/healthcheck"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	call_app "github.com/gidyon/services/internal/messaging/call"
@@ -29,14 +31,25 @@ func main() {
 	cfg, err := config.New(config.FromFile)
 	errs.Panic(err)
 
-	// Create service
-	callSrv, err := micro.NewService(ctx, cfg, nil)
+	// initialize logger
+	errs.Panic(zaplogger.Init(cfg.LogLevel(), ""))
+
+	zaplogger.Log = zaplogger.Log.WithOptions(zap.WithCaller(true))
+
+	appLogger := zaplogger.ZapGrpcLoggerV2(zaplogger.Log)
+
+	callSrv, err := micro.NewService(ctx, cfg, appLogger)
 	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
 	callSrv.AddGRPCUnaryServerInterceptors(recoveryUIs...)
 	callSrv.AddGRPCStreamServerInterceptors(recoverySIs...)
+
+	// Logging middleware
+	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
+	callSrv.AddGRPCUnaryServerInterceptors(logginUIs...)
+	callSrv.AddGRPCStreamServerInterceptors(loggingSIs...)
 
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 
