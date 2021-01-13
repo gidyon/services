@@ -10,209 +10,203 @@ import "google/api/field_behaviour.proto";
 import "protoc-gen-swagger/options/annotations.proto";
 
 message Channel {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Channel"
-            description: "A subscription network"
+			description: "A subscription network"
 		}
-    };
+	};
 
-    string id = 1;
-    string title = 2;
-    string description = 3;
-    string owner_id = 4;
-    int32 create_time_seconds = 5;
-    int32 subscribers = 6;
+	string id = 1;
+	string title = 2;
+	string description = 3;
+	string owner_id = 4;
+	int32 create_time_seconds = 5;
+	int32 subscribers = 6;
 }
 
 message CreateChannelRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateChannelRequest"
-            description: "Request to create a new channel"
-            required: ["channel"]
+			description: "Request to create a new channel"
+			required: ["channel"]
 		}
-    };
+	};
 
-    Channel channel = 1 [(google.api.field_behavior) = REQUIRED];
+	Channel channel = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message CreateChannelResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateChannelResponse"
 			description: "Response after creating a channel"
 		}
-    };
+	};
 
-    string id = 1;
+	string id = 1;
 }
 
 message UpdateChannelRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateChannelRequest"
 			description: "Request to update a channel resource"
 		}
-    };
+	};
 
-    string owner_id = 1 [(google.api.field_behavior) = OPTIONAL];
-    Channel channel = 2 [(google.api.field_behavior) = REQUIRED];
+	string owner_id = 1 [(google.api.field_behavior) = OPTIONAL];
+	Channel channel = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DeleteChannelRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "DeleteChannelRequest"
 			description: "Request to delete a channel resource"
 		}
-    };
+	};
 
-    string id = 1 [(google.api.field_behavior) = REQUIRED];
-    string owner_id = 2 [(google.api.field_behavior) = OPTIONAL];
+	string id = 1 [(google.api.field_behavior) = REQUIRED];
+	string owner_id = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListChannelsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListChannelsRequest"
 			description: "Request to retrieve a collection of channel resources"
 		}
-    };
+	};
 
-    string page_token = 1;
-    int32 page_size = 2;
+	string page_token = 1;
+	int32 page_size = 2;
 }
 
 message ListChannelsResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListChannelsResponse"
 			description: "Response containing a collection of channel resource"
 		}
-    };
+	};
 
-    repeated Channel channels = 1;
-    string next_page_token = 2;
+	repeated Channel channels = 1;
+	string next_page_token = 2;
 }
 
 message GetChannelRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetChannelRequest"
 			description: "Request to retrieve a channel resource"
 			required: ["id"]
 		}
-    };
+	};
 
-    string id = 1 [(google.api.field_behavior) = REQUIRED];
+	string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 message SubscribersRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SubscribersRequest"
 			description: "Request to increment or decrement subscribers for a channel or topic"
 			required: ["id"]
 		}
-    };
+	};
 
-    string id = 1 [(google.api.field_behavior) = REQUIRED];
+	string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages channels and subscriptions
 service ChannelAPI {
-    // Creates a new subscriber channel
-    rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse) {
-        option (google.api.http) = {
-            post: "/api/channels",
-            body: "*"
-        };
-    }
+	// Creates a new subscriber channel
+	rpc CreateChannel (CreateChannelRequest) returns (CreateChannelResponse) {
+		option (google.api.http) = {
+			post: "/api/channels",
+			body: "*"
+		};
+	}
 
-    // Updates an existing channel resource
-    rpc UpdateChannel (UpdateChannelRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            patch: "/api/channels/{channel.id}",
-            body: "*"
-        };
-    }
+	// Updates an existing channel resource
+	rpc UpdateChannel (UpdateChannelRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+			patch: "/api/channels/{channel.id}",
+			body: "*"
+		};
+	}
 
-    // Removes a subscribers channel
-    rpc DeleteChannel (DeleteChannelRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/channels/{id}"
-        };
-    }
+	// Removes a subscribers channel
+	rpc DeleteChannel (DeleteChannelRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+			delete: "/api/channels/{id}"
+		};
+	}
 
-    // Retrieves a collection of channels resource
-    rpc ListChannels (ListChannelsRequest) returns (ListChannelsResponse) {
-        option (google.api.http) = {
-            get: "/api/channels"
-        };
-    }
+	// Retrieves a collection of channels resource
+	rpc ListChannels (ListChannelsRequest) returns (ListChannelsResponse) {
+		option (google.api.http) = {
+			get: "/api/channels"
+		};
+	}
 
-    // Retrieves a single channel resource
-    rpc GetChannel (GetChannelRequest) returns (Channel) {
-        option (google.api.http) = {
-            get: "/api/channels/{id}"
-        };
-    }
+	// Retrieves a single channel resource
+	rpc GetChannel (GetChannelRequest) returns (Channel) {
+		option (google.api.http) = {
+			get: "/api/channels/{id}"
+		};
+	}
 
-    // Increment subscribers by one.
-    rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty){
-        option (google.api.http) = {
-            get: "/api/channels/action:incrementsub"
-        };
-    };
+	// Increment subscribers by one.
+	rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty){
+		option (google.api.http) = {
+			get: "/api/channels/action:incrementsub"
+		};
+	};
 
-    // Decrement subscribers by one.
-    rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            get: "/api/channels/action:decrementSub"
-        };
-    };
+	// Decrement subscribers by one.
+	rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+			get: "/api/channels/action:decrementSub"
+		};
+	};
 }
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 	info: {
-        title: "Channel Service";
-        description: "Manages channels/topics for subscriptions"
+		title: "Channel Service";
+		description: "Manages channels/topics for subscriptions"
 		version: "v1";
 		contact: {
 			name: "Github <Gideon Kamau>";
 			url: "https://github.com/gidyon/services/blob/master/api/proto/channel.proto";
 			email: "gideonhacer@gmail.com";
-        };
-        license: {
+		};
+		license: {
 			name: "MIT License";
 			url: "https://github.com/gidyon/services/blob/master/LICENSE";
 		};
-    };
-    schemes: HTTP;
+	};
+	schemes: HTTP;
 	schemes: HTTPS;
-    consumes: "application/json";
-    produces: "application/json";
-    security_definitions: {
+	consumes: "application/json";
+	produces: "application/json";
+	security_definitions: {
 		security: {
-			key: "BasicAuth";
-			value: {
-				type: TYPE_BASIC;
-			}
-		}
-		security: {
-			key: "ApiKeyAuth";
-			value: {
-				type: TYPE_API_KEY;
-				in: IN_HEADER;
-				name: "Authorization";
-			}
+		  key: "bearer"
+		  value: {
+			type: TYPE_API_KEY
+			in: IN_HEADER
+			name: "Authorization"
+			description: "Authentication token, prefixed by Bearer: Bearer <token>"
+		  }
 		}
 	}
 	security: {
 		security_requirement: {
-			key: "ApiKeyAuth";
-			value: {};
+		  key: "bearer"
 		}
 	}
 };

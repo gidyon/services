@@ -603,11 +603,11 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 			url: "https://github.com/gidyon/services/blob/master/LICENSE";
 		};
     };
-    schemes: HTTP;
+	schemes: HTTP;
 	schemes: HTTPS;
-    consumes: "application/json";
-    produces: "application/json";
-    security_definitions: {
+	consumes: "application/json";
+	produces: "application/json";
+	security_definitions: {
 		security: {
 		  key: "bearer"
 		  value: {
@@ -617,10 +617,10 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 			description: "Authentication token, prefixed by Bearer: Bearer <token>"
 		  }
 		}
-	  }
-	  security: {
+	}
+	security: {
 		security_requirement: {
 		  key: "bearer"
 		}
-	  }
+	}
 };
