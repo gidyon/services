@@ -779,7 +779,7 @@ func (accountAPI *accountAPIServer) ExistAccount(
 
 	// Query for account with email or phone
 	err = accountAPI.SQLDBWrites.Select("account_id,email,phone").
-		First(accountDB, "email=? OR phone=? AND project_id=?", email, phone, projectID).Error
+		First(accountDB, "(email=? OR phone=?) AND project_id=?", email, phone, projectID).Error
 	switch {
 	case err == nil:
 		existingFields := make([]string, 0)
