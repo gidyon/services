@@ -68,7 +68,7 @@ var _ = Describe("Checking whether Phone or Email @exist", func() {
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(existRes).ShouldNot(BeNil())
 			})
-			It("should succeed with when email and phone and external id are given", func() {
+			It("should succeed with when email and phone and project id are given", func() {
 				existRes, err := AccountAPI.ExistAccount(ctx, existReq)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))

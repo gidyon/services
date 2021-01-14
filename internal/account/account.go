@@ -775,11 +775,22 @@ func (accountAPI *accountAPIServer) ExistAccount(
 		return nil, errs.MissingField("email, phone or external id")
 	}
 
+	// Fix phone
+	if strings.HasPrefix(phone, "+") {
+		phone = phone[1:]
+	}
+	if strings.HasPrefix(phone, "7") {
+		phone = fmt.Sprint("254", phone)
+	}
+	if strings.HasPrefix(phone, "07") {
+		phone = fmt.Sprint("254", phone[1:])
+	}
+
 	accountDB := &Account{}
 
 	// Query for account with email or phone
 	err = accountAPI.SQLDBWrites.Select("account_id,email,phone").
-		First(accountDB, "(email=? OR phone=?) AND project_id=?", email, phone, projectID).Error
+		First(accountDB, "(phone=? OR email=?) AND project_id=?", phone, email, projectID).Error
 	switch {
 	case err == nil:
 		existingFields := make([]string, 0)
