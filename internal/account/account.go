@@ -776,15 +776,7 @@ func (accountAPI *accountAPIServer) ExistAccount(
 	}
 
 	// Fix phone
-	if strings.HasPrefix(phone, "+") {
-		phone = phone[1:]
-	}
-	if strings.HasPrefix(phone, "7") {
-		phone = fmt.Sprint("254", phone)
-	}
-	if strings.HasPrefix(phone, "07") {
-		phone = fmt.Sprint("254", phone[1:])
-	}
+	phone = fixPhone(phone)
 
 	accountDB := &Account{}
 
