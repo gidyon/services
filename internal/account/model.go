@@ -67,7 +67,7 @@ func (u *Account) AfterCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// AfterFind will reset email and phone to their zero value if they equal the user id
+// AfterFind will reset email and phone to their zero value if they equal the accoint id
 func (u *Account) AfterFind(tx *gorm.DB) (err error) {
 	accountID := fmt.Sprint(u.AccountID)
 	if u.Email == accountID {
