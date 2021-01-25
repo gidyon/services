@@ -415,6 +415,10 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 		return nil, err
 	}
 
+	if accountDBX.AccountState == account.AccountState_ACCOUNT_STATE_UNSPECIFIED.String() {
+		accountDBX.AccountState = ""
+	}
+
 	if accountAPI.AuthAPI.IsAdmin(payload.Group) == false {
 		// Update the model; omit "id", "primary_group", "account_state" and "security profile"
 		err = accountAPI.SQLDBWrites.Model(accountDBX).
