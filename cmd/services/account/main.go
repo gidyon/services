@@ -17,22 +17,22 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
-	"github.com/gidyon/micro"
-	httpmiddleware "github.com/gidyon/micro/pkg/http"
-	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
+	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
+	"github.com/gidyon/micro/v2/utils/encryption"
 
-	"github.com/gidyon/micro/pkg/healthcheck"
+	"github.com/gidyon/micro/v2/pkg/healthcheck"
 
 	account_app "github.com/gidyon/services/internal/account"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
 
-	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+	"github.com/gidyon/micro/v2/pkg/config"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 )
@@ -72,17 +72,21 @@ func main() {
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	authAPI, err := auth.NewAPI(&auth.Options{
+		SigningKey: jwtKey,
+		Issuer:     "Accounts API",
+		Audience:   "accounts",
+	})
 	errs.Panic(err)
 
 	// Generate jwt token
-	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{}, time.Now().Add(100*24*time.Hour))
 	if err == nil {
-		app.Logger().Infof("Test jwt is %s", token)
+		app.Logger().Infof("test jwt is %s", token)
 	}
 
-	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
-	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthorizeFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthorizeFunc))
 
 	// Readiness health check
 	app.AddEndpoint("/api/accounts/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
@@ -97,12 +101,6 @@ func main() {
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
 	}))
-
-	// Fetch groups
-	app.AddEndpointFunc("/groups", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("content-type", "application/json")
-		json.NewEncoder(w).Encode(auth.Groups())
-	})
 
 	sc := securecookie.New(apiHashKey, apiBlockKey)
 
@@ -149,7 +147,6 @@ func main() {
 			ID:          fmt.Sprint(1),
 			Names:       randomdata.SillyName(),
 			PhoneNumber: randomdata.PhoneNumber(),
-			Group:       auth.AdminGroup(),
 		}, time.Now().Add(6*time.Hour))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
