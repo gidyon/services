@@ -52,6 +52,7 @@ message Account {
     string group = 13;
     string linked_accounts = 14;
     AccountState state = 15;
+    repeated string secondary_groups = 16;
 }
 
 message PrivateAccount {
@@ -135,6 +136,7 @@ message SignInResponse {
     string refresh_token = 4 [(google.api.field_behavior) = REQUIRED];
     string group = 5;
     AccountState state = 6;
+    repeated string secondary_groups = 16;
 }
 
 message CreateAccountRequest {

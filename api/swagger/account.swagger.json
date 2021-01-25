@@ -895,6 +895,12 @@
         },
         "state": {
           "$ref": "#/definitions/apisAccountState"
+        },
+        "secondaryGroups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "Account profile information",
@@ -1232,6 +1238,12 @@
         },
         "state": {
           "$ref": "#/definitions/apisAccountState"
+        },
+        "secondaryGroups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "Response after signing in",
