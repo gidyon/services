@@ -145,6 +145,14 @@ func GetAccountDB(accountPB *account.Account) (*Account, error) {
 		AccountState:   accountPB.State.String(),
 	}
 
+	if len(accountPB.SecondaryGroups) > 0 {
+		bs, err := json.Marshal(accountPB.SecondaryGroups)
+		if err != nil {
+			return nil, errs.FromJSONMarshal(err, "secondary group")
+		}
+		accountDB.SecondaryGroups = bs
+	}
+
 	return accountDB, nil
 }
 
