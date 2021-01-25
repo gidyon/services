@@ -418,6 +418,9 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	if accountDBX.AccountState == account.AccountState_ACCOUNT_STATE_UNSPECIFIED.String() {
 		accountDBX.AccountState = ""
 	}
+	if accountDBX.Gender == account.Account_GENDER_UNSPECIFIED.String() {
+		accountDBX.Gender = ""
+	}
 
 	if accountAPI.AuthAPI.IsAdmin(payload.Group) == false {
 		// Update the model; omit "id", "primary_group", "account_state" and "security profile"
