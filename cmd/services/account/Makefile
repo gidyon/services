@@ -10,11 +10,18 @@ TEMPLATES_DIR := /home/gideon/go/src/github.com/gidyon/services/templates/accoun
 ACTIVATION_URL := https://google.com
 EMAIL_DISPLAY_NAME := "Account Service"
 
-image := gidyon/$(SERVICE):v2
+image := gidyon/$(SERVICE)
 context := .
 
 ifdef IMAGE
 	image=$(IMAGE)
+else
+	imagex := $(image)
+	ifdef tag
+		image=$(imagex):$(tag)
+	else
+		image=$(imagex):v2
+	endif
 endif
 
 ifdef BUILD_CONTEXT
