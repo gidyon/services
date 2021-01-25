@@ -212,10 +212,11 @@ func (accountAPI *accountAPIServer) updateSession(
 
 	// Return token
 	return &account.SignInResponse{
-		AccountId:    accountID,
-		Token:        token,
-		RefreshToken: refreshToken,
-		State:        account.AccountState(account.AccountState_value[accountDB.AccountState]),
-		Group:        signInGroup,
+		AccountId:       accountID,
+		Token:           token,
+		RefreshToken:    refreshToken,
+		State:           account.AccountState(account.AccountState_value[accountDB.AccountState]),
+		Group:           signInGroup,
+		SecondaryGroups: secondaryGroups,
 	}, nil
 }

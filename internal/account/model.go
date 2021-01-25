@@ -1,6 +1,7 @@
 package account
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -94,20 +95,30 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		accountState = account.AccountState_DELETED
 	}
 
+	// Secondary groups
+	secondaryGroups := make([]string, 0)
+	if len(accountDB.SecondaryGroups) != 0 {
+		err := json.Unmarshal(accountDB.SecondaryGroups, &secondaryGroups)
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to json unmarshal")
+		}
+	}
+
 	accountPB := &account.Account{
-		AccountId:      fmt.Sprint(accountDB.AccountID),
-		ProjectId:      accountDB.ProjectID,
-		Email:          accountDB.Email,
-		Phone:          accountDB.Phone,
-		DeviceToken:    accountDB.DeviceToken,
-		Names:          accountDB.Names,
-		BirthDate:      accountDB.BirthDate,
-		Gender:         account.Account_Gender(account.Account_Gender_value[accountDB.Gender]),
-		Nationality:    accountDB.Nationality,
-		ProfileUrl:     accountDB.ProfileURL,
-		LinkedAccounts: accountDB.LinkedAccounts,
-		Group:          accountDB.PrimaryGroup,
-		State:          accountState,
+		AccountId:       fmt.Sprint(accountDB.AccountID),
+		ProjectId:       accountDB.ProjectID,
+		Email:           accountDB.Email,
+		Phone:           accountDB.Phone,
+		DeviceToken:     accountDB.DeviceToken,
+		Names:           accountDB.Names,
+		BirthDate:       accountDB.BirthDate,
+		Gender:          account.Account_Gender(account.Account_Gender_value[accountDB.Gender]),
+		Nationality:     accountDB.Nationality,
+		ProfileUrl:      accountDB.ProfileURL,
+		LinkedAccounts:  accountDB.LinkedAccounts,
+		Group:           accountDB.PrimaryGroup,
+		State:           accountState,
+		SecondaryGroups: secondaryGroups,
 	}
 
 	return accountPB, nil
