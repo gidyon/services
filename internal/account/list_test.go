@@ -58,11 +58,11 @@ var _ = Describe("Listing accounts @list", func() {
 	Describe("Calling ListAccounts with correct request payload", func() {
 		Context("Lets create one account first", func() {
 			It("should create the account without any error", func() {
-				for i := 0; i < 100; i++ {
+				for i := 0; i < 10; i++ {
 					createReq := &account.CreateAccountRequest{
 						Account:        fakeAccount(),
 						PrivateAccount: fakePrivateAccount(),
-						ProjectId:      "1",
+						ProjectId:      projectID,
 					}
 					createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 					Expect(err).ShouldNot(HaveOccurred())

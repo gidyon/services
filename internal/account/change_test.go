@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 
+	"github.com/Pallinder/go-randomdata"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -38,6 +39,7 @@ var _ = Describe("Change Account Type @change", func() {
 			})
 			It("should fail when the account id is missing", func() {
 				changeReq.AccountId = ""
+				changeReq.AdminId = randomdata.RandStringRunes(10)
 				changeRes, err := AccountAPI.AdminUpdateAccount(ctx, changeReq)
 				Expect(err).Should(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -45,6 +47,7 @@ var _ = Describe("Change Account Type @change", func() {
 			})
 			It("should fail when the admin id is missing", func() {
 				changeReq.AdminId = ""
+				changeReq.AccountId = randomdata.RandStringRunes(10)
 				changeRes, err := AccountAPI.AdminUpdateAccount(ctx, changeReq)
 				Expect(err).Should(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -102,7 +105,7 @@ var _ = Describe("Change Account Type @change", func() {
 					Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 					Expect(adminActivateRes).Should(BeNil())
 				})
-				It("should fail even when the account id and admin id is correct becuase account is still inactive", func() {
+				It("should fail even when the account id and admin id is correct because account is still inactive", func() {
 					changeReq.AdminId = adminActive
 					changeReq.AccountId = accountID
 					adminActivateRes, err := AccountAPI.AdminUpdateAccount(ctx, changeReq)

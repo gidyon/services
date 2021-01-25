@@ -70,7 +70,7 @@ var _ = Describe("Refreshing JWT @refresh", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
-					ProjectId:      "1",
+					ProjectId:      projectID,
 				}
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -85,9 +85,10 @@ var _ = Describe("Refreshing JWT @refresh", func() {
 				var signRes *account.SignInResponse
 				It("should signIn into the account returning JWT and some data", func() {
 					signInReq := &account.SignInRequest{
-						Username: email,
-						Password: password,
-						Group:    group,
+						Username:  email,
+						Password:  password,
+						Group:     group,
+						ProjectId: projectID,
 					}
 					signInRes, err := AccountAPI.SignIn(ctx, signInReq)
 					Expect(err).ShouldNot(HaveOccurred())

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"

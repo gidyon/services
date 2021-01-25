@@ -11,7 +11,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/micro/utils/templateutil"
@@ -40,7 +39,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	}
 
 	// Authorize the admin
-	_, err := accountAPI.AuthAPI.AuthorizeGroups(ctx, auth.Admins()...)
+	_, err := accountAPI.AuthAPI.AuthorizeAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +85,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	}
 
 	// Admin must be admin
-	if inGroup(admin.PrimaryGroup, auth.Admins()) {
+	if accountAPI.AuthAPI.IsAdmin(admin.PrimaryGroup) == false {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "only admins allowed")
 	}
 

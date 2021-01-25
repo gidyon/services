@@ -23,6 +23,7 @@ var _ = Describe("Sign in a user @signin", func() {
 				"%s.%s.%s",
 				randomdata.RandStringRunes(32), randomdata.RandStringRunes(32), randomdata.RandStringRunes(32),
 			),
+			ProjectId: projectID,
 		}
 		ctx = context.Background()
 	})

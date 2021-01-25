@@ -19,11 +19,11 @@ import (
 
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/dbutil"
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/micro/utils/mdutil"
-	"github.com/gidyon/micro/utils/templateutil"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/dbutil"
+	"github.com/gidyon/micro/v2/utils/errs"
+	"github.com/gidyon/micro/v2/utils/mdutil"
+	"github.com/gidyon/micro/v2/utils/templateutil"
 	"github.com/gidyon/services/internal/pkg/fauth"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
@@ -310,8 +310,8 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	}
 
 	// Retrieve token claims
-	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(
-		auth.AddTokenMD(ctx, activateReq.Token), activateReq.AccountId, auth.Admins()...,
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(
+		auth.AddTokenMD(ctx, activateReq.Token), activateReq.AccountId, accountAPI.AuthAPI.AdminGroups()...,
 	)
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
@@ -328,13 +328,13 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 
 	// Compare if account account_id matches or if activated by admin
 	isOwner := payload.ID == activateReq.AccountId
-	isAdmin := inGroup(payload.Group, auth.Admins())
-	if !isOwner && !isAdmin {
+	isAdmin := accountAPI.AuthAPI.IsAdmin(payload.Group)
+	if isOwner == false && isAdmin == false {
 		if !dev {
 			switch {
-			case !isAdmin:
+			case isAdmin == false:
 				return nil, errs.WrapMessage(codes.PermissionDenied, "not admin user")
-			case !isOwner:
+			case isOwner == false:
 				return nil, errs.TokenCredentialNotMatching("account id")
 			}
 		}
@@ -386,7 +386,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	}
 
 	// Authorization
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updateReq.GetAccount().GetAccountId(), auth.Admins()...)
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, updateReq.GetAccount().GetAccountId(), accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -415,18 +415,19 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 		return nil, err
 	}
 
-	// Update the model; omit "id", "primary_group", "account_state" and "security profile"
-	err = accountAPI.SQLDBWrites.Model(accountDBX).
-		Omit("id", "primary_group", "account_state", "password", "security_answer", "security_question").
-		Where("account_id=?", updateReq.Account.AccountId).
-		Updates(accountDBX).Error
-	switch {
-	case err == nil:
-	default:
-		// Check if duplicate
-		if dbutil.IsDuplicate(err) {
-			return nil, errs.DoesExist("account", emailOrPhone(err, accountDBX))
-		}
+	if accountAPI.AuthAPI.IsAdmin(payload.Group) == false {
+		// Update the model; omit "id", "primary_group", "account_state" and "security profile"
+		err = accountAPI.SQLDBWrites.Model(accountDBX).
+			Omit("id", "primary_group", "account_state", "password", "security_answer", "security_question").
+			Where("account_id=?", updateReq.Account.AccountId).
+			Updates(accountDBX).Error
+	} else {
+		err = accountAPI.SQLDBWrites.Model(accountDBX).
+			Where("account_id=?", updateReq.Account.AccountId).
+			Updates(accountDBX).Error
+	}
+	if err != nil {
+		return nil, errs.FailedToUpdate("account", err)
 	}
 
 	return &empty.Empty{}, nil
@@ -477,7 +478,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Authorize the actor
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, accountID, auth.Admins()...)
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, accountID, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to authorize actor")
 	}
@@ -556,7 +557,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	}
 
 	// Authorization
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updatePrivateReq.AccountId, auth.Admins()...)
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, updatePrivateReq.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -629,7 +630,7 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 	}
 
 	// Authorization
-	_, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, delReq.AccountId, auth.Admins()...)
+	_, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, delReq.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -680,7 +681,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	}
 
 	// Authorization
-	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.AccountId, auth.Admins()...)
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, getReq.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -701,7 +702,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 	accountDB := &Account{}
 
 	if getReq.Priviledge {
-		if inGroup(payload.Group, auth.Admins()) {
+		if accountAPI.AuthAPI.IsAdmin(payload.Group) {
 			err = accountAPI.SQLDBWrites.Unscoped().First(accountDB, "account_id=?", ID).Error
 		} else {
 			err = accountAPI.SQLDBWrites.First(accountDB, "account_id=?", ID).Error
@@ -844,13 +845,11 @@ func (accountAPI *accountAPIServer) ListAccounts(
 		id = uint(ids[0])
 	}
 
-	accountsDB := make([]*Account, 0, pageSize)
-
 	// Apply filter criterias
 	db := generateWhereCondition(accountAPI.SQLDBReads, listReq.GetListCriteria()).Debug()
 
 	// For admins
-	for _, group := range auth.Admins() {
+	for _, group := range accountAPI.AuthAPI.AdminGroups() {
 		if payload.Group == group {
 			db = db.Unscoped()
 			break
@@ -869,6 +868,8 @@ func (accountAPI *accountAPIServer) ListAccounts(
 
 	// Order by ID
 	db = db.Limit(int(pageSize) + 1).Order("account_id DESC").Clauses(hints.ForceIndex("PRIMARY").ForOrderBy())
+
+	accountsDB := make([]*Account, 0, pageSize+1)
 
 	err = db.Find(&accountsDB).Error
 	switch {
@@ -955,7 +956,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	db := generateWhereCondition(accountAPI.SQLDBReads, searchReq.GetSearchCriteria())
 
 	// For admins
-	for _, group := range auth.Admins() {
+	for _, group := range accountAPI.AuthAPI.AdminGroups() {
 		if payload.Group == group {
 			db = db.Unscoped()
 			break

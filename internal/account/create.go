@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/dbutil"
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/micro/utils/mdutil"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/dbutil"
+	"github.com/gidyon/micro/v2/utils/errs"
+	"github.com/gidyon/micro/v2/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/messaging"
 
 	"github.com/gidyon/services/pkg/api/account"
@@ -97,7 +97,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	if createReq.GetByAdmin() {
 		// Authenticate the admin
-		p, err := accountAPI.AuthAPI.AuthorizeGroups(ctx, auth.Admins()...)
+		p, err := accountAPI.AuthAPI.AuthorizeGroup(ctx, accountAPI.AuthAPI.AdminGroups()...)
 		if err != nil {
 			return nil, err
 		}

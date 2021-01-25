@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const projectID = "test"
+
 var _ = Describe("Activating user Account @activate", func() {
 	var (
 		activateReq *account.ActivateAccountRequest
@@ -76,7 +78,7 @@ var _ = Describe("Activating user Account @activate", func() {
 				createReq := &account.CreateAccountRequest{
 					Account:        fakeAccount(),
 					PrivateAccount: fakePrivateAccount(),
-					ProjectId:      "1",
+					ProjectId:      projectID,
 				}
 
 				createRes, err := AccountAPI.CreateAccount(ctx, createReq)
@@ -94,9 +96,10 @@ var _ = Describe("Activating user Account @activate", func() {
 			Describe("SignIn to the created account", func() {
 				It("should signIn the account and return some data", func() {
 					signInReq := &account.SignInRequest{
-						Username: email,
-						Password: password,
-						Group:    group,
+						Username:  email,
+						Password:  password,
+						Group:     group,
+						ProjectId: projectID,
 					}
 					signInRes, err := AccountAPI.SignIn(ctx, signInReq)
 					Expect(err).ShouldNot(HaveOccurred())

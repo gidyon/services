@@ -11,10 +11,10 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/conn"
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
-	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/conn"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
+	"github.com/gidyon/micro/v2/utils/encryption"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/mocks"
 	redis "github.com/go-redis/redis/v8"
@@ -70,7 +70,7 @@ var _ = BeforeSuite(func() {
 	})
 
 	// Logger
-	Logger := micro.NewLogger("account service")
+	Logger := micro.NewLogger("account service", 0)
 
 	// Secure cookie
 	sc := securecookie.New([]byte(randomdata.RandStringRunes(32)), []byte(randomdata.RandStringRunes(32)))

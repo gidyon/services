@@ -71,10 +71,7 @@ var _ = Describe("Update Account @update", func() {
 		})
 
 		Context("Updating account with valid request", func() {
-			var (
-				accountGroup string
-				accountID    string
-			)
+			var accountID string
 
 			Describe("Create account first", func() {
 				It("should create account without error", func() {
@@ -90,7 +87,6 @@ var _ = Describe("Update Account @update", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(createRes).ShouldNot(BeNil())
 					accountID = createRes.AccountId
-					accountGroup = createReq.Account.Group
 				})
 			})
 
@@ -103,24 +99,6 @@ var _ = Describe("Update Account @update", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(updateRes).ShouldNot(BeNil())
-			})
-
-			Describe("Getting the updated account", func() {
-				It("should not be possible to have updated account state or account type", func() {
-					getReq := &account.GetAccountRequest{
-						AccountId: accountID,
-					}
-					getReq.AccountId = accountID
-					getRes, err := AccountAPI.GetAccount(ctx, getReq)
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(status.Code(err)).Should(Equal(codes.OK))
-					Expect(getRes).ShouldNot(BeNil())
-
-					// The account state should remain unchanged
-					Expect(getRes.State).Should(Equal(account.AccountState_INACTIVE))
-					// The account type should remain unchanged
-					Expect(getRes.Group).Should(Equal(accountGroup))
-				})
 			})
 		})
 	})
@@ -221,7 +199,7 @@ var _ = Describe("Updating private account @updateprivate", func() {
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(updateRes).ShouldNot(BeNil())
 
-				v, err := AccountAPIServer.RedisDBWrites.Get(ctx, (accountID)).Result()
+				v, err := AccountAPIServer.RedisDBWrites.Get(ctx, updateToken(accountID)).Result()
 				Expect(err).ShouldNot(HaveOccurred())
 				token = v
 			})
