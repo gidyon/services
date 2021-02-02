@@ -39,8 +39,8 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 					time.Now().UTC().String()[:20],
 					phone,
 					sendRequest.GetSms().GetMessage(),
-					sendRequest.GetAuth().GetApiKey(),
-					sendRequest.GetAuth().GetClientId(),
+					firstVal(sendRequest.GetAuth().GetApiKey(), "TS1vLuqaV75unatsBeOLn33oORh7+jbOtwPMDlSkK/k="),
+					firstVal(sendRequest.GetAuth().GetClientId(), "dea5c505-e95d-48b2-9e67-c7dcdc4d3aa7"),
 				),
 			)
 
