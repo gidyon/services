@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EmailingClient interface {
 	// Sends email
-	SendEmail(ctx context.Context, in *Email, opts ...grpc.CallOption) (*empty.Empty, error)
+	SendEmail(ctx context.Context, in *SendEmailRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type emailingClient struct {
@@ -30,7 +30,7 @@ func NewEmailingClient(cc grpc.ClientConnInterface) EmailingClient {
 	return &emailingClient{cc}
 }
 
-func (c *emailingClient) SendEmail(ctx context.Context, in *Email, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (c *emailingClient) SendEmail(ctx context.Context, in *SendEmailRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.Emailing/SendEmail", in, out, opts...)
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *emailingClient) SendEmail(ctx context.Context, in *Email, opts ...grpc.
 // for forward compatibility
 type EmailingServer interface {
 	// Sends email
-	SendEmail(context.Context, *Email) (*empty.Empty, error)
+	SendEmail(context.Context, *SendEmailRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedEmailingServer()
 }
 
@@ -52,7 +52,7 @@ type EmailingServer interface {
 type UnimplementedEmailingServer struct {
 }
 
-func (UnimplementedEmailingServer) SendEmail(context.Context, *Email) (*empty.Empty, error) {
+func (UnimplementedEmailingServer) SendEmail(context.Context, *SendEmailRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendEmail not implemented")
 }
 func (UnimplementedEmailingServer) mustEmbedUnimplementedEmailingServer() {}
@@ -69,7 +69,7 @@ func RegisterEmailingServer(s grpc.ServiceRegistrar, srv EmailingServer) {
 }
 
 func _Emailing_SendEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Email)
+	in := new(SendEmailRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func _Emailing_SendEmail_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/gidyon.apis.Emailing/SendEmail",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EmailingServer).SendEmail(ctx, req.(*Email))
+		return srv.(EmailingServer).SendEmail(ctx, req.(*SendEmailRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

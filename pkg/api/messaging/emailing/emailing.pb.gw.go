@@ -36,7 +36,7 @@ var (
 )
 
 func request_Emailing_SendEmail_0(ctx context.Context, marshaler runtime.Marshaler, client EmailingClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Email
+	var protoReq SendEmailRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -52,7 +52,7 @@ func request_Emailing_SendEmail_0(ctx context.Context, marshaler runtime.Marshal
 }
 
 func local_request_Emailing_SendEmail_0(ctx context.Context, marshaler runtime.Marshaler, server EmailingServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Email
+	var protoReq SendEmailRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -161,7 +161,7 @@ func RegisterEmailingHandlerClient(ctx context.Context, mux *runtime.ServeMux, c
 }
 
 var (
-	pattern_Emailing_SendEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "emailing"}, "send"))
+	pattern_Emailing_SendEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "emailing"}, "sendEmail"))
 )
 
 var (

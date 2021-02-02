@@ -40,12 +40,37 @@ message Email {
     repeated Attachemnt attachments = 6;
 }
 
+message EmailSender {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "EmailSender"
+            description: "Sender information for email"
+		}
+	};
+
+	string email_sender = 1;
+	string display_name = 2;
+	string app_name = 3;
+}
+
+message SendEmailRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SendEmailRequest"
+            description: "Request to send email message to clients"
+            required: ["email"]
+		}
+	};
+	
+	Email email = 1;
+}
+
 // Sends email to destination(s)
 service Emailing {
     // Sends email
-    rpc SendEmail (Email) returns (google.protobuf.Empty) {
+    rpc SendEmail (SendEmailRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            get: "/api/emailing:send"
+            get: "/api/emailing:sendEmail"
         };
     };
 }
