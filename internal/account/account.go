@@ -520,6 +520,21 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		data = fmt.Sprintf("Password reset token is %d", uniqueNumber)
 	}
 
+	// Update token to use user ID
+	token, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
+		ID:           accountID,
+		ProjectID:    accountDB.ProjectID,
+		Names:        accountDB.Names,
+		EmailAddress: accountDB.Email,
+		PhoneNumber:  accountDB.Phone,
+	}, time.Now().Add(time.Minute))
+	if err != nil {
+		return nil, err
+	}
+
+	// Create an outgoing context
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", token)))
+
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.SendMessageRequest{
 		Message: &messaging.Message{
