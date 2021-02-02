@@ -226,7 +226,7 @@ func (api *messagingServer) sendBroadCastMessage(
 				case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 				case messaging.SendMethod_EMAIL:
 					sender := firstVal(req.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
-					displayName := firstVal(req.GetSender().GetEmailSender(), msg.Details["display_name"])
+					displayName := firstVal(req.GetSender().GetDisplayName(), msg.Details["display_name"])
 					if displayName != "" {
 						sender = fmt.Sprintf("%s <%s>", displayName, sender)
 					}
@@ -331,7 +331,7 @@ func (api *messagingServer) SendMessage(
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
 			sender := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
-			displayName := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["display_name"])
+			displayName := firstVal(sendReq.GetSender().GetDisplayName(), msg.Details["display_name"])
 			if displayName != "" {
 				sender = fmt.Sprintf("%s <%s>", displayName, sender)
 			}
