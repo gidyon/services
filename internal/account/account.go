@@ -506,7 +506,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 	}
 
-	link := fmt.Sprintf("%s?token=%s&account_id=%s&passphrase=%d", req.FallbackUrl, jwtToken, accountID, uniqueNumber)
+	link := fmt.Sprintf("%s?jwt=%s&username=%s&passphrase=%d", req.FallbackUrl, jwtToken, firstVal(accountDB.Email, accountDB.Phone), uniqueNumber)
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 5*time.Second)
 	defer cancel()
