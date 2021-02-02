@@ -555,6 +555,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 
 	return &account.RequestChangePrivateAccountResponse{
 		ResponseMessage: "reset token was sent to " + req.Payload,
+		Jwt:             jwtToken,
 	}, nil
 }
 

@@ -223,6 +223,7 @@ message RequestChangePrivateAccountResponse {
     };
     
     string response_message = 1;
+    string jwt = 2;
 }
 
 message UpdatePrivateAccountRequest {

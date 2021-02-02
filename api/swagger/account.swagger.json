@@ -1844,6 +1844,9 @@
       "properties": {
         "responseMessage": {
           "type": "string"
+        },
+        "jwt": {
+          "type": "string"
         }
       },
       "description": "Response after requesting for the change",
