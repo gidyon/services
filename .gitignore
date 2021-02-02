@@ -2,3 +2,4 @@ service
 examples
 *.coverprofile
 build
+*coverprofile*
