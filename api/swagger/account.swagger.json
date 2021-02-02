@@ -580,7 +580,7 @@
     },
     "/api/accounts/action/update-private-account": {
       "patch": {
-        "summary": "Updates a user private account information while outside the account",
+        "summary": "Updates a user private account information while not logged in to the account",
         "operationId": "AccountAPI_UpdatePrivateAccountExternal",
         "responses": {
           "200": {
@@ -874,6 +874,437 @@
           "AccountAPI"
         ]
       }
+    },
+    "/api/accounts:activateAccount": {
+      "post": {
+        "summary": "Activates an account to being active",
+        "operationId": "AccountAPI_ActivateAccount2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisActivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisActivateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:adminUpdateAccount": {
+      "post": {
+        "summary": "Updates account",
+        "operationId": "AccountAPI_AdminUpdateAccount2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisAdminUpdateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:batchGetAccounts": {
+      "post": {
+        "summary": "Retrieves multiple user accounts",
+        "operationId": "AccountAPI_BatchGetAccounts2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisBatchGetAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisBatchGetAccountsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:existAccount": {
+      "post": {
+        "summary": "Checks if an account exists",
+        "operationId": "AccountAPI_ExistAccount2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisExistAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisExistAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:getLinkedAccounts": {
+      "post": {
+        "summary": "Retrieves deeply linked accounts",
+        "operationId": "AccountAPI_GetLinkedAccounts2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisGetLinkedAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisGetLinkedAccountsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:listAccounts": {
+      "post": {
+        "summary": "Fetches collection of accounts",
+        "operationId": "AccountAPI_ListAccounts2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisAccounts"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisListAccountsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:refreshSession": {
+      "post": {
+        "summary": "Fetch new JWT using refresh token and updates session",
+        "operationId": "AccountAPI_RefreshSession2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisRefreshSessionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:requestChangePrivateAccount": {
+      "post": {
+        "summary": "Request to change private account information",
+        "operationId": "AccountAPI_RequestChangePrivateAccount2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisRequestChangePrivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisRequestChangePrivateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:searchAccounts": {
+      "post": {
+        "summary": "Searches accounts and linked accounts",
+        "operationId": "AccountAPI_SearchAccounts2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisAccounts"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSearchAccountsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:signIn": {
+      "post": {
+        "summary": "Signs in a user into their account",
+        "operationId": "AccountAPI_SignIn2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts:signInExternal": {
+      "post": {
+        "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
+        "operationId": "AccountAPI_SignInExternal2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts:updatePrivateAccount": {
+      "post": {
+        "summary": "Updates a user private account information",
+        "operationId": "AccountAPI_UpdatePrivateAccount2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts:updatePrivateAccountExternal": {
+      "post": {
+        "summary": "Updates a user private account information while not logged in to the account",
+        "operationId": "AccountAPI_UpdatePrivateAccountExternal2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
     }
   },
   "definitions": {
@@ -978,6 +1409,23 @@
       "description": "Collection of accounts",
       "title": "Accounts"
     },
+    "apisActivateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "description": "Request to activate an account that was inactive",
+      "title": "ActivateAccountRequest",
+      "required": [
+        "account_id",
+        "token"
+      ]
+    },
     "apisActivateAccountResponse": {
       "type": "object",
       "description": "Response after activating an account",
@@ -1017,6 +1465,22 @@
         "account_id",
         "admin_id",
         "update_operation"
+      ]
+    },
+    "apisBatchGetAccountsRequest": {
+      "type": "object",
+      "properties": {
+        "accountIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Request to get multiple accounts",
+      "title": "BatchGetAccountsRequest",
+      "required": [
+        "account_ids"
       ]
     },
     "apisBatchGetAccountsResponse": {
@@ -1120,6 +1584,22 @@
       "description": "Filtering criteria for fetching collection of accounts",
       "title": "Criteria"
     },
+    "apisExistAccountRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "description": "Request to check if an account exists",
+      "title": "ExistAccountRequest"
+    },
     "apisExistAccountResponse": {
       "type": "object",
       "properties": {
@@ -1138,6 +1618,19 @@
       },
       "title": "ExistAccountResponse"
     },
+    "apisGetLinkedAccountsRequest": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      },
+      "description": "Request to retrive linked accounts for an account",
+      "title": "GetLinkedAccountsRequest",
+      "required": [
+        "account_id"
+      ]
+    },
     "apisGetLinkedAccountsResponse": {
       "type": "object",
       "properties": {
@@ -1150,6 +1643,29 @@
       },
       "description": "Response containing linked accounts",
       "title": "GetLinkedAccountsResponse"
+    },
+    "apisListAccountsRequest": {
+      "type": "object",
+      "properties": {
+        "pageToken": {
+          "type": "string"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "listCriteria": {
+          "$ref": "#/definitions/apisCriteria"
+        },
+        "view": {
+          "$ref": "#/definitions/apisAccountView"
+        },
+        "priviledge": {
+          "type": "boolean"
+        }
+      },
+      "description": "Request to retrieve collection of accounts",
+      "title": "ListAccountsRequest"
     },
     "apisPrivateAccount": {
       "type": "object",
@@ -1170,6 +1686,50 @@
       "description": "Contains account sensitive information such as password and security QA",
       "title": "PrivateAccount"
     },
+    "apisRefreshSessionRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "accountGroup": {
+          "type": "string"
+        }
+      },
+      "description": "Request to refresh session credential",
+      "title": "RefreshSessionRequest",
+      "required": [
+        "refresh_token",
+        "account_id"
+      ]
+    },
+    "apisRequestChangePrivateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
+        },
+        "fallbackUrl": {
+          "type": "string"
+        },
+        "sendMethod": {
+          "$ref": "#/definitions/apisSendMethod"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisSender"
+        }
+      },
+      "description": "Request to change private account information",
+      "title": "RequestChangePrivateAccountRequest",
+      "required": [
+        "payload",
+        "fallback_url",
+        "send_method"
+      ]
+    },
     "apisRequestChangePrivateAccountResponse": {
       "type": "object",
       "properties": {
@@ -1179,6 +1739,32 @@
       },
       "description": "Response after requesting for the change",
       "title": "RequestChangePrivateAccountResponse"
+    },
+    "apisSearchAccountsRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "pageToken": {
+          "type": "string"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "searchLinkedAccounts": {
+          "type": "boolean"
+        },
+        "searchCriteria": {
+          "$ref": "#/definitions/apisCriteria"
+        },
+        "view": {
+          "$ref": "#/definitions/apisAccountView"
+        }
+      },
+      "description": "Request to search for accounts",
+      "title": "SearchAccountsRequest"
     },
     "apisSendMethod": {
       "type": "string",

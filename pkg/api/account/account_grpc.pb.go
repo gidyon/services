@@ -34,7 +34,7 @@ type AccountAPIClient interface {
 	RequestChangePrivateAccount(ctx context.Context, in *RequestChangePrivateAccountRequest, opts ...grpc.CallOption) (*RequestChangePrivateAccountResponse, error)
 	// Updates a user private account information
 	UpdatePrivateAccount(ctx context.Context, in *UpdatePrivateAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error)
-	// Updates a user private account information while outside the account
+	// Updates a user private account information while not logged in to the account
 	UpdatePrivateAccountExternal(ctx context.Context, in *UpdatePrivateAccountExternalRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Deletes a user account
 	DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error)
@@ -235,7 +235,7 @@ type AccountAPIServer interface {
 	RequestChangePrivateAccount(context.Context, *RequestChangePrivateAccountRequest) (*RequestChangePrivateAccountResponse, error)
 	// Updates a user private account information
 	UpdatePrivateAccount(context.Context, *UpdatePrivateAccountRequest) (*empty.Empty, error)
-	// Updates a user private account information while outside the account
+	// Updates a user private account information while not logged in to the account
 	UpdatePrivateAccountExternal(context.Context, *UpdatePrivateAccountExternalRequest) (*empty.Empty, error)
 	// Deletes a user account
 	DeleteAccount(context.Context, *DeleteAccountRequest) (*empty.Empty, error)

@@ -468,7 +468,11 @@ service AccountAPI {
     rpc SignIn (SignInRequest) returns (SignInResponse) {
         option (google.api.http) = {
             post: "/api/accounts/action/login"
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signIn"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "username,group,password";
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
@@ -481,6 +485,10 @@ service AccountAPI {
         option (google.api.http) = {
             post: "/api/accounts/action/login-external"
             body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInExternal"
+				body: "*"
+			}
         };
         option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
 			security: {}
@@ -490,7 +498,11 @@ service AccountAPI {
     // Fetch new JWT using refresh token and updates session
     rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/refresh-session"
+			get: "/api/accounts/action/refresh-session"
+			additional_bindings {
+				post: "/api/accounts:refreshSession"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -507,7 +519,11 @@ service AccountAPI {
     // Activates an account to being active
     rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/{account_id}/action/activate-account"
+			get: "/api/accounts/{account_id}/action/activate-account"
+			additional_bindings {
+				post: "/api/accounts:activateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -524,7 +540,11 @@ service AccountAPI {
     // Request to change private account information
     rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/request-change-private-account"
+			get: "/api/accounts/action/request-change-private-account"
+			additional_bindings {
+				post: "/api/accounts:requestChangePrivateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "payload,fallback_url";
     };
@@ -533,16 +553,24 @@ service AccountAPI {
     rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             patch: "/api/accounts/{account_id}/action/update-private-account"
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,private_account";
     };
   
-    // Updates a user private account information while outside the account
+    // Updates a user private account information while not logged in to the account
     rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             patch: "/api/accounts/action/update-private-account"
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccountExternal"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "jwt,private_account";
     };
@@ -566,7 +594,11 @@ service AccountAPI {
     //  Retrieves multiple user accounts
     rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/batch-get"
+			get: "/api/accounts/action/batch-get"
+			additional_bindings {
+				post: "/api/accounts:batchGetAccounts"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -574,7 +606,11 @@ service AccountAPI {
     //  Retrieves deeply linked accounts
     rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/{account_id}/action/get-linked-accounts"
+			get: "/api/accounts/{account_id}/action/get-linked-accounts"
+			additional_bindings {
+				post: "/api/accounts:getLinkedAccounts"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -582,7 +618,11 @@ service AccountAPI {
     // Checks if an account exists
     rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
         option (google.api.http) = {
-            get: "/api/accounts/action/exists"
+			get: "/api/accounts/action/exists"
+			additional_bindings {
+				post: "/api/accounts:existAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "email,phone,huduma_id";
     };
@@ -591,7 +631,11 @@ service AccountAPI {
     rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             patch: "/api/accounts/{account_id}/action/admin-update-account"
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:adminUpdateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "admin_id,account_id";
     };
@@ -599,7 +643,11 @@ service AccountAPI {
     // Fetches collection of accounts
     rpc ListAccounts (ListAccountsRequest) returns (Accounts) {
         option (google.api.http) = {
-            get: "/api/accounts"
+			get: "/api/accounts"
+			additional_bindings {
+				post: "/api/accounts:listAccounts"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "parent";
     };
@@ -607,7 +655,11 @@ service AccountAPI {
     // Searches accounts and linked accounts
     rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
         option (google.api.http) = {
-            get: "/api/accounts/action/search"
+			get: "/api/accounts/action/search"
+			additional_bindings {
+				post: "/api/accounts:searchAccounts"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "query";
     };
