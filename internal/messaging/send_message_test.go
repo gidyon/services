@@ -99,13 +99,6 @@ var _ = Describe("Sending messages @sending", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
-		It("should fail if message details is missing", func() {
-			sendReq.Message.Details = nil
-			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-			Expect(sendRes).Should(BeNil())
-		})
 		It("should fail if message sendmethod is missing", func() {
 			sendReq.Message.SendMethods = nil
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)

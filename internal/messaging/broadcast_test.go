@@ -55,13 +55,6 @@ var _ = Describe("Broadcasting a message to many users @broadcast", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
-		It("should fail if message details is missing", func() {
-			broadCastReq.Message.Details = nil
-			sendRes, err := MessagingAPI.BroadCastMessage(ctx, broadCastReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-			Expect(sendRes).Should(BeNil())
-		})
 		It("should fail if channels is missing", func() {
 			broadCastReq.Channels = nil
 			sendRes, err := MessagingAPI.BroadCastMessage(ctx, broadCastReq)
