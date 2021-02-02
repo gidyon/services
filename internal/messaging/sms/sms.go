@@ -10,11 +10,10 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
-type sendSMSFunc func(*Options, *sms.SMS) error
+type sendSMSFunc func(context.Context, *Options, *sms.SMS)
 
 type smsAPIServer struct {
 	sms.UnimplementedSMSAPIServer
-	sendSMS sendSMSFunc
 	*Options
 }
 
@@ -59,44 +58,31 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 
 	// API server
 	smsAPI := &smsAPIServer{
-		sendSMS: sendSmsAT, // uses Africa's talinkg implementation
 		Options: opt,
-	}
-
-	if smsAPI.sendSMS == nil {
-		return nil, errs.NilObject("sender function")
 	}
 
 	return smsAPI, nil
 }
 
 func (api *smsAPIServer) SendSMS(
-	ctx context.Context, sendReq *sms.SMS,
+	ctx context.Context, sendReq *sms.SendSMSRequest,
 ) (*empty.Empty, error) {
 	// Request must not be nil
 	if sendReq == nil {
 		return nil, errs.NilObject("SMS")
 	}
 
-	// Authenticate request
-	err := api.AuthAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	// Validate sms
-	err = validateSMS(sendReq)
+	err := validateSMS(sendReq.Sms)
 	if err != nil {
 		return nil, err
 	}
 
 	// Send sms
-	go func() {
-		err = api.sendSMS(api.Options, sendReq)
-		if err != nil {
-			api.Logger.Errorf("failed to send sms: %v", err)
-		}
-	}()
+	switch sendReq.GetProvider() {
+	case sms.SmsProvider_ONFON:
+		go api.sendSmsOnfon(ctx, sendReq)
+	}
 
 	return &empty.Empty{}, nil
 }
