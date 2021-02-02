@@ -23,12 +23,14 @@ func fakeSMS() *sms.SMS {
 
 var _ = Describe("Sending sms", func() {
 	var (
-		sendReq *sms.SMS
+		sendReq *sms.SendSMSRequest
 		ctx     context.Context
 	)
 
 	BeforeEach(func() {
-		sendReq = fakeSMS()
+		sendReq = &sms.SendSMSRequest{
+			Sms: fakeSMS(),
+		}
 		ctx = context.Background()
 	})
 
@@ -41,21 +43,21 @@ var _ = Describe("Sending sms", func() {
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when the destination phones is empty", func() {
-			sendReq.DestinationPhones = nil
+			sendReq.Sms.DestinationPhones = nil
 			sendRes, err := SMSAPI.SendSMS(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when the keyword is empty", func() {
-			sendReq.Keyword = ""
+			sendReq.Sms.Keyword = ""
 			sendRes, err := SMSAPI.SendSMS(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when the message is empty", func() {
-			sendReq.Message = ""
+			sendReq.Sms.Message = ""
 			sendRes, err := SMSAPI.SendSMS(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
