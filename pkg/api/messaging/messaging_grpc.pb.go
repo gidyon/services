@@ -21,7 +21,7 @@ type MessagingClient interface {
 	// Broadcasts a message
 	BroadCastMessage(ctx context.Context, in *BroadCastMessageRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Sends message to a single destination
-	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	// Retrieves a collection of messages
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*Messages, error)
 	// Updates unread messages statuses to read
@@ -47,7 +47,7 @@ func (c *messagingClient) BroadCastMessage(ctx context.Context, in *BroadCastMes
 	return out, nil
 }
 
-func (c *messagingClient) SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*SendMessageResponse, error) {
+func (c *messagingClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
 	out := new(SendMessageResponse)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.Messaging/SendMessage", in, out, opts...)
 	if err != nil {
@@ -90,7 +90,7 @@ type MessagingServer interface {
 	// Broadcasts a message
 	BroadCastMessage(context.Context, *BroadCastMessageRequest) (*empty.Empty, error)
 	// Sends message to a single destination
-	SendMessage(context.Context, *Message) (*SendMessageResponse, error)
+	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	// Retrieves a collection of messages
 	ListMessages(context.Context, *ListMessagesRequest) (*Messages, error)
 	// Updates unread messages statuses to read
@@ -107,7 +107,7 @@ type UnimplementedMessagingServer struct {
 func (UnimplementedMessagingServer) BroadCastMessage(context.Context, *BroadCastMessageRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BroadCastMessage not implemented")
 }
-func (UnimplementedMessagingServer) SendMessage(context.Context, *Message) (*SendMessageResponse, error) {
+func (UnimplementedMessagingServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
 func (UnimplementedMessagingServer) ListMessages(context.Context, *ListMessagesRequest) (*Messages, error) {
@@ -151,7 +151,7 @@ func _Messaging_BroadCastMessage_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _Messaging_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Message)
+	in := new(SendMessageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func _Messaging_SendMessage_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/gidyon.apis.Messaging/SendMessage",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MessagingServer).SendMessage(ctx, req.(*Message))
+		return srv.(MessagingServer).SendMessage(ctx, req.(*SendMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

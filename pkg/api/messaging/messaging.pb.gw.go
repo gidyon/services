@@ -66,7 +66,7 @@ func local_request_Messaging_BroadCastMessage_0(ctx context.Context, marshaler r
 }
 
 func request_Messaging_SendMessage_0(ctx context.Context, marshaler runtime.Marshaler, client MessagingClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Message
+	var protoReq SendMessageRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -83,7 +83,7 @@ func request_Messaging_SendMessage_0(ctx context.Context, marshaler runtime.Mars
 }
 
 func local_request_Messaging_SendMessage_0(ctx context.Context, marshaler runtime.Marshaler, server MessagingServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq Message
+	var protoReq SendMessageRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

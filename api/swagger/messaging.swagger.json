@@ -177,7 +177,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/apisMessage"
+              "$ref": "#/definitions/apisSendMessageRequest"
             }
           }
         ],
@@ -250,6 +250,47 @@
     }
   },
   "definitions": {
+    "SendSMSRequestCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SendSMSRequestSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SendSMSRequestCookie"
+          }
+        }
+      }
+    },
     "apisBroadCastMessageRequest": {
       "type": "object",
       "properties": {
@@ -261,6 +302,12 @@
         },
         "message": {
           "$ref": "#/definitions/apisMessage"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisEmailSender"
         }
       },
       "description": "Request to broadcast message to clients",
@@ -269,6 +316,22 @@
         "channels",
         "message"
       ]
+    },
+    "apisEmailSender": {
+      "type": "object",
+      "properties": {
+        "emailSender": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string"
+        }
+      },
+      "description": "Sender information for email",
+      "title": "EmailSender"
     },
     "apisListMessagesFilter": {
       "type": "object",
@@ -389,6 +452,26 @@
       },
       "description": "Contains count of new messages",
       "title": "NewMessagesCount"
+    },
+    "apisSendMessageRequest": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "$ref": "#/definitions/apisMessage"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisEmailSender"
+        }
+      },
+      "description": "Request to send a message to clients",
+      "title": "SendMessageRequest",
+      "required": [
+        "channels",
+        "message"
+      ]
     },
     "apisSendMessageResponse": {
       "type": "object",
