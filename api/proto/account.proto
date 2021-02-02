@@ -9,20 +9,9 @@ import "protoc-gen-swagger/options/annotations.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
-import "messaging/messaging.proto";
-
-message Sender {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
-		json_schema: {
-			title: "Sender"
-			description: "Options for email,sms,call"
-		}
-    };
-
-    string email_sender = 1;
-    string email_display_name = 2;
-    string app_name = 3;
-}
+import "messaging.proto";
+import "emailing.proto";
+import "sms.proto";
  
 message Account {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
@@ -154,8 +143,12 @@ message CreateAccountRequest {
     bool update_only = 4;
     bool by_admin = 5;
     string admin_id = 6;
-    string project_id = 7;
-    Sender sender = 8;
+	string project_id = 7;
+    gidyon.apis.SendMethod notification_method = 8 [(google.api.field_behavior) = REQUIRED];
+	oneof notification_channel {
+		gidyon.apis.EmailSender sender = 9;
+		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 10;
+	}
 }
 
 message CreateAccountResponse {
@@ -215,7 +208,10 @@ message RequestChangePrivateAccountRequest {
     string payload = 1 [(google.api.field_behavior) = REQUIRED];
     string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
     gidyon.apis.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
-    Sender sender = 4;
+	oneof notification_channel {
+		gidyon.apis.EmailSender sender = 8;
+		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 9;
+	}
 }
 
 message RequestChangePrivateAccountResponse {
@@ -399,8 +395,12 @@ message AdminUpdateAccountRequest {
     UpdateOperation update_operation = 3 [(google.api.field_behavior) = REQUIRED];
     string reason = 4 [(google.api.field_behavior) = OPTIONAL];
     repeated string payload = 5 [(google.api.field_behavior) = OPTIONAL];
-    Sender sender = 6;
-    bool notify = 7;
+	bool notify = 6;
+	gidyon.apis.SendMethod send_method = 7 [(google.api.field_behavior) = REQUIRED];
+	oneof notification_channel {
+		gidyon.apis.EmailSender sender = 8;
+		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 9;
+	}
 }
 
 message Criteria {

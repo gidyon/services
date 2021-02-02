@@ -426,13 +426,50 @@
             "type": "string"
           },
           {
-            "name": "sender.emailDisplayName",
+            "name": "sender.displayName",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "sender.appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.apiUrl",
+            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.senderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.apiKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.clientId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.authToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.accessKey",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1318,6 +1355,47 @@
       "default": "GENDER_UNSPECIFIED",
       "title": "Gender"
     },
+    "SendSMSRequestCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SendSMSRequestSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SendSMSRequestCookie"
+          }
+        }
+      }
+    },
     "apisAccount": {
       "type": "object",
       "properties": {
@@ -1452,11 +1530,17 @@
             "type": "string"
           }
         },
-        "sender": {
-          "$ref": "#/definitions/apisSender"
-        },
         "notify": {
           "type": "boolean"
+        },
+        "sendMethod": {
+          "$ref": "#/definitions/apisSendMethod"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisEmailSender"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
         }
       },
       "description": "Request to update an account data by admininstrator",
@@ -1519,8 +1603,14 @@
         "projectId": {
           "type": "string"
         },
+        "notificationMethod": {
+          "$ref": "#/definitions/apisSendMethod"
+        },
         "sender": {
-          "$ref": "#/definitions/apisSender"
+          "$ref": "#/definitions/apisEmailSender"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
         }
       },
       "description": "Request to create an account",
@@ -1583,6 +1673,22 @@
       },
       "description": "Filtering criteria for fetching collection of accounts",
       "title": "Criteria"
+    },
+    "apisEmailSender": {
+      "type": "object",
+      "properties": {
+        "emailSender": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string"
+        }
+      },
+      "description": "Sender information for email",
+      "title": "EmailSender"
     },
     "apisExistAccountRequest": {
       "type": "object",
@@ -1719,7 +1825,10 @@
           "$ref": "#/definitions/apisSendMethod"
         },
         "sender": {
-          "$ref": "#/definitions/apisSender"
+          "$ref": "#/definitions/apisEmailSender"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
         }
       },
       "description": "Request to change private account information",
@@ -1777,22 +1886,6 @@
       ],
       "default": "SEND_METHOD_UNSPECIFIED",
       "title": "SendMethod"
-    },
-    "apisSender": {
-      "type": "object",
-      "properties": {
-        "emailSender": {
-          "type": "string"
-        },
-        "emailDisplayName": {
-          "type": "string"
-        },
-        "appName": {
-          "type": "string"
-        }
-      },
-      "description": "Options for email,sms,call",
-      "title": "Sender"
     },
     "apisSignInExternalRequest": {
       "type": "object",
