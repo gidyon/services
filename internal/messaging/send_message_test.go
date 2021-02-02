@@ -58,13 +58,15 @@ func fakeMessage(userID string) *messaging.Message {
 
 var _ = Describe("Sending messages @sending", func() {
 	var (
-		sendReq *messaging.Message
+		sendReq *messaging.SendMessageRequest
 		ctx     context.Context
 		userID  = fmt.Sprint(randomdata.Number(100, 999))
 	)
 
 	BeforeEach(func() {
-		sendReq = fakeMessage(userID)
+		sendReq = &messaging.SendMessageRequest{
+			Message: fakeMessage(userID),
+		}
 		ctx = context.Background()
 	})
 
@@ -77,42 +79,35 @@ var _ = Describe("Sending messages @sending", func() {
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail if user id is missing", func() {
-			sendReq.UserId = ""
+			sendReq.Message.UserId = ""
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail if message title is missing", func() {
-			sendReq.Title = ""
+			sendReq.Message.Title = ""
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail if message data is missing", func() {
-			sendReq.Data = ""
+			sendReq.Message.Data = ""
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail if message details is missing", func() {
-			sendReq.Details = nil
+			sendReq.Message.Details = nil
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail if message sendmethod is missing", func() {
-			sendReq.SendMethods = nil
-			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-			Expect(sendRes).Should(BeNil())
-		})
-		It("should fail if message sendmethod is unknown", func() {
-			sendReq.SendMethods = []messaging.SendMethod{messaging.SendMethod_SEND_METHOD_UNSPECIFIED}
+			sendReq.Message.SendMethods = nil
 			sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -150,21 +145,10 @@ var _ = Describe("Sending messages @sending", func() {
 			sendMethod := sendMethod
 			Describe("Different send methods", func() {
 
-				if messaging.SendMethod(sendMethod) == messaging.SendMethod_SEND_METHOD_UNSPECIFIED {
-					It("should fail because send method is unknown", func() {
-						sendReq.SendMethods = []messaging.SendMethod{messaging.SendMethod(sendMethod)}
-						sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
-						Expect(err).Should(HaveOccurred())
-						Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-						Expect(sendRes).Should(BeNil())
-					})
-					return
-				}
-
 				var messageID string
 
 				It("should succeed", func() {
-					sendReq.SendMethods = []messaging.SendMethod{messaging.SendMethod(sendMethod)}
+					sendReq.Message.SendMethods = []messaging.SendMethod{messaging.SendMethod(sendMethod)}
 					sendRes, err := MessagingAPI.SendMessage(ctx, sendReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))

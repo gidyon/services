@@ -89,17 +89,6 @@ var _ = Describe("Broadcasting a message to many users @broadcast", func() {
 					}
 				})
 
-				if messaging.SendMethod(sendMethod) == messaging.SendMethod_SEND_METHOD_UNSPECIFIED {
-					It("should fail because send method is unknown", func() {
-						broadCastReq.Message.SendMethods = []messaging.SendMethod{messaging.SendMethod(sendMethod)}
-						sendRes, err := MessagingAPI.BroadCastMessage(ctx, broadCastReq)
-						Expect(err).Should(HaveOccurred())
-						Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-						Expect(sendRes).Should(BeNil())
-					})
-					return
-				}
-
 				// Otherwise
 				It("should succeed", func() {
 					broadCastReq.Message.SendMethods = []messaging.SendMethod{messaging.SendMethod(sendMethod)}

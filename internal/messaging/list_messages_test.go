@@ -54,7 +54,9 @@ var _ = Describe("Getting messages @list", func() {
 		Context("Lets create a message first", func() {
 			It("should succed in creating a message", func() {
 				messagePB := fakeMessage(userID)
-				sendRes, err := MessagingAPI.SendMessage(ctx, messagePB)
+				sendRes, err := MessagingAPI.SendMessage(ctx, &messaging.SendMessageRequest{
+					Message: messagePB,
+				})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(sendRes).ShouldNot(BeNil())
 			})

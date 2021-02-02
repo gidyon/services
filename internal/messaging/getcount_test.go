@@ -52,7 +52,9 @@ var _ = Describe("Getting how many new messages @count", func() {
 		Context("Lets create a message first", func() {
 			It("should succeed in creating a message", func() {
 				messagePB := fakeMessage(userID)
-				_, err := MessagingAPI.SendMessage(ctx, messagePB)
+				_, err := MessagingAPI.SendMessage(ctx, &messaging.SendMessageRequest{
+					Message: messagePB,
+				})
 				Expect(err).ShouldNot(HaveOccurred())
 			})
 		})
