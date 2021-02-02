@@ -24,12 +24,14 @@ func fakeEmail() *emailing.Email {
 
 var _ = Describe("Sending email message", func() {
 	var (
-		sendReq *emailing.Email
+		sendReq *emailing.SendEmailRequest
 		ctx     context.Context
 	)
 
 	BeforeEach(func() {
-		sendReq = fakeEmail()
+		sendReq = &emailing.SendEmailRequest{
+			Email: fakeEmail(),
+		}
 		ctx = context.Background()
 	})
 
@@ -41,29 +43,36 @@ var _ = Describe("Sending email message", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
+		It("should fail when email is nil", func() {
+			sendReq.Email = nil
+			sendRes, err := EmailAPI.SendEmail(ctx, sendReq)
+			Expect(err).Should(HaveOccurred())
+			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
+			Expect(sendRes).Should(BeNil())
+		})
 		It("should fail when destinations is empty", func() {
-			sendReq.Destinations = nil
+			sendReq.Email.Destinations = nil
 			sendRes, err := EmailAPI.SendEmail(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when subject is empty", func() {
-			sendReq.Subject = ""
+			sendReq.Email.Subject = ""
 			sendRes, err := EmailAPI.SendEmail(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when body is empty", func() {
-			sendReq.Body = ""
+			sendReq.Email.Body = ""
 			sendRes, err := EmailAPI.SendEmail(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(sendRes).Should(BeNil())
 		})
 		It("should fail when from is empty", func() {
-			sendReq.From = ""
+			sendReq.Email.From = ""
 			sendRes, err := EmailAPI.SendEmail(ctx, sendReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))

@@ -18,7 +18,7 @@ type dialer interface {
 
 type emailingAPIServer struct {
 	emailing.UnimplementedEmailingServer
-	sender func(*emailing.Email) error
+	sender func(*emailing.SendEmailRequest)
 	dialer dialer
 	*Options
 }
@@ -79,27 +79,23 @@ func NewEmailingAPIServer(ctx context.Context, opt *Options) (emailing.EmailingS
 }
 
 func (api *emailingAPIServer) SendEmail(
-	ctx context.Context, sendReq *emailing.Email,
+	ctx context.Context, sendReq *emailing.SendEmailRequest,
 ) (*empty.Empty, error) {
 	// Validate email
-	err := validateEmail(sendReq)
-	if err != nil {
-		return nil, err
-	}
-
-	// Authenticate request
-	err = api.AuthAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
+	switch {
+	case sendReq == nil:
+		return nil, errs.NilObject("send request")
+	case sendReq.Email == nil:
+		return nil, errs.NilObject("email")
+	default:
+		err := validateEmail(sendReq.Email)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Send email
-	go func() {
-		err = api.sender(sendReq)
-		if err != nil {
-			api.Logger.Errorf("failed to send email: %v", err)
-		}
-	}()
+	go api.sender(sendReq)
 
 	return &empty.Empty{}, nil
 }

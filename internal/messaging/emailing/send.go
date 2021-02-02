@@ -3,12 +3,13 @@ package emailing
 import (
 	"io/ioutil"
 
-	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 	"gopkg.in/gomail.v2"
 )
 
-func (api *emailingAPIServer) sendEmail(email *emailing.Email) error {
+func (api *emailingAPIServer) sendEmail(sendReq *emailing.SendEmailRequest) {
+	email := sendReq.GetEmail()
+
 	m := gomail.NewMessage()
 	m.SetHeader("From", email.From)
 	m.SetHeader("To", email.Destinations...)
@@ -21,7 +22,7 @@ func (api *emailingAPIServer) sendEmail(email *emailing.Email) error {
 	for _, attachment := range email.Attachments {
 		err = ioutil.WriteFile(attachment.Filename, attachment.Data, 0666)
 		if err != nil {
-			return errs.WriteFailed(err)
+			api.Logger.Errorf("failed to write attachment: %v", err)
 		}
 	}
 
@@ -30,5 +31,8 @@ func (api *emailingAPIServer) sendEmail(email *emailing.Email) error {
 		m.Attach(attachment.Filename, gomail.Rename(attachment.FilenameOverride))
 	}
 
-	return api.dialer.DialAndSend(m)
+	err = api.dialer.DialAndSend(m)
+	if err != nil {
+		api.Logger.Errorf("failed to send email: %v", err)
+	}
 }
