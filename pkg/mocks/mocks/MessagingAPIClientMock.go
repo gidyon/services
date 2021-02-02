@@ -139,7 +139,7 @@ func (_m *MessagingAPIClientMock) ReadAll(ctx context.Context, in *messaging.Mes
 }
 
 // SendMessage provides a mock function with given fields: ctx, in, opts
-func (_m *MessagingAPIClientMock) SendMessage(ctx context.Context, in *messaging.Message, opts ...grpc.CallOption) (*messaging.SendMessageResponse, error) {
+func (_m *MessagingAPIClientMock) SendMessage(ctx context.Context, in *messaging.SendMessageRequest, opts ...grpc.CallOption) (*messaging.SendMessageResponse, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -150,7 +150,7 @@ func (_m *MessagingAPIClientMock) SendMessage(ctx context.Context, in *messaging
 	ret := _m.Called(_ca...)
 
 	var r0 *messaging.SendMessageResponse
-	if rf, ok := ret.Get(0).(func(context.Context, *messaging.Message, ...grpc.CallOption) *messaging.SendMessageResponse); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *messaging.SendMessageRequest, ...grpc.CallOption) *messaging.SendMessageResponse); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -159,7 +159,7 @@ func (_m *MessagingAPIClientMock) SendMessage(ctx context.Context, in *messaging
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *messaging.Message, ...grpc.CallOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *messaging.SendMessageRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)

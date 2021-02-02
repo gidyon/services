@@ -17,6 +17,29 @@ type AuthAPIMock struct {
 	mock.Mock
 }
 
+// AuthFunc provides a mock function with given fields: _a0
+func (_m *AuthAPIMock) AuthFunc(_a0 context.Context) (context.Context, error) {
+	ret := _m.Called(_a0)
+
+	var r0 context.Context
+	if rf, ok := ret.Get(0).(func(context.Context) context.Context); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(context.Context)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AuthenticateRequest provides a mock function with given fields: _a0
 func (_m *AuthAPIMock) AuthenticateRequest(_a0 context.Context) error {
 	ret := _m.Called(_a0)
@@ -107,6 +130,36 @@ func (_m *AuthAPIMock) AuthorizeActorOrGroups(ctx context.Context, actorID strin
 	return r0, r1
 }
 
+// AuthorizeActors provides a mock function with given fields: ctx, actorID
+func (_m *AuthAPIMock) AuthorizeActors(ctx context.Context, actorID ...string) (*auth.Payload, error) {
+	_va := make([]interface{}, len(actorID))
+	for _i := range actorID {
+		_va[_i] = actorID[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *auth.Payload
+	if rf, ok := ret.Get(0).(func(context.Context, ...string) *auth.Payload); ok {
+		r0 = rf(ctx, actorID...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*auth.Payload)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, ...string) error); ok {
+		r1 = rf(ctx, actorID...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AuthorizeGroups provides a mock function with given fields: ctx, allowedGroups
 func (_m *AuthAPIMock) AuthorizeGroups(ctx context.Context, allowedGroups ...string) (*auth.Payload, error) {
 	_va := make([]interface{}, len(allowedGroups))
@@ -181,6 +234,29 @@ func (_m *AuthAPIMock) GenToken(_a0 context.Context, _a1 *auth.Payload, _a2 time
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *auth.Payload, time.Time) error); ok {
 		r1 = rf(_a0, _a1, _a2)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetJwtPayload provides a mock function with given fields: _a0
+func (_m *AuthAPIMock) GetJwtPayload(_a0 context.Context) (*auth.Payload, error) {
+	ret := _m.Called(_a0)
+
+	var r0 *auth.Payload
+	if rf, ok := ret.Get(0).(func(context.Context) *auth.Payload); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*auth.Payload)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
 	} else {
 		r1 = ret.Error(1)
 	}

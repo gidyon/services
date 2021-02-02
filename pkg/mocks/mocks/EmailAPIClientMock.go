@@ -19,7 +19,7 @@ type EmailAPIClientMock struct {
 }
 
 // SendEmail provides a mock function with given fields: ctx, in, opts
-func (_m *EmailAPIClientMock) SendEmail(ctx context.Context, in *emailing.Email, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (_m *EmailAPIClientMock) SendEmail(ctx context.Context, in *emailing.SendEmailRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -30,7 +30,7 @@ func (_m *EmailAPIClientMock) SendEmail(ctx context.Context, in *emailing.Email,
 	ret := _m.Called(_ca...)
 
 	var r0 *emptypb.Empty
-	if rf, ok := ret.Get(0).(func(context.Context, *emailing.Email, ...grpc.CallOption) *emptypb.Empty); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *emailing.SendEmailRequest, ...grpc.CallOption) *emptypb.Empty); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
@@ -39,7 +39,7 @@ func (_m *EmailAPIClientMock) SendEmail(ctx context.Context, in *emailing.Email,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, *emailing.Email, ...grpc.CallOption) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *emailing.SendEmailRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
