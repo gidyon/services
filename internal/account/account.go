@@ -699,13 +699,13 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
 	switch {
 	case err == nil:
 	case err == redis.Nil:
-		return nil, errs.WrapMessage(codes.NotFound, "change token expired")
+		return nil, errs.WrapMessage(codes.NotFound, "reset token expired")
 	default:
 		return nil, errs.RedisCmdFailed(err, "get token")
 	}
 
 	if token != updatePrivateReq.ChangeToken {
-		return nil, errs.WrapMessage(codes.InvalidArgument, "token is incorrect")
+		return nil, errs.WrapMessage(codes.InvalidArgument, "reset token is incorrect")
 	}
 
 	// Hash the password if not empty
