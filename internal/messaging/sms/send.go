@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
@@ -34,9 +33,8 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 		go func(phone string) {
 			payload := strings.NewReader(
 				fmt.Sprintf(
-					"{\"SenderId\": \"%s\",\"IsUnicode\": true,\"IsFlash\": true,\"ScheduleDateTime\": \"%s\",\"MessageParameters\": [{\"Number\": \"%s\",\"Text\": \"%s\"}],\"ApiKey\": \"%s\",\"ClientId\": \"%s\"}",
+					"{\"SenderId\": \"%s\",\"IsUnicode\": true,\"IsFlash\": true,\"MessageParameters\": [{\"Number\": \"%s\",\"Text\": \"%s\"}],\"ApiKey\": \"%s\",\"ClientId\": \"%s\"}",
 					firstVal(sendRequest.GetAuth().GetSenderId(), "22031"),
-					time.Now().UTC().String()[:20],
 					phone,
 					sendRequest.GetSms().GetMessage(),
 					firstVal(sendRequest.GetAuth().GetApiKey(), "TS1vLuqaV75unatsBeOLn33oORh7+jbOtwPMDlSkK/k="),
