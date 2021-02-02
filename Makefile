@@ -32,9 +32,9 @@ protoc_longrunning:
 	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) longrunning.proto
 
 protoc_account:
-	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/account --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account account.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account account.proto
-	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) account.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/account --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account account.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account account.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(SWAGGER_DOC_OUT_PATH) account.proto
 
 protoc_messaging:
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging messaging.proto
