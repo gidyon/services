@@ -34,6 +34,8 @@ type AccountAPIClient interface {
 	RequestChangePrivateAccount(ctx context.Context, in *RequestChangePrivateAccountRequest, opts ...grpc.CallOption) (*RequestChangePrivateAccountResponse, error)
 	// Updates a user private account information
 	UpdatePrivateAccount(ctx context.Context, in *UpdatePrivateAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Updates a user private account information while outside the account
+	UpdatePrivateAccountExternal(ctx context.Context, in *UpdatePrivateAccountExternalRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Deletes a user account
 	DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Retrieves a user account
@@ -132,6 +134,15 @@ func (c *accountAPIClient) UpdatePrivateAccount(ctx context.Context, in *UpdateP
 	return out, nil
 }
 
+func (c *accountAPIClient) UpdatePrivateAccountExternal(ctx context.Context, in *UpdatePrivateAccountExternalRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/UpdatePrivateAccountExternal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *accountAPIClient) DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/DeleteAccount", in, out, opts...)
@@ -224,6 +235,8 @@ type AccountAPIServer interface {
 	RequestChangePrivateAccount(context.Context, *RequestChangePrivateAccountRequest) (*RequestChangePrivateAccountResponse, error)
 	// Updates a user private account information
 	UpdatePrivateAccount(context.Context, *UpdatePrivateAccountRequest) (*empty.Empty, error)
+	// Updates a user private account information while outside the account
+	UpdatePrivateAccountExternal(context.Context, *UpdatePrivateAccountExternalRequest) (*empty.Empty, error)
 	// Deletes a user account
 	DeleteAccount(context.Context, *DeleteAccountRequest) (*empty.Empty, error)
 	// Retrieves a user account
@@ -270,6 +283,9 @@ func (UnimplementedAccountAPIServer) RequestChangePrivateAccount(context.Context
 }
 func (UnimplementedAccountAPIServer) UpdatePrivateAccount(context.Context, *UpdatePrivateAccountRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePrivateAccount not implemented")
+}
+func (UnimplementedAccountAPIServer) UpdatePrivateAccountExternal(context.Context, *UpdatePrivateAccountExternalRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePrivateAccountExternal not implemented")
 }
 func (UnimplementedAccountAPIServer) DeleteAccount(context.Context, *DeleteAccountRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAccount not implemented")
@@ -448,6 +464,24 @@ func _AccountAPI_UpdatePrivateAccount_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountAPIServer).UpdatePrivateAccount(ctx, req.(*UpdatePrivateAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountAPI_UpdatePrivateAccountExternal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePrivateAccountExternalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).UpdatePrivateAccountExternal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/UpdatePrivateAccountExternal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).UpdatePrivateAccountExternal(ctx, req.(*UpdatePrivateAccountExternalRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -631,6 +665,10 @@ var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePrivateAccount",
 			Handler:    _AccountAPI_UpdatePrivateAccount_Handler,
+		},
+		{
+			MethodName: "UpdatePrivateAccountExternal",
+			Handler:    _AccountAPI_UpdatePrivateAccountExternal_Handler,
 		},
 		{
 			MethodName: "DeleteAccount",

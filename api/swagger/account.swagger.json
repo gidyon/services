@@ -578,6 +578,39 @@
         ]
       }
     },
+    "/api/accounts/action/update-private-account": {
+      "patch": {
+        "summary": "Updates a user private account information while outside the account",
+        "operationId": "AccountAPI_UpdatePrivateAccountExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts/{account.accountId}": {
       "patch": {
         "summary": "Updates a user account",
@@ -1275,6 +1308,27 @@
       ],
       "default": "UPDATE_OPERATION_INSPECIFIED",
       "title": "UpdateOperation"
+    },
+    "apisUpdatePrivateAccountExternalRequest": {
+      "type": "object",
+      "properties": {
+        "jwt": {
+          "type": "string"
+        },
+        "privateAccount": {
+          "$ref": "#/definitions/apisPrivateAccount"
+        },
+        "changeToken": {
+          "type": "string"
+        }
+      },
+      "description": "Request to update account private information from external source",
+      "title": "UpdatePrivateAccountExternalRequest",
+      "required": [
+        "account_id",
+        "private_account",
+        "change_token"
+      ]
     },
     "apisUpdatePrivateAccountRequest": {
       "type": "object",

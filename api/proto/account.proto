@@ -243,6 +243,20 @@ message UpdatePrivateAccountRequest {
     string change_token = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+message UpdatePrivateAccountExternalRequest {
+  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "UpdatePrivateAccountExternalRequest"
+			description: "Request to update account private information from external source"
+			required: ["account_id", "private_account", "change_token"]
+		}
+    };
+    
+    string jwt = 1 [(google.api.field_behavior) = REQUIRED];
+    PrivateAccount private_account = 2 [(google.api.field_behavior) = REQUIRED];
+    string change_token = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
 message DeleteAccountRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
@@ -522,6 +536,15 @@ service AccountAPI {
             body: "*"
         };
         option (google.api.method_signature) = "account_id,private_account";
+    };
+  
+    // Updates a user private account information while outside the account
+    rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/action/update-private-account"
+            body: "*"
+        };
+        option (google.api.method_signature) = "jwt,private_account";
     };
 
     // Deletes a user account
