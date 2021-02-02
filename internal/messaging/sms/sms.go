@@ -2,6 +2,7 @@ package sms
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/micro/utils/errs"
@@ -21,6 +22,7 @@ type smsAPIServer struct {
 type Options struct {
 	Logger      grpclog.LoggerV2
 	AuthAPI     auth.API
+	HTTPClient  *http.Client
 	APIKey      string
 	AuthToken   string
 	APIUsername string
@@ -51,6 +53,8 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 		err = errs.MissingField("api password")
 	case opt.APIURL == "":
 		err = errs.MissingField("api url")
+	case opt.HTTPClient == nil:
+		opt.HTTPClient = http.DefaultClient
 	}
 	if err != nil {
 		return nil, err
