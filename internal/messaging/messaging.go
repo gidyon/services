@@ -227,26 +227,31 @@ func (api *messagingServer) sendBroadCastMessage(
 				switch sendMethod {
 				case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 				case messaging.SendMethod_EMAIL:
-					sender := firstVal(msg.Details["sender"], api.EmailSender)
-					displayName, ok := msg.Details["display_name"]
-					if ok {
+					sender := firstVal(req.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
+					displayName := firstVal(req.GetSender().GetEmailSender(), msg.Details["display_name"])
+					if displayName != "" {
 						sender = fmt.Sprintf("%s <%s>", displayName, sender)
 					}
-					_, err = api.EmailClient.SendEmail(ctx2, &emailing.Email{
-						Destinations:    emails,
-						From:            sender,
-						Subject:         msg.Title,
-						Body:            msg.Data,
-						BodyContentType: "text/html",
+					_, err = api.EmailClient.SendEmail(ctx2, &emailing.SendEmailRequest{
+						Email: &emailing.Email{
+							Destinations:    emails,
+							From:            sender,
+							Subject:         msg.Title,
+							Body:            msg.Data,
+							BodyContentType: "text/html",
+						},
 					})
 					if err != nil {
 						api.Logger.Errorf("failed to send email message to destinations: %v", err)
 					}
 				case messaging.SendMethod_SMSV2:
-					_, err = api.SMSClient.SendSMS(ctx2, &sms.SMS{
-						DestinationPhones: phones,
-						Keyword:           msg.Title,
-						Message:           msg.Data,
+					_, err = api.SMSClient.SendSMS(ctx2, &sms.SendSMSRequest{
+						Sms: &sms.SMS{
+							DestinationPhones: phones,
+							Keyword:           msg.Title,
+							Message:           msg.Data,
+						},
+						Auth: req.GetSmsAuth(),
 					})
 					if err != nil {
 						api.Logger.Errorf("failed to send sms message to destinations: %v", err)
@@ -288,7 +293,7 @@ func firstVal(vals ...string) string {
 }
 
 func (api *messagingServer) SendMessage(
-	ctx context.Context, msg *messaging.Message,
+	ctx context.Context, sendReq *messaging.SendMessageRequest,
 ) (*messaging.SendMessageResponse, error) {
 	// Authenticate request
 	err := api.AuthAPI.AuthenticateRequest(ctx)
@@ -298,14 +303,18 @@ func (api *messagingServer) SendMessage(
 
 	// Validation
 	switch {
-	case msg == nil:
-		return nil, errs.NilObject("Message")
+	case sendReq == nil:
+		return nil, errs.NilObject("send request")
+	case sendReq.Message == nil:
+		return nil, errs.NilObject("message")
 	default:
-		err = validateMessage(msg)
+		err = validateMessage(sendReq.GetMessage())
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	msg := sendReq.Message
 
 	ctxGet, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
 	defer cancel()
@@ -323,27 +332,32 @@ func (api *messagingServer) SendMessage(
 		switch sendMethod {
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
-			sender := firstVal(msg.Details["sender"], api.EmailSender)
-			displayName, ok := msg.Details["display_name"]
-			if ok {
+			sender := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
+			displayName := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["display_name"])
+			if displayName != "" {
 				sender = fmt.Sprintf("%s <%s>", displayName, sender)
 			}
 
-			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.Email{
-				Destinations:    []string{subscriberPB.GetEmail()},
-				From:            sender,
-				Subject:         msg.Title,
-				Body:            msg.Data,
-				BodyContentType: "text/html",
+			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.SendEmailRequest{
+				Email: &emailing.Email{
+					Destinations:    []string{subscriberPB.GetEmail()},
+					From:            sender,
+					Subject:         msg.Title,
+					Body:            msg.Data,
+					BodyContentType: "text/html",
+				},
 			}, grpc.WaitForReady(true))
 			if err != nil {
 				return nil, errs.WrapErrorWithMsg(err, "failed to send email")
 			}
 		case messaging.SendMethod_SMSV2:
-			_, err = api.SMSClient.SendSMS(ctxGet, &sms.SMS{
-				DestinationPhones: []string{subscriberPB.GetPhone()},
-				Keyword:           msg.Title,
-				Message:           msg.Data,
+			_, err = api.SMSClient.SendSMS(ctxGet, &sms.SendSMSRequest{
+				Sms: &sms.SMS{
+					DestinationPhones: []string{subscriberPB.GetPhone()},
+					Keyword:           msg.Title,
+					Message:           msg.Data,
+				},
+				Auth: sendReq.GetSmsAuth(),
 			}, grpc.WaitForReady(true))
 			if err != nil {
 				return nil, errs.WrapErrorWithMsg(err, "failed to send sms")
@@ -526,13 +540,10 @@ func (api *messagingServer) ReadAll(
 func (api *messagingServer) GetNewMessagesCount(
 	ctx context.Context, getReq *messaging.MessageRequest,
 ) (*messaging.NewMessagesCount, error) {
-	// Authorize request
-	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.Admins()...)
-	if err != nil {
-		return nil, err
-	}
-
-	var ID int
+	var (
+		ID  int
+		err error
+	)
 
 	// Validation
 	switch {
@@ -545,6 +556,12 @@ func (api *messagingServer) GetNewMessagesCount(
 		if err != nil {
 			return nil, errs.IncorrectVal("user id")
 		}
+	}
+
+	// Authorize request
+	_, err = api.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.Admins()...)
+	if err != nil {
+		return nil, err
 	}
 
 	var count int64
