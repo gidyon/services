@@ -65,11 +65,6 @@ var _ = BeforeSuite(func() {
 	SMSServer, ok = SMSAPI.(*smsAPIServer)
 	Expect(ok).Should(BeTrue())
 
-	// Mocks
-	SMSServer.sendSMS = func(*Options, *sms.SMS) error {
-		return nil
-	}
-
 	// Pasing incorrect payload
 	_, err = NewSMSAPIServer(nil, opt)
 	Expect(err).Should(HaveOccurred())
@@ -116,7 +111,6 @@ var _ = BeforeSuite(func() {
 	_, err = NewSMSAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	SMSServer.sendSMS = sendSmsAT
 })
 
 func handleError(err error) {
