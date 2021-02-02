@@ -36,7 +36,7 @@ var (
 )
 
 func request_SMSAPI_SendSMS_0(ctx context.Context, marshaler runtime.Marshaler, client SMSAPIClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SMS
+	var protoReq SendSMSRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -52,7 +52,7 @@ func request_SMSAPI_SendSMS_0(ctx context.Context, marshaler runtime.Marshaler, 
 }
 
 func local_request_SMSAPI_SendSMS_0(ctx context.Context, marshaler runtime.Marshaler, server SMSAPIServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SMS
+	var protoReq SendSMSRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
@@ -161,7 +161,7 @@ func RegisterSMSAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux, cli
 }
 
 var (
-	pattern_SMSAPI_SendSMS_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "sms"}, "send"))
+	pattern_SMSAPI_SendSMS_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "sms"}, "sendSMS"))
 )
 
 var (

@@ -25,7 +25,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/sms:send": {
+    "/api/sms:sendSMS": {
       "get": {
         "summary": "Send an sms to its destination(s)",
         "operationId": "SMSAPI_SendSMS",
@@ -45,7 +45,7 @@
         },
         "parameters": [
           {
-            "name": "destinationPhones",
+            "name": "sms.destinationPhones",
             "in": "query",
             "required": false,
             "type": "array",
@@ -55,16 +55,63 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "keyword",
+            "name": "sms.keyword",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
-            "name": "message",
+            "name": "sms.message",
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "auth.apiUrl",
+            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.senderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.apiKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.clientId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.authToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.accessKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ONFON"
+            ],
+            "default": "ONFON"
           }
         ],
         "tags": [
@@ -74,6 +121,77 @@
     }
   },
   "definitions": {
+    "SendSMSRequestCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SendSMSRequestSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SendSMSRequestCookie"
+          }
+        }
+      }
+    },
+    "apisSMS": {
+      "type": "object",
+      "properties": {
+        "destinationPhones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keyword": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "description": "SMS is a text message that is to be sent to client(s)",
+      "title": "SMS",
+      "required": [
+        "destination_phones",
+        "message"
+      ]
+    },
+    "apisSmsProvider": {
+      "type": "string",
+      "enum": [
+        "ONFON"
+      ],
+      "default": "ONFON"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {

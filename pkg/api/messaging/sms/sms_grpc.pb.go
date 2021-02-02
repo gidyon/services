@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SMSAPIClient interface {
 	// Send an sms to its destination(s)
-	SendSMS(ctx context.Context, in *SMS, opts ...grpc.CallOption) (*empty.Empty, error)
+	SendSMS(ctx context.Context, in *SendSMSRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type sMSAPIClient struct {
@@ -30,7 +30,7 @@ func NewSMSAPIClient(cc grpc.ClientConnInterface) SMSAPIClient {
 	return &sMSAPIClient{cc}
 }
 
-func (c *sMSAPIClient) SendSMS(ctx context.Context, in *SMS, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (c *sMSAPIClient) SendSMS(ctx context.Context, in *SendSMSRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.SMSAPI/SendSMS", in, out, opts...)
 	if err != nil {
@@ -44,7 +44,7 @@ func (c *sMSAPIClient) SendSMS(ctx context.Context, in *SMS, opts ...grpc.CallOp
 // for forward compatibility
 type SMSAPIServer interface {
 	// Send an sms to its destination(s)
-	SendSMS(context.Context, *SMS) (*empty.Empty, error)
+	SendSMS(context.Context, *SendSMSRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedSMSAPIServer()
 }
 
@@ -52,7 +52,7 @@ type SMSAPIServer interface {
 type UnimplementedSMSAPIServer struct {
 }
 
-func (UnimplementedSMSAPIServer) SendSMS(context.Context, *SMS) (*empty.Empty, error) {
+func (UnimplementedSMSAPIServer) SendSMS(context.Context, *SendSMSRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendSMS not implemented")
 }
 func (UnimplementedSMSAPIServer) mustEmbedUnimplementedSMSAPIServer() {}
@@ -69,7 +69,7 @@ func RegisterSMSAPIServer(s grpc.ServiceRegistrar, srv SMSAPIServer) {
 }
 
 func _SMSAPI_SendSMS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SMS)
+	in := new(SendSMSRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func _SMSAPI_SendSMS_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: "/gidyon.apis.SMSAPI/SendSMS",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SMSAPIServer).SendSMS(ctx, req.(*SMS))
+		return srv.(SMSAPIServer).SendSMS(ctx, req.(*SendSMSRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
