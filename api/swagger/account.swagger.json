@@ -1901,6 +1901,9 @@
         "jwt": {
           "type": "string"
         },
+        "username": {
+          "type": "string"
+        },
         "privateAccount": {
           "$ref": "#/definitions/apisPrivateAccount"
         },

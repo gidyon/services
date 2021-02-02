@@ -252,9 +252,10 @@ message UpdatePrivateAccountExternalRequest {
 		}
     };
     
-    string jwt = 1 [(google.api.field_behavior) = REQUIRED];
-    PrivateAccount private_account = 2 [(google.api.field_behavior) = REQUIRED];
-    string change_token = 3 [(google.api.field_behavior) = REQUIRED];
+	string jwt = 1 [(google.api.field_behavior) = REQUIRED];
+	string username = 2 [(google.api.field_behavior) = REQUIRED];
+    PrivateAccount private_account = 3 [(google.api.field_behavior) = REQUIRED];
+    string change_token = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DeleteAccountRequest {
