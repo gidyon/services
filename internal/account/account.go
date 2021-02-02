@@ -484,17 +484,11 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 
 	accountID := fmt.Sprint(accountDB.AccountID)
 
-	// Authorize the actor
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, accountID, accountAPI.AuthAPI.AdminGroups()...)
-	if err != nil {
-		return nil, errs.WrapErrorWithMsg(err, "failed to authorize actor")
-	}
+	uniqueNumber := rand.Intn(199999) + 500000
 
-	uniqueNumber := rand.Intn(499999) + 500000
-
-	// Set token with expiration of 6 hours
+	// Set token with expiration of 5 minutes
 	err = accountAPI.RedisDBWrites.Set(
-		ctx, updateToken(accountID), uniqueNumber, time.Duration(time.Hour*6),
+		ctx, updateToken(accountID), uniqueNumber, time.Duration(5*time.Minute),
 	).Err()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "SET")
@@ -502,8 +496,11 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 
 	// GetAccount jwt
 	jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
-		ID:    accountID,
-		Names: accountDB.Names,
+		ID:           accountID,
+		Names:        accountDB.Names,
+		EmailAddress: accountDB.Email,
+		PhoneNumber:  accountDB.Phone,
+		ProjectID:    accountDB.ProjectID,
 	}, time.Now().Add(6*time.Hour))
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
@@ -514,13 +511,20 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 5*time.Second)
 	defer cancel()
 
+	var data string
+	if req.SendMethod == messaging.SendMethod_EMAIL {
+		data = fmt.Sprintf(
+			"You requested to change your account password credentials. Click on the following link in order to change your password. <br> <a href=\"%s?token=%s&key=%d\" target=\"blank\">Change password</a>", req.FallbackUrl, jwtToken, uniqueNumber,
+		)
+	} else {
+		data = fmt.Sprintf("Password reset token is %d", uniqueNumber)
+	}
+
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.Message{
-		UserId: accountID,
-		Title:  "Reset Account Credentials",
-		Data: fmt.Sprintf(
-			"You requested to change your account security credentials. Reset token is %d.", uniqueNumber,
-		),
+		UserId:      accountID,
+		Title:       "Reset Account Password",
+		Data:        data,
 		Link:        link,
 		Save:        true,
 		Type:        messaging.MessageType_ALERT,
@@ -621,6 +625,96 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 
 	// Update the model
 	err = accountAPI.SQLDBWrites.Model(privateDB).Where("account_id=?", ID).Updates(privateDB).Error
+	if err != nil {
+		return nil, errs.FailedToUpdate("account", err)
+	}
+
+	return &empty.Empty{}, nil
+}
+
+func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
+	ctx context.Context, updatePrivateReq *account.UpdatePrivateAccountExternalRequest,
+) (*empty.Empty, error) {
+	var err error
+
+	// Validation
+	switch {
+	case updatePrivateReq == nil:
+		return nil, errs.NilObject("UpdatePrivateRequest")
+	case updatePrivateReq.Jwt == "":
+		return nil, errs.MissingField("jwt")
+	case updatePrivateReq.Username == "":
+		return nil, errs.MissingField("username")
+	case updatePrivateReq.PrivateAccount == nil:
+		return nil, errs.NilObject("private account")
+	case updatePrivateReq.ChangeToken == "":
+		return nil, errs.MissingField("change token")
+	default:
+	}
+
+	// Validate jwt token from request
+	payload, err := accountAPI.AuthAPI.GetPayloadFromJwt(updatePrivateReq.Jwt)
+	if err != nil {
+		return nil, err
+	}
+
+	// The username should match payload data
+	if payload.EmailAddress != updatePrivateReq.Username || payload.PhoneNumber != updatePrivateReq.Username {
+		return nil, errs.WrapMessage(codes.PermissionDenied, "you are not allowed to perform this operation")
+	}
+
+	// GetAccount the account details from database
+	accountDB := &Account{}
+	err = accountAPI.SQLDBWrites.Select("account_id,account_state").First(accountDB, "email=? OR phone=?", updatePrivateReq.Username, updatePrivateReq.Username).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.DoesNotExist("account", updatePrivateReq.Username)
+	default:
+		return nil, errs.FailedToFind("account", err)
+	}
+
+	// Check that account is not blocked
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() {
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account not active")
+	}
+
+	// Lets get the update token
+	token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(fmt.Sprint(accountDB.AccountID))).Result()
+	switch {
+	case err == nil:
+	case err == redis.Nil:
+		return nil, errs.WrapMessage(codes.NotFound, "change token expired")
+	default:
+		return nil, errs.RedisCmdFailed(err, "get token")
+	}
+
+	if token != updatePrivateReq.ChangeToken {
+		return nil, errs.WrapMessage(codes.InvalidArgument, "token is incorrect")
+	}
+
+	// Hash the password if not empty
+	if updatePrivateReq.PrivateAccount.Password != "" {
+		// Passwords must be similar
+		if updatePrivateReq.PrivateAccount.ConfirmPassword != updatePrivateReq.PrivateAccount.Password {
+			return nil, errs.WrapMessage(codes.InvalidArgument, "passwords do not match")
+		}
+
+		updatePrivateReq.PrivateAccount.Password, err = genHash(updatePrivateReq.PrivateAccount.Password)
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate password hash")
+		}
+	}
+
+	// Create database model of the new account
+	privateDB := &Account{
+		SecurityQuestion: updatePrivateReq.PrivateAccount.SecurityQuestion,
+		SecurityAnswer:   updatePrivateReq.PrivateAccount.SecurityAnswer,
+		Password:         updatePrivateReq.PrivateAccount.Password,
+	}
+
+	// Update the model
+	err = accountAPI.SQLDBWrites.Model(privateDB).Where("account_id=?", accountDB.AccountID).Updates(privateDB).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)
 	}
