@@ -26,7 +26,7 @@ type Message struct {
 	Seen        bool   `gorm:"type:tinyint(1);not null;default:0"`
 	Type        int8   `gorm:"type:tinyint(1);not null;default:0"`
 	SendMethods []byte `gorm:"type:json;not null"`
-	Details     []byte `gorm:"type:json;not null"`
+	Details     []byte `gorm:"type:json;null"`
 	gorm.Model
 }
 
