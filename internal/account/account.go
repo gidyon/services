@@ -674,7 +674,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
 	}
 
 	// The username should match payload data
-	if payload.EmailAddress != updatePrivateReq.Username || payload.PhoneNumber != updatePrivateReq.Username {
+	if payload.EmailAddress != updatePrivateReq.Username && payload.PhoneNumber != updatePrivateReq.Username {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "you are not allowed to perform this operation")
 	}
 
