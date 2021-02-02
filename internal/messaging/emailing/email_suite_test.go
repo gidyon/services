@@ -53,9 +53,7 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Mocks
-	EmailServer.sender = func(*emailing.Email) error {
-		return nil
-	}
+	EmailServer.sender = func(*emailing.SendEmailRequest) {}
 
 	// Pasing incorrect payload
 	_, err = NewEmailingAPIServer(nil, opt)
