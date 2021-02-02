@@ -251,19 +251,18 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		defer cancel()
 
 		// Send message to inform necessary audience
-		_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.Message{
-			UserId:      updateReq.AccountId,
-			Title:       title,
-			Data:        data,
-			Link:        link,
-			Save:        true,
-			Type:        messageType,
-			SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2, messaging.SendMethod_EMAIL},
-			Details: map[string]string{
-				"app_name":     firstVal(updateReq.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
-				"display_name": firstVal(updateReq.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
-				"sender":       firstVal(updateReq.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
+		_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.SendMessageRequest{
+			Message: &messaging.Message{
+				UserId:      updateReq.AccountId,
+				Title:       title,
+				Data:        data,
+				Link:        link,
+				Save:        true,
+				Type:        messageType,
+				SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2, messaging.SendMethod_EMAIL},
 			},
+			Sender:  updateReq.GetSender(),
+			SmsAuth: updateReq.GetSmsAuth(),
 		}, grpc.WaitForReady(true))
 		if err != nil {
 			accountAPI.Logger.Errorf("error while sending account changed message: %v", err)

@@ -217,11 +217,6 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			Save:        true,
 			Type:        messaging.MessageType_REMINDER,
 			SendMethods: sendMethods,
-			Details: map[string]string{
-				"app_name":     firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
-				"display_name": firstVal(createReq.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
-				"sender":       firstVal(createReq.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
-			},
 		}
 
 		if createReq.GetByAdmin() {
@@ -235,11 +230,6 @@ func (accountAPI *accountAPIServer) CreateAccount(
 				Save:        true,
 				Type:        messaging.MessageType_REMINDER,
 				SendMethods: sendMethods,
-				Details: map[string]string{
-					"app_name":     firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
-					"display_name": firstVal(createReq.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
-					"sender":       firstVal(createReq.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
-				},
 			}
 		}
 
@@ -249,7 +239,11 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		defer cancel()
 
 		// Send message
-		_, err = accountAPI.MessagingClient.SendMessage(mdutil.AddMD(ctx, md), messagePB)
+		_, err = accountAPI.MessagingClient.SendMessage(mdutil.AddMD(ctx, md), &messaging.SendMessageRequest{
+			Message: messagePB,
+			SmsAuth: createReq.GetSmsAuth(),
+			Sender:  createReq.GetSender(),
+		})
 		if err != nil {
 			accountAPI.Logger.Errorf("error while sending account creation message: %v", err)
 		}

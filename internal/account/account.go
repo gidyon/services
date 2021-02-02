@@ -521,19 +521,18 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	}
 
 	// Send message
-	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.Message{
-		UserId:      accountID,
-		Title:       "Reset Account Password",
-		Data:        data,
-		Link:        link,
-		Save:        true,
-		Type:        messaging.MessageType_ALERT,
-		SendMethods: []messaging.SendMethod{req.SendMethod},
-		Details: map[string]string{
-			"app_name":     firstVal(req.GetSender().GetAppName(), accountAPI.AppName, "Accounts API"),
-			"display_name": firstVal(req.GetSender().GetEmailDisplayName(), accountAPI.EmailDisplayName, "Accounts API"),
-			"sender":       firstVal(req.GetSender().GetEmailSender(), accountAPI.DefaultEmailSender),
+	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.SendMessageRequest{
+		Message: &messaging.Message{
+			UserId:      accountID,
+			Title:       "Reset Account Password",
+			Data:        data,
+			Link:        link,
+			Save:        true,
+			Type:        messaging.MessageType_ALERT,
+			SendMethods: []messaging.SendMethod{req.SendMethod},
 		},
+		Sender:  req.GetSender(),
+		SmsAuth: req.GetSmsAuth(),
 	})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to send message")
