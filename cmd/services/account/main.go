@@ -31,8 +31,8 @@ import (
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
 
-	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
 	"github.com/gidyon/micro/v2/pkg/config"
+	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 )
