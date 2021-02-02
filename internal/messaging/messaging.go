@@ -113,8 +113,6 @@ func validateMessage(msg *messaging.Message) error {
 		err = errs.MissingField("title")
 	case msg.Data == "":
 		err = errs.MissingField("data")
-	case len(msg.Details) == 0:
-		err = errs.MissingField("payload")
 	case len(msg.SendMethods) == 0:
 		err = errs.MissingField("send methods")
 	default:
