@@ -268,6 +268,72 @@
           "ChannelAPI"
         ]
       }
+    },
+    "/api/channels:decrementSubscribers": {
+      "post": {
+        "summary": "Decrement subscribers by one.",
+        "operationId": "ChannelAPI_DecrementSubscribers2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscribersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels:incrementSubscribers": {
+      "post": {
+        "summary": "Increment subscribers by one.",
+        "operationId": "ChannelAPI_IncrementSubscribers2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscribersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
     }
   },
   "definitions": {
@@ -336,6 +402,22 @@
       },
       "description": "Response containing a collection of channel resource",
       "title": "ListChannelsResponse"
+    },
+    "apisSubscribersRequest": {
+      "type": "object",
+      "properties": {
+        "channelNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Request to increment or decrement subscribers for a channel or topic",
+      "title": "SubscribersRequest",
+      "required": [
+        "id"
+      ]
     },
     "apisUpdateChannelRequest": {
       "type": "object",

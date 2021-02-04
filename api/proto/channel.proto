@@ -163,6 +163,10 @@ service ChannelAPI {
 	rpc IncrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty){
 		option (google.api.http) = {
 			get: "/api/channels/action:incrementsub"
+			additional_bindings {
+				post: "/api/channels:incrementSubscribers"
+				body: "*"
+			}
 		};
 	};
 
@@ -170,6 +174,10 @@ service ChannelAPI {
 	rpc DecrementSubscribers (SubscribersRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
 			get: "/api/channels/action:decrementSub"
+			additional_bindings {
+				post: "/api/channels:decrementSubscribers"
+				body: "*"
+			}
 		};
 	};
 }
