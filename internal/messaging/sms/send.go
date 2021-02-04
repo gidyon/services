@@ -34,11 +34,11 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 			payload := strings.NewReader(
 				fmt.Sprintf(
 					"{\"SenderId\": \"%s\",\"IsUnicode\": true,\"IsFlash\": true,\"MessageParameters\": [{\"Number\": \"%s\",\"Text\": \"%s\"}],\"ApiKey\": \"%s\",\"ClientId\": \"%s\"}",
-					firstVal(sendRequest.GetAuth().GetSenderId(), "22031"),
+					firstVal(sendRequest.GetAuth().GetSenderId(), "22141"),
 					phone,
 					sendRequest.GetSms().GetMessage(),
-					firstVal(sendRequest.GetAuth().GetApiKey(), "TS1vLuqaV75unatsBeOLn33oORh7+jbOtwPMDlSkK/k="),
-					firstVal(sendRequest.GetAuth().GetClientId(), "dea5c505-e95d-48b2-9e67-c7dcdc4d3aa7"),
+					firstVal(sendRequest.GetAuth().GetApiKey(), "eGh/LkniEmyaruyee6aQYCNbvdYwx6sUNr6CsSkORWM="),
+					firstVal(sendRequest.GetAuth().GetClientId(), "0b3c6666-5d42-4fdf-90d0-be8bec00e665"),
 				),
 			)
 
@@ -59,7 +59,7 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 
 			req.Header.Add("Cookie", cookieString)
 			req.Header.Add("Content-Type", "application/json")
-			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), "DRzrgIdbmQ3hbD19VwJrwlIWbqmhfxI6"))
+			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), "2MJcjwjwOFMTAFep4iYV4jzMWybkxlXg"))
 			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstVal(sendRequest.GetAuth().GetAuthToken(), "7SbwNHZNhGUUg1FfIxKNr7oKzbUgNGSQ")))
 
 			res, err := smsAPI.HTTPClient.Do(req)
