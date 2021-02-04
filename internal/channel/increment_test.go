@@ -18,7 +18,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 
 	BeforeEach(func() {
 		incReq = &channel.SubscribersRequest{
-			Id: randomdata.RandStringRunes(20),
+			ChannelName: randomdata.Adjective(),
 		}
 		ctx = context.Background()
 	})
@@ -32,14 +32,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 			Expect(incRes).Should(BeNil())
 		})
 		It("should fail when channel id is missing", func() {
-			incReq.Id = ""
-			incRes, err := ChannelAPI.IncrementSubscribers(ctx, incReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-			Expect(incRes).Should(BeNil())
-		})
-		It("should fail when channel id is incorrect", func() {
-			incReq.Id = randomdata.RandStringRunes(32)
+			incReq.ChannelName = ""
 			incRes, err := ChannelAPI.IncrementSubscribers(ctx, incReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -48,7 +41,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 	})
 
 	Describe("Incrementing channel with well-formed request", func() {
-		var channelID string
+		var channelID, channelName string
 		Context("Lets create one channel first", func() {
 			It("should succeed", func() {
 				createReq := &channel.CreateChannelRequest{
@@ -58,6 +51,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(createRes).ShouldNot(BeNil())
+				channelName = createReq.Channel.Title
 				channelID = createRes.Id
 			})
 		})
@@ -76,7 +70,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 
 			for i := 0; i < count; i++ {
 				It("should succeed", func() {
-					incReq.Id = channelID
+					incReq.ChannelName = channelName
 					incRes, err := ChannelAPI.IncrementSubscribers(ctx, incReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))

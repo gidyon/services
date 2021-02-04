@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/conn"
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
-	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/conn"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
+	"github.com/gidyon/micro/v2/utils/encryption"
 	"github.com/gidyon/services/pkg/api/channel"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
@@ -50,7 +50,7 @@ var _ = BeforeSuite(func() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger := micro.NewLogger("channel_app")
+	logger := micro.NewLogger("channel_app", 0)
 
 	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
 	Expect(err).ShouldNot(HaveOccurred())

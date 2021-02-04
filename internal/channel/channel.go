@@ -14,8 +14,8 @@ import (
 
 	"strings"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/golang/protobuf/ptypes/empty"
 )
@@ -127,7 +127,7 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 	ctx context.Context, updateReq *channel.UpdateChannelRequest,
 ) (*empty.Empty, error) {
 	// Authorize the request; must be channel owner
-	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroups(ctx, updateReq.GetOwnerId(), auth.Admins()...)
+	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroup(ctx, updateReq.GetOwnerId(), channelAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -168,8 +168,8 @@ func (channelAPI *channelAPIServer) UpdateChannel(
 func (channelAPI *channelAPIServer) DeleteChannel(
 	ctx context.Context, delReq *channel.DeleteChannelRequest,
 ) (*empty.Empty, error) {
-	// Authorize the actor; must be channel owner or admin
-	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroups(ctx, delReq.GetOwnerId(), auth.Admins()...)
+	// Authorize the request; must be channel owner
+	_, err := channelAPI.AuthAPI.AuthorizeActorOrGroup(ctx, delReq.GetOwnerId(), channelAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (channelAPI *channelAPIServer) ListChannels(
 	switch {
 	case err == nil:
 	default:
-		return nil, errs.SQLQueryFailed(err, "LIST")
+		return nil, errs.FailedToUpdate("channels", err)
 	}
 
 	channelsPB := make([]*channel.Channel, 0, len(channelsDB))
@@ -299,7 +299,7 @@ func (channelAPI *channelAPIServer) GetChannel(
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		return nil, errs.DoesNotExist("channel", getReq.Id)
 	default:
-		return nil, errs.SQLQueryFailed(err, "FIND")
+		return nil, errs.FailedToFind("channel", err)
 	}
 
 	channelPB, err := GetChannelPB(channelDB)
@@ -320,31 +320,25 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 	}
 
 	// Validation
-	var ID int
 	switch {
 	case incReq == nil:
 		return nil, errs.NilObject("SubscribersRequest")
-	case incReq.Id == "":
-		return nil, errs.MissingField("channel id")
-	default:
-		ID, err = strconv.Atoi(incReq.Id)
-		if err != nil {
-			return nil, errs.IncorrectVal("channel id")
-		}
+	case incReq.ChannelName == "":
+		return nil, errs.MissingField("channel channel name")
 	}
 
 	// Increment subscribers in database
-	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("id=?", ID).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title = ?", incReq.ChannelName).
 		Update("subscribers", gorm.Expr("subscribers + ?", 1)).Error
 	if err != nil {
-		return nil, errs.SQLQueryFailed(err, "UPDATE")
+		return nil, errs.FailedToUpdate("channel", err)
 	}
 
 	return &empty.Empty{}, nil
 }
 
 func (channelAPI *channelAPIServer) DecrementSubscribers(
-	ctx context.Context, incReq *channel.SubscribersRequest,
+	ctx context.Context, decReq *channel.SubscribersRequest,
 ) (*empty.Empty, error) {
 	// Authenticate request
 	err := channelAPI.AuthAPI.AuthenticateRequest(ctx)
@@ -353,24 +347,18 @@ func (channelAPI *channelAPIServer) DecrementSubscribers(
 	}
 
 	// Validation
-	var ID int
 	switch {
-	case incReq == nil:
-		return nil, errs.NilObject("SubscribersRequest")
-	case incReq.Id == "":
-		return nil, errs.MissingField("channel id")
-	default:
-		ID, err = strconv.Atoi(incReq.Id)
-		if err != nil {
-			return nil, errs.IncorrectVal("channel id")
-		}
+	case decReq == nil:
+		return nil, errs.NilObject("decrement request")
+	case decReq.ChannelName == "":
+		return nil, errs.MissingField("channel name")
 	}
 
 	// Decrement subscribers in database
-	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("id=?", ID).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title = ?", decReq.ChannelName).
 		Update("subscribers", gorm.Expr("subscribers - ?", 1)).Error
 	if err != nil {
-		return nil, errs.SQLQueryFailed(err, "UPDATE")
+		return nil, errs.FailedToUpdate("channel", err)
 	}
 
 	return &empty.Empty{}, nil

@@ -18,7 +18,7 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 
 	BeforeEach(func() {
 		decrReq = &channel.SubscribersRequest{
-			Id: randomdata.RandStringRunes(20),
+			ChannelName: randomdata.Adjective(),
 		}
 		ctx = context.Background()
 	})
@@ -31,15 +31,8 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(decrRes).Should(BeNil())
 		})
-		It("should fail when channel id is missing", func() {
-			decrReq.Id = ""
-			decrRes, err := ChannelAPI.DecrementSubscribers(ctx, decrReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-			Expect(decrRes).Should(BeNil())
-		})
-		It("should fail when channel id is incorrect", func() {
-			decrReq.Id = randomdata.RandStringRunes(32)
+		It("should fail when channel name is missing", func() {
+			decrReq.ChannelName = ""
 			decrRes, err := ChannelAPI.DecrementSubscribers(ctx, decrReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -48,7 +41,7 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 	})
 
 	Describe("Decrementing channel with well-formed request", func() {
-		var channelID string
+		var channelName, channelID string
 		Context("Lets create one channel first", func() {
 			It("should succeed", func() {
 				createReq := &channel.CreateChannelRequest{
@@ -58,6 +51,7 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(createRes).ShouldNot(BeNil())
+				channelName = createReq.Channel.Title
 				channelID = createRes.Id
 			})
 		})
@@ -77,7 +71,7 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 			// Lets decrrement
 			for i := 0; i < count; i++ {
 				It("should succeed", func() {
-					decrReq.Id = channelID
+					decrReq.ChannelName = channelName
 					incRes, err := ChannelAPI.IncrementSubscribers(ctx, decrReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -88,7 +82,7 @@ var _ = Describe("Decrementing subscribers for a channel @decrement", func() {
 			// Lets decrement
 			for i := 0; i < count/2; i++ {
 				It("should succeed", func() {
-					decrReq.Id = channelID
+					decrReq.ChannelName = channelName
 					decrRes, err := ChannelAPI.DecrementSubscribers(ctx, decrReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))

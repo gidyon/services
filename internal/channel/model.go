@@ -11,8 +11,8 @@ const channelsTable = "channels"
 
 // Channel is a bulk channel
 type Channel struct {
-	Title       string `gorm:"type:varchar(50);not null"`
-	Description string `gorm:"type:text;not null"`
+	Title       string `gorm:"type:varchar(50);unique;not null"`
+	Description string `gorm:"type:text(500);not null"`
 	OwnerID     string `gorm:"type:varchar(50);not null"`
 	Subscribers int32  `gorm:"type:int(10);not null"`
 	gorm.Model
