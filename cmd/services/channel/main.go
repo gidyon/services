@@ -5,9 +5,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/healthcheck"
-	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/healthcheck"
 	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
@@ -15,15 +14,16 @@ import (
 
 	channel_app "github.com/gidyon/services/internal/channel"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
-	httpmiddleware "github.com/gidyon/micro/pkg/http"
-	"github.com/gidyon/micro/utils/encryption"
-	"github.com/gidyon/micro/utils/errs"
+	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
+	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
+	"github.com/gidyon/micro/v2/utils/encryption"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
-	"github.com/gidyon/micro/pkg/config"
+	"github.com/gidyon/micro/v2/pkg/config"
 )
 
 func main() {
@@ -62,17 +62,22 @@ func main() {
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	authAPI, err := auth.NewAPI(&auth.Options{
+		SigningKey: jwtKey,
+		Issuer:     "Channels API",
+		Audience:   "users",
+	})
 	errs.Panic(err)
 
 	// Generate jwt token
-	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.DefaultAdminGroup()}, time.Now().Add(time.Hour*24))
 	if err == nil {
 		app.Logger().Infof("Test jwt is %s", token)
 	}
 
-	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
-	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+	// Authentication middleware
+	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthorizeFunc))
+	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthorizeFunc))
 
 	// Readiness health check
 	app.AddEndpoint("/api/channels/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
