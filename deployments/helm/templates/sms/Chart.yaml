@@ -2,7 +2,7 @@ apiVersion: v2
 name: sms
 description: Messaging client that sends sms to clients
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: v1
 
 dependencies:
