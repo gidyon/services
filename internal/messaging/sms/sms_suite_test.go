@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Pallinder/go-randomdata"
-
 	"github.com/gidyon/micro"
 	"github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
@@ -48,13 +46,8 @@ var _ = BeforeSuite(func() {
 	logger := micro.NewLogger("sms")
 
 	opt := &Options{
-		Logger:      logger,
-		AuthAPI:     mocks.AuthAPI,
-		APIKey:      randomdata.RandStringRunes(32),
-		AuthToken:   randomdata.MacAddress(),
-		APIUsername: randomdata.SillyName(),
-		APIPassword: randomdata.RandStringRunes(15),
-		APIURL:      randomdata.IpV4Address(),
+		Logger:  logger,
+		AuthAPI: mocks.AuthAPI,
 	}
 
 	// Create sms server
@@ -82,31 +75,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.AuthAPI = mocks.AuthAPI
-	opt.APIKey = ""
-	_, err = NewSMSAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.APIKey = randomdata.RandStringRunes(43)
-	opt.AuthToken = ""
-	_, err = NewSMSAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.AuthToken = randomdata.RandStringRunes(40)
-	opt.APIUsername = ""
-	_, err = NewSMSAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.APIUsername = randomdata.SillyName()
-	opt.APIPassword = ""
-	_, err = NewSMSAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.APIPassword = randomdata.RandStringRunes(15)
-	opt.APIURL = ""
-	_, err = NewSMSAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.APIURL = randomdata.IpV4Address()
 
 	_, err = NewSMSAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
