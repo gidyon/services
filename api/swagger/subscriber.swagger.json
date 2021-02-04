@@ -172,23 +172,6 @@
     }
   },
   "definitions": {
-    "apisChannelSubcriber": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "channelId": {
-          "type": "string"
-        }
-      },
-      "description": "The subscription",
-      "title": "ChannelSubcriber",
-      "required": [
-        "name",
-        "channel_id"
-      ]
-    },
     "apisListSubscribersFilter": {
       "type": "object",
       "properties": {
@@ -239,7 +222,7 @@
         "channels": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/apisChannelSubcriber"
+            "type": "string"
           }
         }
       },
@@ -252,11 +235,11 @@
         "subscriberId": {
           "type": "string"
         },
-        "channelId": {
-          "type": "string"
-        },
-        "channelName": {
-          "type": "string"
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "Request to subscribes an entity to a channel",
