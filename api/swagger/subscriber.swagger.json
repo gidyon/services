@@ -169,6 +169,72 @@
           "SubscriberAPI"
         ]
       }
+    },
+    "/api/subscribers:subscribe": {
+      "post": {
+        "summary": "Subscribes a user to a channel",
+        "operationId": "SubscriberAPI_Subscribe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers:unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes a user from a channel",
+        "operationId": "SubscriberAPI_Unsubscribe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
     }
   },
   "definitions": {

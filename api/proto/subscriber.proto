@@ -94,7 +94,11 @@ service SubscriberAPI {
     rpc Subscribe (SubscriberRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/api/subscribers/action:subscribe",
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/subscribers:subscribe"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "channel_id,subscriber_id";
     }
@@ -103,7 +107,11 @@ service SubscriberAPI {
     rpc Unsubscribe (SubscriberRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/api/subscribers/action:unsubscribe",
-            body: "*"
+			body: "*"
+			additional_bindings {
+				post: "/api/subscribers:unsubscribe"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "channel_id,subscriber_id";
     }
