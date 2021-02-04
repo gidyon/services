@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/micro/utils/mdutil"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
+	"github.com/gidyon/micro/v2/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/speps/go-hashids"
 	"gorm.io/gorm"
@@ -85,13 +86,10 @@ func NewSubscriberAPIServer(
 	return subscriberAPI, nil
 }
 
+const defaultChannel = "public"
+
 func (subscriberAPI *subscriberAPIServer) createSubscriber(ID int) error {
-	channels, err := json.Marshal([]*subscriber.ChannelSubcriber{
-		{
-			Name:      "public",
-			ChannelId: "0",
-		},
-	})
+	channels, err := json.Marshal([]string{defaultChannel})
 	if err != nil {
 		return errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to json marshal")
 	}
@@ -108,24 +106,17 @@ func (subscriberAPI *subscriberAPIServer) createSubscriber(ID int) error {
 func (subscriberAPI *subscriberAPIServer) Subscribe(
 	ctx context.Context, subReq *subscriber.SubscriberRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if subReq == nil {
-		return nil, errs.NilObject("SubscriberRequest")
-	}
-
-	// Authorize the request
-	_, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, subReq.SubscriberId, auth.Admins()...)
-	if err != nil {
-		return nil, err
-	}
 
 	// Check that account id and channelId is provided
-	var ID int
+	var (
+		ID  int
+		err error
+	)
 	switch {
-	case subReq.ChannelId == "":
-		return nil, errs.MissingField("channel id")
-	case subReq.ChannelName == "":
-		return nil, errs.MissingField("channel name")
+	case subReq == nil:
+		return nil, errs.NilObject("SubscriberRequest")
+	case len(subReq.Channels) == 0:
+		return nil, errs.MissingField("channel names")
 	case subReq.SubscriberId == "":
 		return nil, errs.MissingField("subscriber id")
 	default:
@@ -133,6 +124,12 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		if err != nil {
 			return nil, errs.IncorrectVal("subscriber id")
 		}
+	}
+
+	// Authorize the request
+	_, err = subscriberAPI.AuthAPI.AuthorizeActorOrGroup(ctx, subReq.SubscriberId, subscriberAPI.AuthAPI.AdminGroups()...)
+	if err != nil {
+		return nil, err
 	}
 
 	// Start a transaction
@@ -165,42 +162,43 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		return nil, errs.SQLQueryFailed(err, "Get")
 	}
 
-	channels := []*subscriber.ChannelSubcriber{}
+	channels := []string{}
 
 	// safe json unmarshal
 	if len(sub.Channels) > 0 {
 		err = json.Unmarshal(sub.Channels, &channels)
 		if err != nil {
 			tx.Rollback()
-			return nil, errs.FromJSONUnMarshal(err, "Subscribers")
+			return nil, errs.FromJSONUnMarshal(err, "subscribers channels")
 		}
+	} else {
+		channels = []string{defaultChannel}
 	}
 
+	channelsV2 := make([]string, 0, len(channels)+1)
+
 	// Check if already subscribed
-	for _, channelPB := range channels {
-		if channelPB.ChannelId == subReq.ChannelId {
-			return &empty.Empty{}, nil
+	for _, channel := range subReq.Channels {
+		if inArray(channel, channels) {
+			continue
 		}
+		channelsV2 = append(channelsV2, channel)
 	}
 
 	// Add channel
-	channels = append(channels, &subscriber.ChannelSubcriber{
-		Name:      subReq.ChannelName,
-		ChannelId: subReq.ChannelId,
-	})
+	channelsV2 = append(channelsV2, channels...)
 
-	sub.Channels, err = json.Marshal(channels)
+	sub.Channels, err = json.Marshal(channelsV2)
 	if err != nil {
 		tx.Rollback()
-		return nil, errs.FromJSONMarshal(err, "Subscribers")
+		return nil, errs.FromJSONMarshal(err, "channels")
 	}
 
 	// Subscribe user to the channel
-	err = tx.Table(subscribersTable).Where("id=?", ID).
-		Updates(sub).Error
+	err = tx.Table(subscribersTable).Where("id=?", ID).Select("channels").Updates(sub).Error
 	if err != nil {
 		tx.Rollback()
-		return nil, errs.SQLQueryFailed(err, "Subscribe")
+		return nil, errs.FailedToUpdate("subscriber", err)
 	}
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
@@ -208,7 +206,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 
 	// Increment channel subscribers
 	_, err = subscriberAPI.ChannelClient.IncrementSubscribers(ctx, &channel.SubscribersRequest{
-		Id: subReq.ChannelId,
+		ChannelNames: subReq.Channels,
 	}, grpc.WaitForReady(true))
 	if err != nil {
 		tx.Rollback()
@@ -228,32 +226,31 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	ctx context.Context, unSubReq *subscriber.SubscriberRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if unSubReq == nil {
-		return nil, errs.NilObject("UnSubscriberRequest")
-	}
-
-	// Authorize the request
-	_, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, unSubReq.SubscriberId, auth.Admins()...)
-	if err != nil {
-		return nil, err
-	}
-
-	accountID := unSubReq.GetSubscriberId()
-	channelID := unSubReq.GetChannelId()
 
 	// Validation
-	var ID int
+	var (
+		ID        int
+		err       error
+		accountID = unSubReq.GetSubscriberId()
+	)
 	switch {
-	case channelID == "":
-		return nil, errs.MissingField("channel id")
-	case accountID == "":
+	case unSubReq == nil:
+		return nil, errs.NilObject("unsubscribe request")
+	case len(unSubReq.Channels) == 0:
+		return nil, errs.MissingField("channels")
+	case unSubReq.SubscriberId == "":
 		return nil, errs.MissingField("subscriber id")
 	default:
 		ID, err = strconv.Atoi(accountID)
 		if err != nil {
 			return nil, errs.IncorrectVal("subscriber id")
 		}
+	}
+
+	// Authorize the request
+	_, err = subscriberAPI.AuthAPI.AuthorizeActorOrGroup(ctx, unSubReq.SubscriberId, subscriberAPI.AuthAPI.AdminGroups()...)
+	if err != nil {
+		return nil, err
 	}
 
 	// Start a transaction
@@ -288,7 +285,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		return nil, errs.SQLQueryFailed(err, "Get")
 	}
 
-	channels := []*subscriber.ChannelSubcriber{}
+	channels := []string{}
 
 	// safe json unmarshal
 	if len(sub.Channels) > 0 {
@@ -301,11 +298,12 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 
 	var found bool
 	// Find the channel to unsubcribe
-	for pos, ch := range channels {
-		if channelID == ch.GetChannelId() {
+	for pos, ch := range unSubReq.Channels {
+		if inArray(ch, channels) {
 			// Remove with append
 			channels = append(channels[:pos], channels[pos+1:]...)
 			found = true
+			break
 		}
 	}
 
@@ -317,7 +315,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		sub.Channels, err = json.Marshal(channels)
 		if err != nil {
 			tx.Rollback()
-			return nil, errs.FromJSONMarshal(err, "Subscribers")
+			return nil, errs.FromJSONMarshal(err, "channels")
 		}
 	}
 
@@ -325,7 +323,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	err = tx.Table(subscribersTable).Where("id=?", accountID).Updates(sub).Error
 	if err != nil {
 		tx.Rollback()
-		return nil, errs.SQLQueryFailed(err, "Unsubscribe")
+		return nil, errs.FailedToUpdate("subscriber", err)
 	}
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
@@ -333,7 +331,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 
 	// Decrement channel subscribers
 	_, err = subscriberAPI.ChannelClient.DecrementSubscribers(ctx, &channel.SubscribersRequest{
-		Id: channelID,
+		ChannelNames: unSubReq.Channels,
 	})
 	if err != nil {
 		tx.Rollback()
@@ -352,30 +350,9 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 
 const defaultPageSize = 50
 
-func existChannel(channels []string, channel string) bool {
-	for _, channel2 := range channels {
-		if channel2 == channel {
-			return true
-		}
-	}
-	return false
-}
-
-func hasChannel(subscriberChannels []*subscriber.ChannelSubcriber, channels []string) bool {
-	if len(channels) == 0 {
-		return true
-	}
-	for _, channel := range subscriberChannels {
-		if existChannel(channels, channel.ChannelId) {
-			return true
-		}
-	}
-	return false
-}
-
-func inGroup(group string, groups []string) bool {
-	for _, grp := range groups {
-		if grp == group {
+func inArray(v string, arr []string) bool {
+	for _, v2 := range arr {
+		if v == v2 {
 			return true
 		}
 	}
@@ -391,7 +368,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.AuthAPI.AuthorizeGroups(ctx, auth.Admins()...)
+	payload, err := subscriberAPI.AuthAPI.AuthorizeAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -411,47 +388,87 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		ID = uint(ids[0])
 	}
 
-	subscribersDB := make([]*Subscriber, 0, pageSize)
+	subscribersDBAll := make([]*Subscriber, 0, pageSize)
 
-	db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
-	if ID != 0 {
-		db = db.Where("id<?", ID)
-	}
+	if len(listReq.GetFilter().GetChannels()) > 0 {
+		var (
+			wg            = &sync.WaitGroup{}
+			mu            = sync.Mutex{} // guards subscribersDB
+			subscribersDB = make([]*Subscriber, 0, pageSize)
+		)
 
-	err = db.Find(&subscribersDB).Error
-	switch {
-	case err == nil:
-	default:
-		if err != nil {
-			return nil, errs.SQLQueryFailed(err, "LIST")
+		// Get subscriber for each channel
+		for _, channel := range listReq.Filter.GetChannels() {
+			wg.Add(1)
+
+			channel := channel
+
+			go func() {
+				defer wg.Done()
+
+				db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
+				if ID != 0 {
+					db = db.Where("id<?", ID)
+				}
+
+				err = db.Where("? MEMBER OF (channels)", channel).Find(&subscribersDB).Error
+				if err != nil {
+					subscriberAPI.Logger.Errorf("failed to finds subscribers: %v", err)
+					return
+				}
+
+				mu.Lock()
+				subscribersDBAll = append(subscribersDBAll, subscribersDB...)
+				mu.Unlock()
+			}()
+		}
+
+		// Collect all results
+		wg.Wait()
+	} else {
+		db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
+		if ID != 0 {
+			db = db.Where("id<?", ID)
+		}
+
+		err = db.Find(&subscribersDBAll).Error
+		switch {
+		case err == nil:
+		default:
+			if err != nil {
+				return nil, errs.SQLQueryFailed(err, "LIST")
+			}
 		}
 	}
 
-	subscribersPB := make([]*subscriber.Subscriber, 0, len(subscribersDB))
+	var (
+		subscribersPB = make([]*subscriber.Subscriber, 0, len(subscribersDBAll))
+		seen          = make(map[uint]struct{}, int(pageSize))
+	)
 
 	ctxGet := mdutil.AddFromCtx(ctx)
 
-	for _, subscriberDB := range subscribersDB {
+	for _, subscriberDB := range subscribersDBAll {
 
-		if len(subscriberDB.Channels) == 0 {
+		if _, ok := seen[subscriberDB.ID]; ok {
 			continue
 		}
 
-		channels := make([]*subscriber.ChannelSubcriber, 0)
+		seen[subscriberDB.ID] = struct{}{}
 
-		err = json.Unmarshal(subscriberDB.Channels, &channels)
-		if err != nil {
-			return nil, errs.FromJSONMarshal(err, "channels")
-		}
+		channels := make([]string, 0)
 
-		if !hasChannel(channels, listReq.GetFilter().GetChannels()) {
-			continue
+		if len(subscriberDB.Channels) > 0 {
+			err = json.Unmarshal(subscriberDB.Channels, &channels)
+			if err != nil {
+				return nil, errs.FromJSONMarshal(err, "channels")
+			}
 		}
 
 		// Lets get the user
 		accountPB, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
 			AccountId:  fmt.Sprint(subscriberDB.ID),
-			Priviledge: inGroup(payload.Group, auth.Admins()),
+			Priviledge: subscriberAPI.AuthAPI.IsAdmin(payload.Group),
 		})
 		switch {
 		case err == nil:
@@ -472,7 +489,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	var token string
-	if int(pageSize) == len(subscribersDB) {
+	if int(pageSize) <= len(subscribersDBAll) {
 		// Next page token
 		token, err = subscriberAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
@@ -495,7 +512,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	}
 
 	// Authorize the request
-	payload, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.SubscriberId, auth.Admins()...)
+	payload, err := subscriberAPI.AuthAPI.AuthorizeActorOrGroup(ctx, getReq.SubscriberId, subscriberAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -532,7 +549,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	// Get account details
 	accountPB, err := subscriberAPI.AccountClient.GetAccount(ctx, &account.GetAccountRequest{
 		AccountId:  getReq.SubscriberId,
-		Priviledge: inGroup(payload.Group, auth.Admins()),
+		Priviledge: subscriberAPI.AuthAPI.IsAdmin(payload.Group),
 	}, grpc.WaitForReady(true))
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to get susbcriber profile")

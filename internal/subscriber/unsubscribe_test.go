@@ -23,8 +23,7 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 	BeforeEach(func() {
 		subscribeReq = &subscriber.SubscriberRequest{
 			SubscriberId: uuid.New().String(),
-			ChannelName:  randomdata.Month(),
-			ChannelId:    randomdata.RandStringRunes(32),
+			Channels:     []string{randomdata.Month()},
 		}
 		ctx = context.Background()
 	})
@@ -44,14 +43,8 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 			Expect(subscribeRes).Should(BeNil())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
-		It("should fail when channel id is is missing", func() {
-			subscribeReq.ChannelId = ""
-			subscribeRes, err := SubsriberAPI.Unsubscribe(ctx, subscribeReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(subscribeRes).Should(BeNil())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-		})
-		It("should fail when subscriber id is incorrect", func() {
+		It("should fail when channel names is missing", func() {
+			subscribeReq.Channels = nil
 			subscribeRes, err := SubsriberAPI.Unsubscribe(ctx, subscribeReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(subscribeRes).Should(BeNil())
@@ -60,7 +53,7 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 	})
 
 	Describe("Unsubscribing from a channel with well-formed request", func() {
-		var channelName, channelID string
+		var channelName string
 
 		Describe("Lets subscribe user to a channel first", func() {
 			It("should subscribe user when the request is valid", func() {
@@ -69,8 +62,7 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(subscribeRes).ShouldNot(BeNil())
-				channelName = subscribeReq.ChannelName
-				channelID = subscribeReq.ChannelId
+				channelName = subscribeReq.Channels[0]
 			})
 
 			Describe("Getting the subscriber", func() {
@@ -82,8 +74,8 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 					Expect(status.Code(err)).Should(Equal(codes.OK))
 					Expect(subscriberPB).ShouldNot(BeNil())
 					var exist bool
-					for _, channelPB := range subscriberPB.Channels {
-						if channelPB.Name == channelName {
+					for _, ch := range subscriberPB.Channels {
+						if ch == channelName {
 							exist = true
 						}
 					}
@@ -94,7 +86,7 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 			Describe("Unsubscribing user from the channel", func() {
 				It("should unsubscribe user from channel", func() {
 					subscribeReq.SubscriberId = subscriberID
-					subscribeReq.ChannelId = channelID
+					subscribeReq.Channels = []string{channelName}
 					subscribeRes, err := SubsriberAPI.Unsubscribe(ctx, subscribeReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -110,8 +102,8 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 						Expect(status.Code(err)).Should(Equal(codes.OK))
 						Expect(subscriberPB).ShouldNot(BeNil())
 						var exist bool
-						for _, channelPB := range subscriberPB.Channels {
-							if channelPB.Name == channelName {
+						for _, ch := range subscriberPB.Channels {
+							if ch == channelName {
 								exist = true
 							}
 						}
@@ -126,7 +118,7 @@ var _ = Describe("Unsubscribing A User From A Channel @unsubscribe", func() {
 
 			It("should create a susbcriber with default channel", func() {
 				subscribeReq.SubscriberId = subscriberID
-				subscribeReq.ChannelId = channelID
+				subscribeReq.Channels = []string{channelName}
 				subscribeRes, err := SubsriberAPI.Unsubscribe(ctx, subscribeReq)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))

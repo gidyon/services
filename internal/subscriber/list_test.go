@@ -59,16 +59,15 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 				for i := 0; i < 100; i++ {
 					_, err := SubsriberAPI.Subscribe(ctx, &subscriber.SubscriberRequest{
 						SubscriberId: fmt.Sprint(randomdata.Number(999)),
-						ChannelId:    fmt.Sprint(randomdata.Number(99)),
-						ChannelName:  randomdata.Adjective(),
+						Channels:     []string{randomdata.Adjective()},
 					})
 					Expect(err).ShouldNot(HaveOccurred())
 				}
 			})
 		})
 
-		Describe("List subscribers when missing channelId", func() {
-			It("should list subscribers for a channel even when page", func() {
+		Describe("List subscribers when missing channels filter", func() {
+			It("should list subscribers", func() {
 				listReq.Filter.Channels = []string{}
 				listReq.PageToken = pageToken
 				listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
@@ -83,8 +82,7 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 			It("should subscribe account to channel", func() {
 				subscribeRes, err := SubsriberAPI.Subscribe(ctx, &subscriber.SubscriberRequest{
 					SubscriberId: subscriberID,
-					ChannelId:    channelID,
-					ChannelName:  channelName,
+					Channels:     []string{channelName},
 				})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -92,13 +90,14 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 			})
 
 			It("should list subscribers for a channel", func() {
-				listReq.Filter.Channels = []string{channelID}
+				listReq.Filter.Channels = []string{channelName}
 				listRes, err := SubsriberAPI.ListSubscribers(ctx, listReq)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(listRes).ShouldNot(BeNil())
 				for _, subscriberPB := range listRes.Subscribers {
-					Expect(channelID).Should(BeElementOf(getChannelNames(subscriberPB.Channels)))
+					SubsriberAPIServer.Logger.Infoln("channel is ", subscriberPB.Channels)
+					Expect(channelName).Should(BeElementOf(subscriberPB.Channels))
 				}
 				pageToken = listRes.NextPageToken
 			})
@@ -116,11 +115,3 @@ var _ = Describe("Listing Subscribers For A Channel @list", func() {
 		})
 	})
 })
-
-func getChannelNames(channelsPB []*subscriber.ChannelSubcriber) []string {
-	channels := make([]string, 0, len(channelsPB))
-	for _, channelPB := range channelsPB {
-		channels = append(channels, channelPB.ChannelId)
-	}
-	return channels
-}

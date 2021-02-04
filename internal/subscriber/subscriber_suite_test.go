@@ -7,11 +7,11 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"gorm.io/gorm"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/conn"
-	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/conn"
+	"github.com/gidyon/micro/v2/utils/encryption"
 
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/subscriber"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -50,10 +50,16 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
+	// Remove all
+	Expect(db.Migrator().DropTable(&Subscriber{})).ShouldNot(HaveOccurred())
+
+	// Auto migrate
+	Expect(db.Migrator().AutoMigrate(&Subscriber{}))
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger := micro.NewLogger("subscriber_app")
+	logger := micro.NewLogger("subscriber_app", 0)
 	channelClient := mocks.ChannelAPI
 	accountClient := mocks.AccountAPI
 

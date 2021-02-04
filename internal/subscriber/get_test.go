@@ -59,8 +59,7 @@ var _ = Describe("Getting subscriber @get", func() {
 			It("should create subscriber account", func() {
 				subscribeRes, err := SubsriberAPI.Subscribe(ctx, &subscriber.SubscriberRequest{
 					SubscriberId: subscriberID,
-					ChannelId:    randomdata.RandStringRunes(32),
-					ChannelName:  channelName,
+					Channels:     []string{channelName},
 				})
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))

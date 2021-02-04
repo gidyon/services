@@ -16,7 +16,7 @@ const subscribersTable = "subscribers"
 // Subscriber is model for subscribers
 type Subscriber struct {
 	ID        uint   `gorm:"primary_key"`
-	Channels  []byte `gorm:"type:json"`
+	Channels  []byte `gorm:"type:json;not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -34,7 +34,7 @@ func GetSubscriberPB(subscriberDB *Subscriber, userPB *account.Account) (*subscr
 		Email:        userPB.Email,
 		Phone:        userPB.Phone,
 		DeviceToken:  userPB.DeviceToken,
-		Channels:     []*subscriber.ChannelSubcriber{},
+		Channels:     []string{},
 	}
 
 	// safe json unmarshal

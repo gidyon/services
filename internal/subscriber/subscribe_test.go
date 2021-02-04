@@ -22,8 +22,7 @@ var _ = Describe("Subsribing A User To A Channel @subscribe", func() {
 	BeforeEach(func() {
 		subscribeReq = &subscriber.SubscriberRequest{
 			SubscriberId: uuid.New().String(),
-			ChannelName:  randomdata.Month(),
-			ChannelId:    randomdata.RandStringRunes(32),
+			Channels:     []string{randomdata.Month()},
 		}
 		ctx = context.Background()
 	})
@@ -43,22 +42,8 @@ var _ = Describe("Subsribing A User To A Channel @subscribe", func() {
 			Expect(subscribeRes).Should(BeNil())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
-		It("should fail when channel id is missing", func() {
-			subscribeReq.ChannelId = ""
-			subscribeRes, err := SubsriberAPI.Subscribe(ctx, subscribeReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(subscribeRes).Should(BeNil())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-		})
-		It("should fail when channel name is missing", func() {
-			subscribeReq.ChannelName = ""
-			subscribeRes, err := SubsriberAPI.Subscribe(ctx, subscribeReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(subscribeRes).Should(BeNil())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-		})
-		It("should fail when subscriber is is incorrect", func() {
-			subscribeReq.ChannelName = uuid.New().String()
+		It("should fail when channel names is missing", func() {
+			subscribeReq.Channels = nil
 			subscribeRes, err := SubsriberAPI.Subscribe(ctx, subscribeReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(subscribeRes).Should(BeNil())
@@ -67,14 +52,14 @@ var _ = Describe("Subsribing A User To A Channel @subscribe", func() {
 	})
 
 	Describe("Subscribing to a channel with well-formed request", func() {
-		var channelID string
+		var channelName string
 		It("should subscribe user when the request is valid", func() {
 			subscribeReq.SubscriberId = subscriberID
 			subscribeRes, err := SubsriberAPI.Subscribe(ctx, subscribeReq)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.OK))
 			Expect(subscribeRes).ShouldNot(BeNil())
-			channelID = subscribeReq.ChannelId
+			channelName = subscribeReq.Channels[0]
 		})
 
 		Describe("Getting the susbscriber", func() {
@@ -86,9 +71,10 @@ var _ = Describe("Subsribing A User To A Channel @subscribe", func() {
 				Expect(status.Code(err)).Should(Equal(codes.OK))
 				Expect(subscriberPB).ShouldNot(BeNil())
 				var exist bool
-				for _, channelPB := range subscriberPB.Channels {
-					if channelPB.ChannelId == channelID {
+				for _, ch := range subscriberPB.Channels {
+					if ch == channelName {
 						exist = true
+						break
 					}
 				}
 				Expect(exist).Should(BeTrue())
