@@ -117,7 +117,7 @@ message SubscribersRequest {
 		}
 	};
 
-	string channel_name = 1 [(google.api.field_behavior) = REQUIRED];
+	repeated string channel_names = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages channels and subscriptions

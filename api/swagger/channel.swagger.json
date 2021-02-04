@@ -114,10 +114,14 @@
         },
         "parameters": [
           {
-            "name": "channelName",
+            "name": "channelNames",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -145,10 +149,14 @@
         },
         "parameters": [
           {
-            "name": "channelName",
+            "name": "channelNames",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
