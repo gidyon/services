@@ -34,11 +34,11 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 			payload := strings.NewReader(
 				fmt.Sprintf(
 					"{\"SenderId\": \"%s\",\"IsUnicode\": true,\"IsFlash\": true,\"MessageParameters\": [{\"Number\": \"%s\",\"Text\": \"%s\"}],\"ApiKey\": \"%s\",\"ClientId\": \"%s\"}",
-					firstVal(sendRequest.GetAuth().GetSenderId(), "22141"),
+					firstVal(sendRequest.GetAuth().GetSenderId(), smsAPI.SmsAuth.GetSenderId()),
 					phone,
 					sendRequest.GetSms().GetMessage(),
-					firstVal(sendRequest.GetAuth().GetApiKey(), "eGh/LkniEmyaruyee6aQYCNbvdYwx6sUNr6CsSkORWM="),
-					firstVal(sendRequest.GetAuth().GetClientId(), "0b3c6666-5d42-4fdf-90d0-be8bec00e665"),
+					firstVal(sendRequest.GetAuth().GetApiKey(), smsAPI.SmsAuth.GetApiKey()),
+					firstVal(sendRequest.GetAuth().GetClientId(), smsAPI.SmsAuth.GetClientId()),
 				),
 			)
 
@@ -54,13 +54,15 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 				cookieString += fmt.Sprintf("%s=%s;", cookie.Name, cookie.Value)
 			}
 			if cookieString == "" {
-				cookieString = "AWSALBTG=JttvGPmDtJ0Fw8eZ7nkjZYiOrC62sR+phfsYr/FUl2OHtAjq8XYaFyoh/MblO0MhzrVzzw5KWJfy0p3BhN9RCb7u8xqFo/lA06YaO+GssiR65HzQyaNbomZyr707xNH1N3cU+lubC3+z5/6IqcWI/YeZPoLxf02UHL42aHeC1Az2lAHicG4=; AWSALBTGCORS=JttvGPmDtJ0Fw8eZ7nkjZYiOrC62sR+phfsYr/FUl2OHtAjq8XYaFyoh/MblO0MhzrVzzw5KWJfy0p3BhN9RCb7u8xqFo/lA06YaO+GssiR65HzQyaNbomZyr707xNH1N3cU+lubC3+z5/6IqcWI/YeZPoLxf02UHL42aHeC1Az2lAHicG4="
+				for _, cookie := range smsAPI.SmsAuth.GetCookies() {
+					cookieString += fmt.Sprintf("%s=%s;", cookie.Name, cookie.Value)
+				}
 			}
 
 			req.Header.Add("Cookie", cookieString)
 			req.Header.Add("Content-Type", "application/json")
-			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), "2MJcjwjwOFMTAFep4iYV4jzMWybkxlXg"))
-			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstVal(sendRequest.GetAuth().GetAuthToken(), "7SbwNHZNhGUUg1FfIxKNr7oKzbUgNGSQ")))
+			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), smsAPI.SmsAuth.GetAccessKey()))
+			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstVal(sendRequest.GetAuth().GetAuthToken(), smsAPI.SmsAuth.GetAuthToken())))
 
 			res, err := smsAPI.HTTPClient.Do(req)
 			if err != nil {
