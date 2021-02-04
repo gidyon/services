@@ -3,8 +3,9 @@ module github.com/gidyon/services
 go 1.14
 
 require (
+	cloud.google.com/go v0.76.0 // indirect
 	cloud.google.com/go/firestore v1.4.0 // indirect
-	cloud.google.com/go/storage v1.12.0 // indirect
+	cloud.google.com/go/storage v1.13.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
@@ -30,11 +31,10 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	google.golang.org/api v0.38.0
-	google.golang.org/genproto v0.0.0-20210201184850-646a494a81ea
+	google.golang.org/genproto v0.0.0-20210203152818-3206188e46ba
 	google.golang.org/grpc v1.35.0
-	google.golang.org/grpc/examples v0.0.0-20210129004707-0bc741730b81 // indirect
+	google.golang.org/grpc/examples v0.0.0-20210203212142-f005af03c24d // indirect
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/mysql v1.0.4 // indirect
