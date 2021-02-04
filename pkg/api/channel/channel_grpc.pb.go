@@ -26,6 +26,8 @@ type ChannelAPIClient interface {
 	DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Retrieves a collection of channels resource
 	ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error)
+	// Searches for channels
+	SearchChannels(ctx context.Context, in *SearchChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error)
 	// Retrieves a single channel resource
 	GetChannel(ctx context.Context, in *GetChannelRequest, opts ...grpc.CallOption) (*Channel, error)
 	// Increment subscribers by one.
@@ -78,6 +80,15 @@ func (c *channelAPIClient) ListChannels(ctx context.Context, in *ListChannelsReq
 	return out, nil
 }
 
+func (c *channelAPIClient) SearchChannels(ctx context.Context, in *SearchChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error) {
+	out := new(ListChannelsResponse)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.ChannelAPI/SearchChannels", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *channelAPIClient) GetChannel(ctx context.Context, in *GetChannelRequest, opts ...grpc.CallOption) (*Channel, error) {
 	out := new(Channel)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.ChannelAPI/GetChannel", in, out, opts...)
@@ -117,6 +128,8 @@ type ChannelAPIServer interface {
 	DeleteChannel(context.Context, *DeleteChannelRequest) (*empty.Empty, error)
 	// Retrieves a collection of channels resource
 	ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error)
+	// Searches for channels
+	SearchChannels(context.Context, *SearchChannelsRequest) (*ListChannelsResponse, error)
 	// Retrieves a single channel resource
 	GetChannel(context.Context, *GetChannelRequest) (*Channel, error)
 	// Increment subscribers by one.
@@ -141,6 +154,9 @@ func (UnimplementedChannelAPIServer) DeleteChannel(context.Context, *DeleteChann
 }
 func (UnimplementedChannelAPIServer) ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListChannels not implemented")
+}
+func (UnimplementedChannelAPIServer) SearchChannels(context.Context, *SearchChannelsRequest) (*ListChannelsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchChannels not implemented")
 }
 func (UnimplementedChannelAPIServer) GetChannel(context.Context, *GetChannelRequest) (*Channel, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChannel not implemented")
@@ -236,6 +252,24 @@ func _ChannelAPI_ListChannels_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChannelAPI_SearchChannels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchChannelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChannelAPIServer).SearchChannels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.ChannelAPI/SearchChannels",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChannelAPIServer).SearchChannels(ctx, req.(*SearchChannelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ChannelAPI_GetChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChannelRequest)
 	if err := dec(in); err != nil {
@@ -309,6 +343,10 @@ var _ChannelAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListChannels",
 			Handler:    _ChannelAPI_ListChannels_Handler,
+		},
+		{
+			MethodName: "SearchChannels",
+			Handler:    _ChannelAPI_SearchChannels_Handler,
 		},
 		{
 			MethodName: "GetChannel",

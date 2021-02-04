@@ -73,6 +73,17 @@ message DeleteChannelRequest {
 	string owner_id = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
+message ListFilter {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ListFilter"
+			description: "Filter for querying channels"
+		}
+	};
+
+	repeated string labels = 1;
+}
+
 message ListChannelsRequest {
 	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
 		json_schema: {
@@ -83,6 +94,21 @@ message ListChannelsRequest {
 
 	string page_token = 1;
 	int32 page_size = 2;
+	ListFilter filter = 3;
+}
+
+message SearchChannelsRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SearchChannelsRequest"
+			description: "Request to search for channels"
+		}
+	};
+
+	string page_token = 1;
+	int32 page_size = 2;
+	string query = 3;
+	ListFilter filter = 4;
 }
 
 message ListChannelsResponse {
@@ -148,6 +174,13 @@ service ChannelAPI {
 
 	// Retrieves a collection of channels resource
 	rpc ListChannels (ListChannelsRequest) returns (ListChannelsResponse) {
+		option (google.api.http) = {
+			get: "/api/channels"
+		};
+	}
+
+	// Searches for channels
+	rpc SearchChannels (SearchChannelsRequest) returns (ListChannelsResponse) {
 		option (google.api.http) = {
 			get: "/api/channels"
 		};

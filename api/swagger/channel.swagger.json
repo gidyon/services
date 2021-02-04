@@ -27,8 +27,8 @@
   "paths": {
     "/api/channels": {
       "get": {
-        "summary": "Retrieves a collection of channels resource",
-        "operationId": "ChannelAPI_ListChannels",
+        "summary": "Searches for channels",
+        "operationId": "ChannelAPI_SearchChannels",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -56,6 +56,22 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.labels",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -405,6 +421,19 @@
       },
       "description": "Response containing a collection of channel resource",
       "title": "ListChannelsResponse"
+    },
+    "apisListFilter": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Filter for querying channels",
+      "title": "ListFilter"
     },
     "apisSubscribersRequest": {
       "type": "object",
