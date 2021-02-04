@@ -90,13 +90,16 @@ func main() {
 	app.Start(ctx, func() error {
 		// Create sms API instance
 		smsAPI, err := sms_app.NewSMSAPIServer(ctx, &sms_app.Options{
-			Logger:      app.Logger(),
-			AuthAPI:     authAPI,
-			APIKey:      os.Getenv("SMS_API_KEY"),
-			AuthToken:   os.Getenv("SMS_AUTH_TOKEN"),
-			APIUsername: os.Getenv("SMS_API_USERNAME"),
-			APIPassword: os.Getenv("SMS_API_PASSWORD"),
-			APIURL:      os.Getenv("SMS_API_URL"),
+			Logger:  app.Logger(),
+			AuthAPI: authAPI,
+			SmsAuth: sms.SendSMSRequest_SMSAuth{
+				ApiUrl:    os.Getenv("SMS_API_URL"),
+				SenderId:  os.Getenv("SENDER_ID"),
+				ApiKey:    os.Getenv("SMS_API_KEY"),
+				ClientId:  os.Getenv("SMS_CLIENT_ID"),
+				AuthToken: os.Getenv("SMS_AUTH_TOKEN"),
+				AccessKey: os.Getenv("SMS_ACCESS_TOKEN"),
+			},
 		})
 		errs.Panic(err)
 
