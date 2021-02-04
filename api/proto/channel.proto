@@ -19,10 +19,11 @@ message Channel {
 
 	string id = 1;
 	string title = 2;
-	string description = 3;
-	string owner_id = 4;
-	int32 create_time_seconds = 5;
-	int32 subscribers = 6;
+	string label = 3;
+	string description = 4;
+	string owner_id = 5;
+	int32 create_time_seconds = 6;
+	int32 subscribers = 7;
 }
 
 message CreateChannelRequest {

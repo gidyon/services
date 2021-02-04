@@ -346,6 +346,9 @@
         "title": {
           "type": "string"
         },
+        "label": {
+          "type": "string"
+        },
         "description": {
           "type": "string"
         },
