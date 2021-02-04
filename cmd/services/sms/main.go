@@ -96,7 +96,7 @@ func main() {
 				ApiUrl:    os.Getenv("SMS_API_URL"),
 				SenderId:  os.Getenv("SENDER_ID"),
 				ApiKey:    os.Getenv("SMS_API_KEY"),
-				ClientId:  os.Getenv("SMS_CLIENT_ID"),
+				ClientId:  os.Getenv("SMS_API_USERNAME"),
 				AuthToken: os.Getenv("SMS_AUTH_TOKEN"),
 				AccessKey: os.Getenv("SMS_ACCESS_TOKEN"),
 			},
