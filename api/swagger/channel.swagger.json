@@ -114,7 +114,7 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "channelName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -145,7 +145,7 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "channelName",
             "in": "query",
             "required": false,
             "type": "string"
