@@ -3,13 +3,13 @@ entries:
   account:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.96937129+03:00"
+    created: "2021-02-04T14:56:51.040002124+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Manages CRUD operations on accounts by admins and owners
-    digest: 562682eb98221c3dc206337d9c3f052a2ceaef036a5dd77c254542ff89771ee7
+    digest: c28af0d4bdc1ed398e85fc816101dd47c12656a5a9a08169e6b1fe55957a6b9d
     name: account
     type: application
     urls:
@@ -17,7 +17,7 @@ entries:
     version: 0.2.7
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.967358903+03:00"
+    created: "2021-02-04T14:56:51.039184404+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
@@ -31,7 +31,7 @@ entries:
     version: 0.2.6
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.966207224+03:00"
+    created: "2021-02-04T14:56:51.038099368+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -45,7 +45,7 @@ entries:
     version: 0.2.5
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.964738597+03:00"
+    created: "2021-02-04T14:56:51.036993741+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -59,7 +59,7 @@ entries:
     version: 0.2.4
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.960880167+03:00"
+    created: "2021-02-04T14:56:51.035846458+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -73,7 +73,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.959346439+03:00"
+    created: "2021-02-04T14:56:51.0345497+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -87,7 +87,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.957651382+03:00"
+    created: "2021-02-04T14:56:51.033281085+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -101,7 +101,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.955823694+03:00"
+    created: "2021-02-04T14:56:51.032277428+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -116,13 +116,13 @@ entries:
   call:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.970915029+03:00"
+    created: "2021-02-04T14:56:51.042049771+03:00"
     dependencies:
     - name: micro
-      repository: '@micro'
+      repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Call API
-    digest: e2b87ed8694af7e3324995856b50473bbc89cd8591e7e0a4aba44be4b4ef169e
+    digest: a5b1fa3c9aaab513efcdfc58ff15d94f76e7b3f3ef7b07ddc88697ff330e63b0
     name: call
     type: application
     urls:
@@ -130,7 +130,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.970242145+03:00"
+    created: "2021-02-04T14:56:51.040532829+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -145,13 +145,13 @@ entries:
   channel:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.978699124+03:00"
+    created: "2021-02-04T14:56:51.045001054+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Manages broadcast channels for publishing messages and subscriptions
-    digest: 6e0b7ae0c17bd9216143c8b56bd6406a4cc448374cef205efb15d1ffe261b589
+    digest: 171bb79e1b8cb01eea062d99541d77e5282448cbd226421e7abd0bd5d8c9fe36
     name: channel
     type: application
     urls:
@@ -159,7 +159,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.977400026+03:00"
+    created: "2021-02-04T14:56:51.044367957+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -173,7 +173,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.976240329+03:00"
+    created: "2021-02-04T14:56:51.043755221+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -187,7 +187,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.97509807+03:00"
+    created: "2021-02-04T14:56:51.043201183+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -201,7 +201,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.971657129+03:00"
+    created: "2021-02-04T14:56:51.042650049+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -216,13 +216,13 @@ entries:
   emailing:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.989699778+03:00"
+    created: "2021-02-04T14:56:51.046643265+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Email client for sending email messages
-    digest: 99b313fece7b580c503ad9034eccfce829f467472df72f47794cf86ec823b308
+    digest: 8fe22fc025d7a37c5f4d675c2b47b6717f7e8e959d23cf476a67fecc742aea69
     name: emailing
     type: application
     urls:
@@ -230,7 +230,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.988210938+03:00"
+    created: "2021-02-04T14:56:51.046092623+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -244,7 +244,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:40.986568964+03:00"
+    created: "2021-02-04T14:56:51.045578442+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -259,13 +259,13 @@ entries:
   messaging:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.999165164+03:00"
+    created: "2021-02-04T14:56:51.050985782+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Messaging client
-    digest: 1ff15d3b4c4e6063d95bccd45d15f47553487e65b5511300f274d7f5c1219795
+    digest: a36997fc101af93e1b820b33327c764d910f5f1a9c74b3b9905cf756755760b1
     name: messaging
     type: application
     urls:
@@ -273,7 +273,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.997810812+03:00"
+    created: "2021-02-04T14:56:51.050333938+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -287,7 +287,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.996568827+03:00"
+    created: "2021-02-04T14:56:51.04960874+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -301,7 +301,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.995252564+03:00"
+    created: "2021-02-04T14:56:51.04824084+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -315,7 +315,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.993581596+03:00"
+    created: "2021-02-04T14:56:51.047700791+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -329,7 +329,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:40.991325365+03:00"
+    created: "2021-02-04T14:56:51.047170618+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -343,16 +343,16 @@ entries:
     version: 0.1.0
   micro:
   - apiVersion: v2
-    created: "2020-11-25T05:39:41.000237049+03:00"
+    created: "2021-02-04T14:56:51.051288898+03:00"
     description: Chart boilerplate for creating micro services
-    digest: 97d20bf9318e571dfc6cfc09d35682fe0d95532a6b213061dcafc2ddb7523ff1
+    digest: 763fbf425d6b01333fed5da781131a9281e0d020da770e65e0601ff64cbbc69f
     name: micro
     type: library
     urls:
     - micro-0.1.1.tgz
     version: 0.1.1
   - apiVersion: v2
-    created: "2020-11-25T05:39:40.999746241+03:00"
+    created: "2021-02-04T14:56:51.051138583+03:00"
     description: Chart boilerplate for creating micro services
     digest: 43bcf6ab38e94099829f7e5af61d1dbcddda4cfc2531c3c03693824b5f2fb285
     name: micro
@@ -363,13 +363,13 @@ entries:
   pusher:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:41.002078544+03:00"
+    created: "2021-02-04T14:56:51.05234536+03:00"
     dependencies:
     - name: micro
-      repository: '@micro'
+      repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Messaging pusher client that sends push messages
-    digest: 1af6a014da26135f27ad630cc05ef41e291a546e2e77295df9fafde14b38c8c9
+    digest: 1bcb646a39d1b00b5110a1c37858fcdb5af693e56358b6f63d2a85afc8d23b1b
     name: pusher
     type: application
     urls:
@@ -377,7 +377,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:41.001285121+03:00"
+    created: "2021-02-04T14:56:51.051741229+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -392,7 +392,21 @@ entries:
   sms:
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:41.004488945+03:00"
+    created: "2021-02-04T14:56:51.054681584+03:00"
+    dependencies:
+    - name: micro
+      repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
+      version: 0.1.1
+    description: Messaging client that sends sms to clients
+    digest: ffcd8232644c5dc44eeadd27f9a90c992fc5f8866e52606def38a05d2bc9407c
+    name: sms
+    type: application
+    urls:
+    - sms-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: v1
+    created: "2021-02-04T14:56:51.054120879+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
@@ -406,7 +420,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:41.003866276+03:00"
+    created: "2021-02-04T14:56:51.053497638+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -420,7 +434,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: v1
-    created: "2020-11-25T05:39:41.003031763+03:00"
+    created: "2021-02-04T14:56:51.05289336+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -435,13 +449,13 @@ entries:
   subscriber:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:41.009278716+03:00"
+    created: "2021-02-04T14:56:51.058355361+03:00"
     dependencies:
     - name: micro
       repository: https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages
       version: 0.1.1
     description: Manages subscriptions, topics and subscribers
-    digest: 89f79dbd2bc4750b9ac3229c85d1b26405fc40a15f02e3d3a56cd0b826c9356e
+    digest: f37bdec6c1a51df9a0f55bd619a59c1781f1c3e5a543464126993372edbb3533
     name: subscriber
     type: application
     urls:
@@ -449,7 +463,7 @@ entries:
     version: 0.1.4
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:41.008667413+03:00"
+    created: "2021-02-04T14:56:51.057714644+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -463,7 +477,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:41.007712372+03:00"
+    created: "2021-02-04T14:56:51.056431593+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -477,7 +491,7 @@ entries:
     version: 0.1.2
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:41.006287176+03:00"
+    created: "2021-02-04T14:56:51.055819848+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -491,7 +505,7 @@ entries:
     version: 0.1.1
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2020-11-25T05:39:41.005296044+03:00"
+    created: "2021-02-04T14:56:51.055228139+03:00"
     dependencies:
     - name: micro
       repository: '@micro'
@@ -503,4 +517,4 @@ entries:
     urls:
     - subscriber-0.1.0.tgz
     version: 0.1.0
-generated: "2020-11-25T05:39:40.927256165+03:00"
+generated: "2021-02-04T14:56:51.03110091+03:00"
