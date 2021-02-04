@@ -323,12 +323,12 @@ func (channelAPI *channelAPIServer) IncrementSubscribers(
 	switch {
 	case incReq == nil:
 		return nil, errs.NilObject("SubscribersRequest")
-	case incReq.ChannelName == "":
-		return nil, errs.MissingField("channel channel name")
+	case len(incReq.ChannelNames) == 0:
+		return nil, errs.MissingField("channel names")
 	}
 
 	// Increment subscribers in database
-	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title = ?", incReq.ChannelName).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title IN (?)", incReq.ChannelNames).
 		Update("subscribers", gorm.Expr("subscribers + ?", 1)).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("channel", err)
@@ -350,12 +350,12 @@ func (channelAPI *channelAPIServer) DecrementSubscribers(
 	switch {
 	case decReq == nil:
 		return nil, errs.NilObject("decrement request")
-	case decReq.ChannelName == "":
-		return nil, errs.MissingField("channel name")
+	case len(decReq.ChannelNames) == 0:
+		return nil, errs.MissingField("channel names")
 	}
 
 	// Decrement subscribers in database
-	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title = ?", decReq.ChannelName).
+	err = channelAPI.SQLDBWrites.Table(channelsTable).Where("title IN (?)", decReq.ChannelNames).
 		Update("subscribers", gorm.Expr("subscribers - ?", 1)).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("channel", err)

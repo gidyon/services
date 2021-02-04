@@ -69,8 +69,8 @@ github.com/gidyon/services/internal/channel/channel.go:225.17,227.4 1 1
 github.com/gidyon/services/internal/channel/channel.go:234.13,236.3 1 0
 github.com/gidyon/services/internal/channel/channel.go:240.18,240.18 0 2
 github.com/gidyon/services/internal/channel/channel.go:241.10,242.51 1 0
-github.com/gidyon/services/internal/channel/channel.go:247.39,249.17 2 23
-github.com/gidyon/services/internal/channel/channel.go:252.3,253.20 2 23
+github.com/gidyon/services/internal/channel/channel.go:247.39,249.17 2 28
+github.com/gidyon/services/internal/channel/channel.go:252.3,253.20 2 28
 github.com/gidyon/services/internal/channel/channel.go:249.17,251.4 1 0
 github.com/gidyon/services/internal/channel/channel.go:257.38,260.17 2 1
 github.com/gidyon/services/internal/channel/channel.go:260.17,262.4 1 0
@@ -94,7 +94,7 @@ github.com/gidyon/services/internal/channel/channel.go:331.2,333.16 2 40
 github.com/gidyon/services/internal/channel/channel.go:337.2,337.28 1 40
 github.com/gidyon/services/internal/channel/channel.go:318.16,320.3 1 0
 github.com/gidyon/services/internal/channel/channel.go:324.21,325.51 1 1
-github.com/gidyon/services/internal/channel/channel.go:326.32,327.56 1 1
+github.com/gidyon/services/internal/channel/channel.go:326.37,327.49 1 1
 github.com/gidyon/services/internal/channel/channel.go:333.16,335.3 1 0
 github.com/gidyon/services/internal/channel/channel.go:342.25,345.16 2 12
 github.com/gidyon/services/internal/channel/channel.go:350.2,350.9 1 12
@@ -102,8 +102,8 @@ github.com/gidyon/services/internal/channel/channel.go:358.2,360.16 2 10
 github.com/gidyon/services/internal/channel/channel.go:364.2,364.28 1 10
 github.com/gidyon/services/internal/channel/channel.go:345.16,347.3 1 0
 github.com/gidyon/services/internal/channel/channel.go:351.21,352.50 1 1
-github.com/gidyon/services/internal/channel/channel.go:353.32,354.48 1 1
+github.com/gidyon/services/internal/channel/channel.go:353.37,354.49 1 1
 github.com/gidyon/services/internal/channel/channel.go:360.16,362.3 1 0
 github.com/gidyon/services/internal/channel/model.go:22.36,24.2 1 1
-github.com/gidyon/services/internal/channel/model.go:27.65,37.2 2 29
+github.com/gidyon/services/internal/channel/model.go:27.65,37.2 2 34
 github.com/gidyon/services/internal/channel/model.go:40.65,49.2 2 10

@@ -18,7 +18,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 
 	BeforeEach(func() {
 		incReq = &channel.SubscribersRequest{
-			ChannelName: randomdata.Adjective(),
+			ChannelNames: []string{randomdata.Adjective()},
 		}
 		ctx = context.Background()
 	})
@@ -31,8 +31,8 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 			Expect(incRes).Should(BeNil())
 		})
-		It("should fail when channel id is missing", func() {
-			incReq.ChannelName = ""
+		It("should fail when channel names is missing", func() {
+			incReq.ChannelNames = nil
 			incRes, err := ChannelAPI.IncrementSubscribers(ctx, incReq)
 			Expect(err).Should(HaveOccurred())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
@@ -70,7 +70,7 @@ var _ = Describe("Incrementing subscribers for a channel @increment", func() {
 
 			for i := 0; i < count; i++ {
 				It("should succeed", func() {
-					incReq.ChannelName = channelName
+					incReq.ChannelNames = []string{channelName}
 					incRes, err := ChannelAPI.IncrementSubscribers(ctx, incReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))
