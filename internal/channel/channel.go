@@ -14,6 +14,7 @@ import (
 
 	"strings"
 
+	"github.com/gidyon/micro/utils/dbutil"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
@@ -266,6 +267,113 @@ func (channelAPI *channelAPIServer) ListChannels(
 		NextPageToken: token,
 		Channels:      channelsPB,
 	}, nil
+}
+
+func (channelAPI *channelAPIServer) SearchChannels(
+	ctx context.Context, searchReq *channel.SearchChannelsRequest,
+) (*channel.ListChannelsResponse, error) {
+	// Request must not be nil
+	if searchReq == nil {
+		return nil, errs.NilObject("SearchRequest")
+	}
+
+	// Authenticate the request
+	_, err := channelAPI.AuthAPI.AuthenticateRequestV2(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// For empty queries
+	if searchReq.Query == "" {
+		return &channel.ListChannelsResponse{
+			Channels: []*channel.Channel{},
+		}, nil
+	}
+
+	// Parse page size and page token
+	pageSize := searchReq.GetPageSize()
+	if pageSize <= 0 || pageSize > defaultPageSize {
+		pageSize = defaultPageSize
+	}
+
+	var ID uint
+
+	// Get last id from page token
+	pageToken := searchReq.GetPageToken()
+	if pageToken != "" {
+		ids, err := channelAPI.PaginationHasher.DecodeInt64WithError(searchReq.GetPageToken())
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
+		}
+		ID = uint(ids[0])
+	}
+
+	channelsDB := make([]*Channel, 0, pageSize)
+
+	// Apply filter criterias
+	db := generateWhereCondition(channelAPI.SQLDBReads, searchReq.GetFilter())
+
+	// Order by ID
+	db = db.Limit(int(pageSize + 1)).Order("id DESC")
+
+	parsedQuery := dbutil.ParseQuery(searchReq.Query)
+
+	// ID filter
+	if ID > 0 {
+		db = db.Where("id<?", ID)
+	}
+
+	err = db.Find(&channelsDB, "MATCH(title, label) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
+		Error
+	switch {
+	case err == nil:
+	default:
+		return nil, errs.FailedToFind("channels", err)
+	}
+
+	channelsPB := make([]*channel.Channel, 0, len(channelsDB))
+	pageSize2 := int(pageSize)
+
+	for i, channelDB := range channelsDB {
+		channelPB, err := GetChannelPB(channelDB)
+		if err != nil {
+			return nil, err
+		}
+
+		if pageSize2 == i {
+			break
+		}
+
+		channelsPB = append(channelsPB, channelPB)
+		ID = channelDB.ID
+	}
+
+	var token string
+	if len(channelsDB) > pageSize2 {
+		// Next page token
+		token, err = channelAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
+		}
+	}
+
+	return &channel.ListChannelsResponse{
+		NextPageToken: token,
+		Channels:      channelsPB,
+	}, nil
+}
+
+func generateWhereCondition(db *gorm.DB, criteria *channel.ListFilter) *gorm.DB {
+	if criteria == nil {
+		return db
+	}
+
+	// Filter by labels
+	if len(criteria.Labels) > 0 {
+		db = db.Where("label IN (?)", criteria.Labels)
+	}
+
+	return db
 }
 
 func (channelAPI *channelAPIServer) GetChannel(
