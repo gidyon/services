@@ -77,6 +77,15 @@ func NewChannelAPIServer(
 		}
 	}
 
+	// Full text search index
+	if !channelAPI.SQLDBWrites.Migrator().HasIndex(&Channel{}, dbutil.FullTextIndex) {
+		// Create a full text search index
+		err = dbutil.CreateFullTextIndex(channelAPI.SQLDBWrites, channelsTable, "title", "label", "description")
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to create full text index")
+		}
+	}
+
 	return channelAPI, nil
 }
 
@@ -323,7 +332,7 @@ func (channelAPI *channelAPIServer) SearchChannels(
 		db = db.Where("id<?", ID)
 	}
 
-	err = db.Find(&channelsDB, "MATCH(title, label) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
+	err = db.Find(&channelsDB, "MATCH(title, label, description) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
 		Error
 	switch {
 	case err == nil:
