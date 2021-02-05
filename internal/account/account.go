@@ -514,7 +514,8 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	var data string
 	if req.SendMethod == messaging.SendMethod_EMAIL {
 		data = fmt.Sprintf(
-			"You requested to change your account password credentials. Click on the following link in order to change your password. <br> <a href=\"%s?token=%s&key=%d\" target=\"blank\">Change password</a>", req.FallbackUrl, jwtToken, uniqueNumber,
+			"You requested to change your account password credentials. Click on the following link in order to change your password. <br> <a href=\"%s?jwt=%s&passphrase=%d&username=%s\" target=\"blank\">Change password</a>",
+			req.FallbackUrl, jwtToken, uniqueNumber, firstVal(accountDB.Email, accountDB.Phone),
 		)
 	} else {
 		data = fmt.Sprintf("Password reset token is %d", uniqueNumber)
@@ -872,16 +873,11 @@ func (accountAPI *accountAPIServer) ExistAccount(
 		return nil, errs.NilObject("ExistAccountRequest")
 	}
 
-	// Authenticate the request
-	err := accountAPI.AuthAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	var (
 		projectID = existReq.GetProjectId()
 		email     = existReq.GetEmail()
 		phone     = existReq.GetPhone()
+		err       error
 	)
 
 	// Validation
