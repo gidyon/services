@@ -1,6 +1,5 @@
 serviceName: SMS API
 httpPort: 8050
-grpcPort: 8060
 startupSleepSeconds: 5
 logLevel: 1
 security:
