@@ -349,6 +349,36 @@ func (_m *AccountAPIMock) RequestChangePrivateAccount(ctx context.Context, in *a
 	return r0, r1
 }
 
+// RequestOTP provides a mock function with given fields: ctx, in, opts
+func (_m *AccountAPIMock) RequestOTP(ctx context.Context, in *account.RequestOTPRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *emptypb.Empty
+	if rf, ok := ret.Get(0).(func(context.Context, *account.RequestOTPRequest, ...grpc.CallOption) *emptypb.Empty); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*emptypb.Empty)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *account.RequestOTPRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SearchAccounts provides a mock function with given fields: ctx, in, opts
 func (_m *AccountAPIMock) SearchAccounts(ctx context.Context, in *account.SearchAccountsRequest, opts ...grpc.CallOption) (*account.Accounts, error) {
 	_va := make([]interface{}, len(opts))
@@ -431,6 +461,36 @@ func (_m *AccountAPIMock) SignInExternal(ctx context.Context, in *account.SignIn
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, *account.SignInExternalRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SignInOTP provides a mock function with given fields: ctx, in, opts
+func (_m *AccountAPIMock) SignInOTP(ctx context.Context, in *account.SignInOTPRequest, opts ...grpc.CallOption) (*account.SignInResponse, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *account.SignInResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *account.SignInOTPRequest, ...grpc.CallOption) *account.SignInResponse); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*account.SignInResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *account.SignInOTPRequest, ...grpc.CallOption) error); ok {
 		r1 = rf(ctx, in, opts...)
 	} else {
 		r1 = ret.Error(1)
