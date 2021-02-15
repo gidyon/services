@@ -1,7 +1,7 @@
 serviceName: subscriber
 httpPort: 9090
 grpcPort: 9080
-logLevel: 1
+logLevel: 0
 security:
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
@@ -25,6 +25,6 @@ externalServices:
   serverName: localhost
 - name: account
   required: true
-  address: localhost:7070
+  address: localhost:9003
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   serverName: localhost
