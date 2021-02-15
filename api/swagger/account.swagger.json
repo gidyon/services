@@ -2063,6 +2063,9 @@
         },
         "otp": {
           "type": "string"
+        },
+        "group": {
+          "type": "string"
         }
       },
       "description": "Request to sign in using OTP",

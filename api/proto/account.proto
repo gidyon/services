@@ -82,6 +82,30 @@ message SignInRequest {
     string project_id = 4;
 }
 
+message RequestOTPRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "RequestOTPRequest"
+			description: "Request request to sign in"
+		}
+    };
+
+	string phone = 1 [(google.api.field_behavior) = REQUIRED];
+	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
+}
+
+message SignInOTPRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SignInOTPRequest"
+			description: "Request to sign in using OTP"
+		}
+    };
+
+	string phone = 1 [(google.api.field_behavior) = REQUIRED];
+	string otp = 2 [(google.api.field_behavior) = REQUIRED];
+	string group = 3;
+}
 
 message SignInExternalRequest {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
@@ -454,30 +478,6 @@ message SearchAccountsRequest {
     bool search_linked_accounts = 4;
     Criteria search_criteria = 5;
     AccountView view = 6;
-}
-
-message RequestOTPRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
-		json_schema: {
-			title: "RequestOTPRequest"
-			description: "Request request to sign in"
-		}
-    };
-
-	string phone = 1 [(google.api.field_behavior) = REQUIRED];
-	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
-}
-
-message SignInOTPRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
-		json_schema: {
-			title: "SignInOTPRequest"
-			description: "Request to sign in using OTP"
-		}
-    };
-
-	string phone = 2 [(google.api.field_behavior) = REQUIRED];
-	string otp = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages account activities
