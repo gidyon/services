@@ -480,6 +480,39 @@
         ]
       }
     },
+    "/api/accounts/action/request-otp": {
+      "post": {
+        "summary": "Request to sign in using OTP",
+        "operationId": "AccountAPI_RequestOTP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisRequestOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts/action/search": {
       "get": {
         "summary": "Searches accounts and linked accounts",
@@ -608,6 +641,39 @@
               "BASIC_VIEW"
             ],
             "default": "FULL_VIEW"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/sign-in-otp": {
+      "post": {
+        "summary": "Sign in using provided OTPs",
+        "operationId": "AccountAPI_SignInOTP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInOTPRequest"
+            }
           }
         ],
         "tags": [
@@ -1176,6 +1242,39 @@
         ]
       }
     },
+    "/api/accounts:requestOTP": {
+      "post": {
+        "summary": "Request to sign in using OTP",
+        "operationId": "AccountAPI_RequestOTP2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisRequestOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts:searchAccounts": {
       "post": {
         "summary": "Searches accounts and linked accounts",
@@ -1275,6 +1374,39 @@
           "AccountAPI"
         ],
         "security": []
+      }
+    },
+    "/api/accounts:signInOTP": {
+      "post": {
+        "summary": "Sign in using provided OTPs",
+        "operationId": "AccountAPI_SignInOTP2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
       }
     },
     "/api/accounts:updatePrivateAccount": {
@@ -1852,6 +1984,16 @@
       "description": "Response after requesting for the change",
       "title": "RequestChangePrivateAccountResponse"
     },
+    "apisRequestOTPRequest": {
+      "type": "object",
+      "properties": {
+        "phone": {
+          "type": "string"
+        }
+      },
+      "description": "Request request to sign in",
+      "title": "RequestOTPRequest"
+    },
     "apisSearchAccountsRequest": {
       "type": "object",
       "properties": {
@@ -1909,6 +2051,19 @@
         "account",
         "auth_token"
       ]
+    },
+    "apisSignInOTPRequest": {
+      "type": "object",
+      "properties": {
+        "phone": {
+          "type": "string"
+        },
+        "otp": {
+          "type": "string"
+        }
+      },
+      "description": "Request to sign in using OTP",
+      "title": "SignInOTPRequest"
     },
     "apisSignInRequest": {
       "type": "object",

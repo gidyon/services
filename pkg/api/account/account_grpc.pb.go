@@ -18,6 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountAPIClient interface {
+	// Request to sign in using OTP
+	RequestOTP(ctx context.Context, in *RequestOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Sign in using provided OTPs
+	SignInOTP(ctx context.Context, in *SignInOTPRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	// Signs in a user into their account
 	SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	// Signs in a user using third parties like Google, Facebook, Twitter etc
@@ -60,6 +64,24 @@ type accountAPIClient struct {
 
 func NewAccountAPIClient(cc grpc.ClientConnInterface) AccountAPIClient {
 	return &accountAPIClient{cc}
+}
+
+func (c *accountAPIClient) RequestOTP(ctx context.Context, in *RequestOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/RequestOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountAPIClient) SignInOTP(ctx context.Context, in *SignInOTPRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
+	out := new(SignInResponse)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/SignInOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *accountAPIClient) SignIn(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*SignInResponse, error) {
@@ -219,6 +241,10 @@ func (c *accountAPIClient) SearchAccounts(ctx context.Context, in *SearchAccount
 // All implementations must embed UnimplementedAccountAPIServer
 // for forward compatibility
 type AccountAPIServer interface {
+	// Request to sign in using OTP
+	RequestOTP(context.Context, *RequestOTPRequest) (*empty.Empty, error)
+	// Sign in using provided OTPs
+	SignInOTP(context.Context, *SignInOTPRequest) (*SignInResponse, error)
 	// Signs in a user into their account
 	SignIn(context.Context, *SignInRequest) (*SignInResponse, error)
 	// Signs in a user using third parties like Google, Facebook, Twitter etc
@@ -260,6 +286,12 @@ type AccountAPIServer interface {
 type UnimplementedAccountAPIServer struct {
 }
 
+func (UnimplementedAccountAPIServer) RequestOTP(context.Context, *RequestOTPRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestOTP not implemented")
+}
+func (UnimplementedAccountAPIServer) SignInOTP(context.Context, *SignInOTPRequest) (*SignInResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SignInOTP not implemented")
+}
 func (UnimplementedAccountAPIServer) SignIn(context.Context, *SignInRequest) (*SignInResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
@@ -322,6 +354,42 @@ type UnsafeAccountAPIServer interface {
 
 func RegisterAccountAPIServer(s grpc.ServiceRegistrar, srv AccountAPIServer) {
 	s.RegisterService(&_AccountAPI_serviceDesc, srv)
+}
+
+func _AccountAPI_RequestOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).RequestOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/RequestOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).RequestOTP(ctx, req.(*RequestOTPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountAPI_SignInOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SignInOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).SignInOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/SignInOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).SignInOTP(ctx, req.(*SignInOTPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _AccountAPI_SignIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -634,6 +702,14 @@ var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "gidyon.apis.AccountAPI",
 	HandlerType: (*AccountAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RequestOTP",
+			Handler:    _AccountAPI_RequestOTP_Handler,
+		},
+		{
+			MethodName: "SignInOTP",
+			Handler:    _AccountAPI_SignInOTP_Handler,
+		},
 		{
 			MethodName: "SignIn",
 			Handler:    _AccountAPI_SignIn_Handler,

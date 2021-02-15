@@ -456,6 +456,29 @@ message SearchAccountsRequest {
     AccountView view = 6;
 }
 
+message RequestOTPRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "RequestOTPRequest"
+			description: "Request request to sign in"
+		}
+    };
+
+	string phone = 1;
+}
+
+message SignInOTPRequest {
+	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+		json_schema: {
+			title: "SignInOTPRequest"
+			description: "Request to sign in using OTP"
+		}
+    };
+
+	string phone = 2;
+	string otp = 3;
+}
+
 // Manages account activities
 service AccountAPI {
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_tag) = {
@@ -465,7 +488,31 @@ service AccountAPI {
 			description: "Find more about accounts service";
 		}
     };
-    
+
+	// Request to sign in using OTP
+	rpc RequestOTP (RequestOTPRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+            post: "/api/accounts/action/request-otp"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:requestOTP"
+				body: "*"
+			}
+        };
+	};
+
+	// Sign in using provided OTPs
+	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
+		option (google.api.http) = {
+            post: "/api/accounts/action/sign-in-otp"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInOTP"
+				body: "*"
+			}
+        };
+	};
+
     // Signs in a user into their account
     rpc SignIn (SignInRequest) returns (SignInResponse) {
         option (google.api.http) = {
