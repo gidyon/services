@@ -15,17 +15,18 @@ endif
 ifdef BUILD_CONTEXT
 	context=$(BUILD_CONTEXT)
 endif
-
 run:
 	go build -v -o service && \
 	JWT_SIGNING_KEY=$(JWT_KEY) \
 	API_BLOCK_KEY=$(API_BLOCK_KEY) \
 	API_HASH_KEY=$(API_HASH_KEY) \
-	SMS_API_KEY=abc \
-	SMS_AUTH_TOKEN=abc \
-	SMS_API_USERNAME=abc \
 	SMS_API_PASSWORD=abc \
 	SMS_API_URL=abc \
+	SENDER_ID=22141 \
+	SMS_API_KEY=eGh/LkniEmyaruyee6aQYCNbvdYwx6sUNr6CsSkORWM= \
+	SMS_API_USERNAME=0b3c6666-5d42-4fdf-90d0-be8bec00e665 \
+	SMS_AUTH_TOKEN=7SbwNHZNhGUUg1FfIxKNr7oKzbUgNGSQ \
+	SMS_ACCESS_TOKEN=2MJcjwjwOFMTAFep4iYV4jzMWybkxlXg \
 	./service -config-file=./config.yaml
 
 gotest:
