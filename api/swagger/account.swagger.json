@@ -1989,6 +1989,9 @@
       "properties": {
         "phone": {
           "type": "string"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
         }
       },
       "description": "Request request to sign in",

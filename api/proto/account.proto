@@ -464,7 +464,8 @@ message RequestOTPRequest {
 		}
     };
 
-	string phone = 1;
+	string phone = 1 [(google.api.field_behavior) = REQUIRED];
+	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
 }
 
 message SignInOTPRequest {
@@ -475,8 +476,8 @@ message SignInOTPRequest {
 		}
     };
 
-	string phone = 2;
-	string otp = 3;
+	string phone = 2 [(google.api.field_behavior) = REQUIRED];
+	string otp = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages account activities
