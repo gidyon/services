@@ -325,6 +325,20 @@ func (api *messagingServer) SendMessage(
 		return nil, errs.WrapErrorWithMsg(err, "failed to get subscriber")
 	}
 
+	// Save message
+	var msgID uint
+	if msg.GetSave() {
+		msgDB, err := GetMessageDB(msg)
+		if err != nil {
+			return nil, err
+		}
+		err = api.SQLDBWrites.Create(msgDB).Error
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to save message")
+		}
+		msgID = msgDB.ID
+	}
+
 	// Send message
 	for _, sendMethod := range msg.GetSendMethods() {
 		switch sendMethod {
@@ -380,21 +394,6 @@ func (api *messagingServer) SendMessage(
 				return nil, errs.WrapErrorWithMsg(err, "failed to send pusher message")
 			}
 		}
-	}
-
-	var msgID uint
-
-	// Save message
-	if msg.GetSave() {
-		msgDB, err := GetMessageDB(msg)
-		if err != nil {
-			return nil, err
-		}
-		err = api.SQLDBWrites.Create(msgDB).Error
-		if err != nil {
-			return nil, errs.WrapErrorWithMsg(err, "failed to save message")
-		}
-		msgID = msgDB.ID
 	}
 
 	return &messaging.SendMessageResponse{
