@@ -102,7 +102,7 @@ message SignInOTPRequest {
 		}
     };
 
-	string phone = 1 [(google.api.field_behavior) = REQUIRED];
+	string username = 1 [(google.api.field_behavior) = REQUIRED];
 	string otp = 2 [(google.api.field_behavior) = REQUIRED];
 	string group = 3;
 }

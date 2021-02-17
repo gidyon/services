@@ -2058,7 +2058,7 @@
     "apisSignInOTPRequest": {
       "type": "object",
       "properties": {
-        "phone": {
+        "username": {
           "type": "string"
         },
         "otp": {
