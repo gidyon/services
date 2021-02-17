@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/utils/errs"
-	"github.com/gidyon/micro/v2/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 )
@@ -54,8 +55,21 @@ func (accountAPI *accountAPIServer) RequestOTP(
 		return nil, errs.RedisCmdFailed(err, "SET")
 	}
 
-	// Update token
-	ctxExt := mdutil.AddFromCtx(ctx)
+	// Generate token
+	jwt, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
+		ID:           accountID,
+		ProjectID:    accountDB.ProjectID,
+		Names:        accountDB.Names,
+		EmailAddress: accountDB.Email,
+		PhoneNumber:  accountDB.Phone,
+		Group:        accountDB.PrimaryGroup,
+	}, time.Now().Add(time.Minute))
+	if err != nil {
+		return nil, err
+	}
+
+	// Outgoing context
+	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
 
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
