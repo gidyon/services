@@ -34,11 +34,11 @@ func (accountAPI *accountAPIServer) RequestOTP(
 	// GetAccount the user from database
 	accountDB := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ? OR phone=? OR email = ?", req.Username, req.Username, req.Username).Error
+		First(accountDB, "account_id = ?", req.Username).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.WrapMessagef(codes.NotFound, "account for %s does not exist", req.Username)
+		return nil, errs.WrapMessagef(codes.NotFound, "account with id %s does not exist", req.Username)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
@@ -108,11 +108,11 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	// Get the user from database
 	accountDB := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ? OR phone=? OR email = ?", req.Username, req.Username, req.Username).Error
+		First(accountDB, "account_id = ?", req.Username).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.WrapMessagef(codes.NotFound, "account for %s does not exist", req.Username)
+		return nil, errs.WrapMessagef(codes.NotFound, "account with id %s does not exist", req.Username)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
