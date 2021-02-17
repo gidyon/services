@@ -1987,7 +1987,7 @@
     "apisRequestOTPRequest": {
       "type": "object",
       "properties": {
-        "phone": {
+        "username": {
           "type": "string"
         },
         "smsAuth": {

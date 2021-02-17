@@ -90,7 +90,7 @@ message RequestOTPRequest {
 		}
     };
 
-	string phone = 1 [(google.api.field_behavior) = REQUIRED];
+	string username = 1 [(google.api.field_behavior) = REQUIRED];
 	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
 }
 
