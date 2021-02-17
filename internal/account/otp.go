@@ -27,18 +27,18 @@ func (accountAPI *accountAPIServer) RequestOTP(
 	switch {
 	case req == nil:
 		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
-	case req.Phone == "":
-		return nil, errs.MissingField("phone")
+	case req.Username == "":
+		return nil, errs.MissingField("username")
 	}
 
 	// GetAccount the user from database
 	accountDB := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "phone=?", req.Phone).Error
+		First(accountDB, "account_id = ? OR phone=? OR email = ?", req.Username, req.Username, req.Username).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.WrapMessagef(codes.NotFound, "account with phone %s does not exist", req.Phone)
+		return nil, errs.WrapMessagef(codes.NotFound, "account for %s does not exist", req.Username)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
