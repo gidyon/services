@@ -187,6 +187,13 @@ func (api *messagingServer) sendBroadCastMessage(
 			nextResults = false
 		}
 
+		if len(subscribersRes.GetSubscribers()) == 0 {
+			api.Logger.Warningln("no subscribers to send message")
+			continue
+		} else {
+			api.Logger.Warningf("sending message to %d subsribers", len(subscribersRes.Subscribers))
+		}
+
 		// Send using anonymous goroutine
 		go func(subscribers []*subscriber.Subscriber, msg *messaging.Message) {
 
@@ -442,7 +449,7 @@ func (api *messagingServer) ListMessages(
 		id = uint(ids[0])
 	}
 
-	db := api.SQLDBReads.Order("id DESC").Limit(int(pageSize))
+	db := api.SQLDBReads.Order("id DESC").Limit(int(pageSize + 1))
 	if id > 0 {
 		db = db.Where("id<?", id)
 	}
@@ -462,7 +469,7 @@ func (api *messagingServer) ListMessages(
 		}
 	}
 
-	messagesDB := make([]*Message, 0, pageSize)
+	messagesDB := make([]*Message, 0, pageSize+1)
 
 	if listReq.GetFilter().GetUserId() != "" {
 		err = db.Find(&messagesDB, "user_id=?", ID).Error
@@ -475,10 +482,14 @@ func (api *messagingServer) ListMessages(
 
 	messagesPB := make([]*messaging.Message, 0, len(messagesDB))
 
-	for _, messageDB := range messagesDB {
+	for index, messageDB := range messagesDB {
 		messagePB, err := GetMessagePB(messageDB)
 		if err != nil {
 			return nil, err
+		}
+
+		if index == int(pageSize) {
+			break
 		}
 
 		messagesPB = append(messagesPB, messagePB)
@@ -486,7 +497,7 @@ func (api *messagingServer) ListMessages(
 	}
 
 	var token string
-	if int(pageSize) == len(messagesDB) {
+	if len(messagesDB) > int(pageSize) {
 		// Next page token
 		token, err = api.PaginationHasher.EncodeInt64([]int64{int64(id)})
 		if err != nil {
