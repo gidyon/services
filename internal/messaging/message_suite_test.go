@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/conn"
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
 	"github.com/gidyon/micro/utils/encryption"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/conn"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 	emailClient := mocks.EmailAPI
 	pushClient := mocks.PushAPI
 	subscriberClient := mocks.SubscriberAPI
-	logger := micro.NewLogger("messaging")
+	logger := micro.NewLogger("messaging", 0)
 
 	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
 	Expect(err).ShouldNot(HaveOccurred())

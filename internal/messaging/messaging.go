@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/micro/utils/mdutil"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
+	"github.com/gidyon/micro/v2/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 	"github.com/gidyon/services/pkg/api/messaging/pusher"
