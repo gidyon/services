@@ -14,8 +14,8 @@ import (
 
 	"strings"
 
-	"github.com/gidyon/micro/utils/dbutil"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/dbutil"
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
 	"github.com/golang/protobuf/ptypes/empty"
