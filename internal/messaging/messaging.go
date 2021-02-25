@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
 	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/micro/utils/mdutil"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 	"github.com/gidyon/services/pkg/api/messaging/pusher"
@@ -417,7 +417,7 @@ func (api *messagingServer) ListMessages(
 	ctx context.Context, listReq *messaging.ListMessagesRequest,
 ) (*messaging.Messages, error) {
 	// Authorize request
-	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.Admins()...)
+	_, err := api.AuthAPI.AuthorizeActorOrGroup(ctx, listReq.GetFilter().GetUserId(), api.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -515,11 +515,10 @@ func (api *messagingServer) ReadAll(
 	ctx context.Context, readReq *messaging.MessageRequest,
 ) (*empty.Empty, error) {
 	// Authorize request
-	_, err := api.AuthAPI.AuthorizeActorOrGroups(ctx, readReq.GetUserId(), auth.Admins()...)
+	_, err := api.AuthAPI.AuthorizeActorOrGroup(ctx, readReq.GetUserId(), api.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
-
 	var ID int
 
 	// Validation
@@ -567,7 +566,7 @@ func (api *messagingServer) GetNewMessagesCount(
 	}
 
 	// Authorize request
-	_, err = api.AuthAPI.AuthorizeActorOrGroups(ctx, getReq.UserId, auth.Admins()...)
+	_, err = api.AuthAPI.AuthorizeActorOrGroup(ctx, getReq.GetUserId(), api.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
