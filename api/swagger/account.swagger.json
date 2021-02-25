@@ -406,6 +406,12 @@
             "type": "string"
           },
           {
+            "name": "project",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "sendMethod",
             "in": "query",
             "required": false,
@@ -1953,6 +1959,9 @@
         "fallbackUrl": {
           "type": "string"
         },
+        "project": {
+          "type": "string"
+        },
         "sendMethod": {
           "$ref": "#/definitions/apisSendMethod"
         },
@@ -1988,6 +1997,9 @@
       "type": "object",
       "properties": {
         "username": {
+          "type": "string"
+        },
+        "project": {
           "type": "string"
         },
         "smsAuth": {

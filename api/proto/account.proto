@@ -91,7 +91,8 @@ message RequestOTPRequest {
     };
 
 	string username = 1 [(google.api.field_behavior) = REQUIRED];
-	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
+	string project = 2;
+	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 3;
 }
 
 message SignInOTPRequest {
@@ -231,10 +232,11 @@ message RequestChangePrivateAccountRequest {
     
     string payload = 1 [(google.api.field_behavior) = REQUIRED];
     string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
-    gidyon.apis.SendMethod send_method = 3 [(google.api.field_behavior) = REQUIRED];
+	string project = 3;
+    gidyon.apis.SendMethod send_method = 4 [(google.api.field_behavior) = REQUIRED];
 	oneof notification_channel {
-		gidyon.apis.EmailSender sender = 8;
-		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 9;
+		gidyon.apis.EmailSender sender = 5;
+		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 6;
 	}
 }
 
