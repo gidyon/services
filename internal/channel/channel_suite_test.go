@@ -47,6 +47,8 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
+	Expect(db.Migrator().DropTable(&Channel{})).ShouldNot(HaveOccurred())
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
