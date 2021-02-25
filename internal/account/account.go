@@ -242,7 +242,7 @@ func (accountAPI *accountAPIServer) RefreshSession(
 	// Validation
 	switch {
 	case req == nil:
-		return nil, errs.NilObject("RefreshSessionRequest")
+		return nil, errs.NilObject("refresh token request")
 	case req.RefreshToken == "":
 		return nil, errs.NilObject("refresh token")
 	case req.AccountId == "":
@@ -373,7 +373,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 	// Validation
 	switch {
 	case updateReq == nil:
-		return nil, errs.NilObject("UpdateRequest")
+		return nil, errs.NilObject("update request")
 	case updateReq.Account == nil:
 		return nil, errs.NilObject("Account")
 	case updateReq.Account.AccountId == "":
@@ -452,7 +452,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	// Validation
 	switch {
 	case req == nil:
-		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
+		return nil, errs.NilObject("request change private request")
 	case req.Payload == "":
 		return nil, errs.MissingField("payload")
 	case req.FallbackUrl == "":
@@ -501,7 +501,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		EmailAddress: accountDB.Email,
 		PhoneNumber:  accountDB.Phone,
 		ProjectID:    accountDB.ProjectID,
-	}, time.Now().Add(6*time.Hour))
+	}, time.Now().Add(10*time.Minute))
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
 	}
@@ -517,24 +517,14 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 			"You requested to change your account password credentials. Click on the following link in order to change your password. <br> <a href=\"%s?jwt=%s&passphrase=%d&username=%s\" target=\"blank\">Change password</a>",
 			req.FallbackUrl, jwtToken, uniqueNumber, firstVal(accountDB.Email, accountDB.Phone),
 		)
+	} else if req.Project != "" {
+		data = fmt.Sprintf("Password reset token for %s \n\nReset Token is %d \nExpires in 10 minutes", req.Project, uniqueNumber)
 	} else {
-		data = fmt.Sprintf("Password reset token is %d", uniqueNumber)
-	}
-
-	// Update token to use user ID
-	token, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
-		ID:           accountID,
-		ProjectID:    accountDB.ProjectID,
-		Names:        accountDB.Names,
-		EmailAddress: accountDB.Email,
-		PhoneNumber:  accountDB.Phone,
-	}, time.Now().Add(time.Minute))
-	if err != nil {
-		return nil, err
+		data = fmt.Sprintf("Password reset token is %d \n\nExpires in 10 minutes", uniqueNumber)
 	}
 
 	// Create an outgoing context
-	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", token)))
+	ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwtToken)))
 
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.SendMessageRequest{

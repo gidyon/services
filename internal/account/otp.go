@@ -18,6 +18,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func otpKey(accountID string) string {
+	return "otplogin:" + accountID
+}
+
 func (accountAPI *accountAPIServer) RequestOTP(
 	ctx context.Context, req *account.RequestOTPRequest,
 ) (*empty.Empty, error) {
@@ -49,7 +53,7 @@ func (accountAPI *accountAPIServer) RequestOTP(
 
 	// Set token with expiration of 5 minutes
 	err = accountAPI.RedisDBWrites.Set(
-		ctx, updateToken(accountID), uniqueNumber, time.Duration(5*time.Minute),
+		ctx, otpKey(accountID), uniqueNumber, time.Duration(5*time.Minute),
 	).Err()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "SET")
@@ -63,7 +67,7 @@ func (accountAPI *accountAPIServer) RequestOTP(
 		EmailAddress: accountDB.Email,
 		PhoneNumber:  accountDB.Phone,
 		Group:        accountDB.PrimaryGroup,
-	}, time.Now().Add(time.Minute))
+	}, time.Now().Add(10*time.Minute))
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +75,18 @@ func (accountAPI *accountAPIServer) RequestOTP(
 	// Outgoing context
 	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
 
+	data := fmt.Sprintf("Login OTP is %v \n\nExpires in 10 minutes", uniqueNumber)
+
+	if req.Project != "" {
+		data = fmt.Sprintf("Login OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", req.Project, uniqueNumber)
+	}
+
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
 		Message: &messaging.Message{
 			UserId:      accountID,
 			Title:       "OTP Login",
-			Data:        fmt.Sprintf("Login OTP code is %v", uniqueNumber),
+			Data:        data,
 			Save:        true,
 			Type:        messaging.MessageType_INFO,
 			SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2},
@@ -120,7 +130,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Get otp
-	otp, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(accountID)).Result()
+	otp, err := accountAPI.RedisDBWrites.Get(ctx, otpKey(accountID)).Result()
 	if err != nil {
 		return nil, errs.RedisCmdFailed(err, "GET")
 	}
