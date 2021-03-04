@@ -32,12 +32,13 @@ message Email {
 		}
     };
 
-    repeated string destinations = 2 [(google.api.field_behavior) = REQUIRED];
-    string from = 1 [(google.api.field_behavior) = REQUIRED];
-    string subject = 3 [(google.api.field_behavior) = REQUIRED];
-    string body = 4 [(google.api.field_behavior) = REQUIRED];
-    string body_content_type = 5;
-    repeated Attachemnt attachments = 6;
+    repeated string destinations = 1 [(google.api.field_behavior) = REQUIRED];
+    string from = 2 [(google.api.field_behavior) = REQUIRED];
+    string display_name = 3 [(google.api.field_behavior) = REQUIRED];
+    string subject = 4 [(google.api.field_behavior) = REQUIRED];
+    string body = 5 [(google.api.field_behavior) = REQUIRED];
+    string body_content_type = 6;
+    repeated Attachemnt attachments = 7;
 }
 
 message EmailSender {

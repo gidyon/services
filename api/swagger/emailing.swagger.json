@@ -61,6 +61,12 @@
             "type": "string"
           },
           {
+            "name": "email.displayName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "email.subject",
             "in": "query",
             "required": false,
@@ -116,6 +122,9 @@
           }
         },
         "from": {
+          "type": "string"
+        },
+        "displayName": {
           "type": "string"
         },
         "subject": {
