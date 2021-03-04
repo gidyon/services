@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redisdb
+  name: redis
   labels:
-    app: redisdb
+    app: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redisdb
+      app: redis
   template:
     metadata:
       labels:
-        app: redisdb
+        app: redis
     spec:
       containers:
-      - name: redisdb
+      - name: redis
         image: redis
         ports:
         - containerPort: 6379
@@ -43,9 +43,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redisdb
+  name: redis
   labels:
-    app: redisdb
+    app: redis
 spec:
   ports:
   - port: 6379
@@ -53,4 +53,4 @@ spec:
     targetPort: redis
     protocol: TCP
   selector:
-    app: redisdb
+    app: redis
