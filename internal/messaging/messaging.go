@@ -234,12 +234,11 @@ func (api *messagingServer) sendBroadCastMessage(
 				case messaging.SendMethod_EMAIL:
 					sender := firstVal(req.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
 					displayName := firstVal(req.GetSender().GetDisplayName(), msg.Details["display_name"])
-					if displayName != "" {
-						sender = fmt.Sprintf("%s <%s>", displayName, sender)
-					}
+
 					_, err = api.EmailClient.SendEmail(ctx2, &emailing.SendEmailRequest{
 						Email: &emailing.Email{
 							Destinations:    emails,
+							DisplayName:     displayName,
 							From:            sender,
 							Subject:         msg.Title,
 							Body:            msg.Data,
@@ -353,13 +352,11 @@ func (api *messagingServer) SendMessage(
 		case messaging.SendMethod_EMAIL:
 			sender := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
 			displayName := firstVal(sendReq.GetSender().GetDisplayName(), msg.Details["display_name"])
-			if displayName != "" {
-				sender = fmt.Sprintf("%s <%s>", displayName, sender)
-			}
 
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.SendEmailRequest{
 				Email: &emailing.Email{
 					Destinations:    []string{subscriberPB.GetEmail()},
+					DisplayName:     displayName,
 					From:            sender,
 					Subject:         msg.Title,
 					Body:            msg.Data,
