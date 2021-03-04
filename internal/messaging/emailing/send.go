@@ -1,6 +1,7 @@
 package emailing
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
@@ -11,7 +12,11 @@ func (api *emailingAPIServer) sendEmail(sendReq *emailing.SendEmailRequest) {
 	email := sendReq.GetEmail()
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", email.From)
+	if email.GetDisplayName() != "" {
+		m.SetHeader("From", fmt.Sprintf("%s <%s>", email.DisplayName, email.From))
+	} else {
+		m.SetHeader("From", email.From)
+	}
 	m.SetHeader("To", email.Destinations...)
 	m.SetHeader("Subject", email.Subject)
 	m.SetBody(email.BodyContentType, email.Body)
