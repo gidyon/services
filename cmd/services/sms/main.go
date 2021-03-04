@@ -53,7 +53,7 @@ func main() {
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	authAPI, err := auth.NewAPI(jwtKey, "SMS API", "users")
 	errs.Panic(err)
 
 	// Generate jwt token
