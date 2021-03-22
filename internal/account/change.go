@@ -21,15 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func inGroup(group string, groups []string) bool {
-	for _, grp := range groups {
-		if grp == group {
-			return true
-		}
-	}
-	return false
-}
-
 func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	ctx context.Context, changeReq *account.AdminUpdateAccountRequest,
 ) (*Account, error) {
@@ -85,7 +76,7 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	}
 
 	// Admin must be admin
-	if accountAPI.AuthAPI.IsAdmin(admin.PrimaryGroup) == false {
+	if !accountAPI.AuthAPI.IsAdmin(admin.PrimaryGroup) {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "only admins allowed")
 	}
 

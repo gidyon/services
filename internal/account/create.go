@@ -20,9 +20,7 @@ import (
 )
 
 func fixPhone(phone string) string {
-	if strings.HasPrefix(phone, "+") {
-		phone = phone[1:]
-	}
+	phone = strings.TrimPrefix(phone, "+")
 	if strings.HasPrefix(phone, "7") {
 		phone = fmt.Sprint("254", phone)
 	}

@@ -19,11 +19,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func getSessionID(accountID string) string {
-	year, month, day := time.Now().Date()
-	return fmt.Sprintf("sessions:%d-%d-%d:%v", year, month, day, accountID)
-}
-
 func refreshTokenSet() string {
 	year, month, day := time.Now().Date()
 	return fmt.Sprintf("refreshtokens:%d-%d-%d", year, month, day)

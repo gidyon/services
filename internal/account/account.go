@@ -329,12 +329,12 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	// Compare if account account_id matches or if activated by admin
 	isOwner := payload.ID == activateReq.AccountId
 	isAdmin := accountAPI.AuthAPI.IsAdmin(payload.Group)
-	if isOwner == false && isAdmin == false {
+	if !isOwner && !isAdmin {
 		if !dev {
 			switch {
-			case isAdmin == false:
+			case !isAdmin:
 				return nil, errs.WrapMessage(codes.PermissionDenied, "not admin user")
-			case isOwner == false:
+			case !isOwner:
 				return nil, errs.TokenCredentialNotMatching("account id")
 			}
 		}
@@ -354,16 +354,6 @@ func (accountAPI *accountAPIServer) ActivateAccount(
 	}
 
 	return &account.ActivateAccountResponse{}, nil
-}
-
-func emailOrPhone(err error, accountDB *Account) string {
-	if strings.Contains(strings.ToLower(err.Error()), "email") {
-		return "email " + accountDB.Email
-	}
-	if strings.Contains(strings.ToLower(err.Error()), "phone") {
-		return "phone " + accountDB.Phone
-	}
-	return fmt.Sprintf("id %v", accountDB.AccountID)
 }
 
 func (accountAPI *accountAPIServer) UpdateAccount(
@@ -422,7 +412,7 @@ func (accountAPI *accountAPIServer) UpdateAccount(
 		accountDBX.Gender = ""
 	}
 
-	if accountAPI.AuthAPI.IsAdmin(payload.Group) == false {
+	if !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 		// Update the model; omit "id", "primary_group", "account_state" and "security profile"
 		err = accountAPI.SQLDBWrites.Model(accountDBX).
 			Omit("id", "primary_group", "account_state", "password", "security_answer", "security_question").
