@@ -150,7 +150,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	}
 
 	// Check if exceed trials
-	if trials >= maxTrials {
+	if trials > maxTrials {
 		// Block the account
 		err = accountAPI.SQLDBWrites.Model(accountDB).Update("account_state", account.AccountState_BLOCKED.String()).Error
 		if err != nil {
