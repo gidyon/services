@@ -158,6 +158,12 @@ func (accountAPI *accountAPIServer) SignInOTP(
 			return nil, errs.WrapMessage(codes.Internal, "failed to block account")
 		}
 
+		// Delete key
+		err = accountAPI.RedisDBWrites.Del(ctx, trialsKey).Err()
+		if err != nil {
+			return nil, errs.RedisCmdFailed(err, "DEL")
+		}
+
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked due to too many attempts.")
 	}
 
@@ -176,6 +182,12 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	// Compare otp
 	if otp != req.Otp {
 		return nil, errs.WrapMessage(codes.Unauthenticated, "OTP do not match")
+	}
+
+	// Delete key
+	err = accountAPI.RedisDBWrites.Del(ctx, trialsKey).Err()
+	if err != nil {
+		return nil, errs.RedisCmdFailed(err, "DEL")
 	}
 
 	return accountAPI.updateSession(ctx, accountDB, req.Group)
