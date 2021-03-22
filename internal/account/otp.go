@@ -11,6 +11,7 @@ import (
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
+	"github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -100,6 +101,12 @@ func (accountAPI *accountAPIServer) RequestOTP(
 	return &emptypb.Empty{}, nil
 }
 
+const maxTrials = 4
+
+var (
+	blockedState = account.AccountState_BLOCKED.String()
+)
+
 func (accountAPI *accountAPIServer) SignInOTP(
 	ctx context.Context, req *account.SignInOTPRequest,
 ) (*account.SignInResponse, error) {
@@ -108,7 +115,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	// Validation
 	switch {
 	case req == nil:
-		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
+		return nil, errs.NilObject("sign in otp request")
 	case req.Username == "":
 		return nil, errs.MissingField("username")
 	case req.Otp == "":
@@ -122,32 +129,53 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.WrapMessagef(codes.NotFound, "account with id %s does not exist", req.Username)
+		return nil, errs.WrapMessage(codes.NotFound, "account does not exist")
 	default:
 		return nil, errs.FailedToFind("account", err)
+	}
+
+	if accountDB.AccountState == blockedState {
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
+	}
+
+	trialsKey := fmt.Sprintf("accounts:otptrials:%d", accountDB.AccountID)
+
+	// Increment trials by 1
+	trials, err := accountAPI.RedisDBWrites.Incr(ctx, trialsKey).Result()
+	switch {
+	case err == nil:
+	case errors.Is(err, redis.Nil):
+	default:
+		return nil, errs.RedisCmdFailed(err, "ICR")
+	}
+
+	// Check if exceed trials
+	if trials >= maxTrials {
+		// Block the account
+		err = accountAPI.SQLDBWrites.Model(accountDB).Update("account_state", account.AccountState_BLOCKED.String()).Error
+		if err != nil {
+			accountAPI.Logger.Errorln(err)
+			return nil, errs.WrapMessage(codes.Internal, "failed to block account")
+		}
+
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked due to too many attempts.")
 	}
 
 	accountID := fmt.Sprint(accountDB.AccountID)
 
 	// Get otp
 	otp, err := accountAPI.RedisDBWrites.Get(ctx, otpKey(accountID)).Result()
-	if err != nil {
+	switch {
+	case err == nil:
+	case errors.Is(err, redis.Nil):
+		return nil, errs.WrapMessage(codes.DeadlineExceeded, "OTP expired, request another OTP")
+	default:
 		return nil, errs.RedisCmdFailed(err, "GET")
 	}
 
 	// Compare otp
 	if otp != req.Otp {
-		return nil, errs.WrapMessage(codes.Unauthenticated, "otp do not match")
-	}
-
-	accountPB, err := GetAccountPB(accountDB)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check that account is not blocked
-	if accountPB.State == account.AccountState_BLOCKED {
-		return nil, errs.WrapMessage(codes.FailedPrecondition, "account blocked")
+		return nil, errs.WrapMessage(codes.Unauthenticated, "OTP do not match")
 	}
 
 	return accountAPI.updateSession(ctx, accountDB, req.Group)
