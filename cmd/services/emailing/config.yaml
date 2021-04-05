@@ -2,7 +2,7 @@ serviceName: emailing
 httpPort: 9015
 grpcPort: 9016
 startupSleepSeconds: 5
-logLevel: -1
+logLevel: 0
 security:
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem

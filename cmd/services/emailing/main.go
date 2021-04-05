@@ -2,26 +2,30 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/healthcheck"
+	emailing_service "github.com/gidyon/services/internal/messaging/emailing"
+	"github.com/gidyon/services/pkg/api/messaging/emailing"
+
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/healthcheck"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	emailing_app "github.com/gidyon/services/internal/messaging/emailing"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/services/pkg/api/messaging/emailing"
+	"github.com/gidyon/micro/v2/pkg/config"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
-	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 func main() {
@@ -36,66 +40,74 @@ func main() {
 
 	zaplogger.Log = zaplogger.Log.WithOptions(zap.WithCaller(true))
 
-	appLogger := zaplogger.ZapGrpcLoggerV2(zaplogger.Log)
+	serviceLogger := zaplogger.ZapGrpcLoggerV2(zaplogger.Log)
 
-	app, err := micro.NewService(ctx, cfg, appLogger)
+	service, err := micro.NewService(ctx, cfg, serviceLogger)
 	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
-	app.AddGRPCUnaryServerInterceptors(recoveryUIs...)
-	app.AddGRPCStreamServerInterceptors(recoverySIs...)
+	service.AddGRPCUnaryServerInterceptors(recoveryUIs...)
+	service.AddGRPCStreamServerInterceptors(recoverySIs...)
 
 	// Logging middleware
 	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
-	app.AddGRPCUnaryServerInterceptors(logginUIs...)
-	app.AddGRPCStreamServerInterceptors(loggingSIs...)
+	service.AddGRPCUnaryServerInterceptors(logginUIs...)
+	service.AddGRPCStreamServerInterceptors(loggingSIs...)
 
-	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
+
+	if len(jwtKey) == 0 {
+		errs.Panic(errors.New("missing jwt key"))
+	}
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(jwtKey, "Emailing API", "users")
+	authAPI, err := auth.NewAPI(&auth.Options{
+		SigningKey: jwtKey,
+		Issuer:     "Emailing API",
+		Audience:   "users",
+	})
 	errs.Panic(err)
 
 	// Generate jwt token
-	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.DefaultAdminGroup()}, time.Now().Add(time.Hour*24))
 	if err == nil {
-		app.Logger().Infof("Test jwt is %s", token)
+		service.Logger().Infof("Test jwt is %s", token)
 	}
 
-	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
-	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+	service.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthorizeFunc))
+	service.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthorizeFunc))
 
 	// Readiness health check
-	app.AddEndpoint("/api/emailing/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
-		Service:      app,
+	service.AddEndpoint("/api/emailing/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+		Service:      service,
 		Type:         healthcheck.ProbeReadiness,
 		AutoMigrator: func() error { return nil },
 	}))
 
 	// Liveness health check
-	app.AddEndpoint("/api/emailing/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
-		Service:      app,
+	service.AddEndpoint("/api/emailing/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+		Service:      service,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
 	}))
 
 	// Servemux option for JSON Marshaling
-	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+	service.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
 			EmitUnpopulated: true,
 		},
 	}))
 
 	// Start service
-	app.Start(ctx, func() error {
+	service.Start(ctx, func() error {
 		port, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 		errs.Panic(err)
 
 		// Create emailing API
-		emailingAPI, err := emailing_app.NewEmailingAPIServer(ctx, &emailing_app.Options{
+		emailingAPI, err := emailing_service.NewEmailingAPIServer(ctx, &emailing_service.Options{
 			AuthAPI:      authAPI,
-			Logger:       app.Logger(),
+			Logger:       service.Logger(),
 			SMTPHost:     os.Getenv("SMTP_HOST"),
 			SMTPPort:     port,
 			SMTPUsername: os.Getenv("SMTP_USERNAME"),
@@ -103,8 +115,8 @@ func main() {
 		})
 		errs.Panic(err)
 
-		emailing.RegisterEmailingServer(app.GRPCServer(), emailingAPI)
-		emailing.RegisterEmailingHandler(ctx, app.RuntimeMux(), app.ClientConn())
+		emailing.RegisterEmailingServer(service.GRPCServer(), emailingAPI)
+		errs.Panic(emailing.RegisterEmailingHandler(ctx, service.RuntimeMux(), service.ClientConn()))
 
 		return nil
 	})
