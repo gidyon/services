@@ -2,17 +2,15 @@ package call
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/mocks"
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/mocks"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 )
@@ -28,23 +26,12 @@ var (
 	err        error
 )
 
-const (
-	dbAddress = "localhost:3306"
-	schema    = "emrs"
-)
-
-func startDB() (*gorm.DB, error) {
-	param := "charset=utf8&parseTime=true"
-	dsn := fmt.Sprintf("root:hakty11@tcp(%s)/%s?%s", dbAddress, schema, param)
-	return gorm.Open("mysql", dsn)
-}
-
 var _ = BeforeSuite(func() {
 	rand.Seed(time.Now().UnixNano())
 
 	ctx := context.Background()
 
-	logger := micro.NewLogger("call")
+	logger := micro.NewLogger("call", 1)
 
 	opt := &Options{
 		Logger:  logger,
@@ -58,10 +45,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	CallServer, ok = CallAPI.(*callAPIServer)
 	Expect(ok).Should(BeTrue())
-
-	// Pasing incorrect payload
-	_, err = NewCallAPIServer(nil, opt)
-	Expect(err).Should(HaveOccurred())
 
 	_, err = NewCallAPIServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
@@ -79,12 +62,6 @@ var _ = BeforeSuite(func() {
 	_, err = NewCallAPIServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 })
-
-func handleError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
 
 // Declarations for Ginkgo DSL
 type Done ginkgo.Done

@@ -3,8 +3,8 @@ package call
 import (
 	"context"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/grpclog"
