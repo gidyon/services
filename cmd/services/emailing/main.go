@@ -23,7 +23,7 @@ import (
 	"github.com/gidyon/micro/v2/pkg/config"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
-	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
