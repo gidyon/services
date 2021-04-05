@@ -14,12 +14,10 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
 	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
-	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
 	"github.com/gidyon/micro/v2/utils/encryption"
 
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
@@ -39,12 +37,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-
-	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
-
-	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
 
 	cfg, err := config.New(config.FromFile)
 	errs.Panic(err)
@@ -100,16 +92,6 @@ func main() {
 		Service:      app,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
-	}))
-
-	sc := securecookie.New(apiHashKey, apiBlockKey)
-
-	// Cookie based authentication
-	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
-		SecureCookie: sc,
-		AuthHeader:   auth.Header(),
-		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.JWTCookie(),
 	}))
 
 	// Grpc Gateway options
@@ -203,7 +185,6 @@ func main() {
 			RedisDBWrites:      app.RedisClientByName("redisWrites"),
 			RedisDBReads:       app.RedisClientByName("redisReads"),
 			Logger:             app.Logger(),
-			SecureCookie:       sc,
 			MessagingClient:    messaging.NewMessagingClient(messagingCC),
 			FirebaseAuth:       firebaseAuth,
 		})
