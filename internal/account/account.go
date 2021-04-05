@@ -13,7 +13,6 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/gorilla/securecookie"
 	"gorm.io/gorm"
 	"gorm.io/hints"
 
@@ -31,23 +30,15 @@ import (
 	redis "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/speps/go-hashids"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
 
 const templateName = "base"
 
-type cookier interface {
-	Decode(string, string, interface{}) error
-	Encode(string, interface{}) (string, error)
-}
-
 type accountAPIServer struct {
 	account.UnimplementedAccountAPIServer
 	activationURL string
 	tpl           *template.Template
-	cookier       cookier
-	setCookie     func(context.Context, string) error
 	*Options
 }
 
@@ -64,7 +55,6 @@ type Options struct {
 	SQLDBReads         *gorm.DB
 	RedisDBWrites      *redis.Client
 	RedisDBReads       *redis.Client
-	SecureCookie       *securecookie.SecureCookie
 	Logger             grpclog.LoggerV2
 	MessagingClient    messaging.MessagingClient
 	FirebaseAuth       fauth.FirebaseAuthClient
@@ -99,8 +89,6 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		err = errs.NilObject("redis writes db")
 	case opt.RedisDBReads == nil:
 		err = errs.NilObject("redis reads db")
-	case opt.SecureCookie == nil:
-		err = errs.NilObject("secure cookie")
 	case opt.Logger == nil:
 		err = errs.NilObject("Logger")
 	case opt.MessagingClient == nil:
@@ -115,19 +103,7 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 	// Account API
 	accountAPI := &accountAPIServer{
 		activationURL: opt.ActivationURL,
-		cookier:       opt.SecureCookie,
-		setCookie: func(ctx context.Context, cookie string) error {
-			err := grpc.SetHeader(ctx, metadata.Pairs("set-cookie", cookie))
-			if err != nil {
-				return errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set cookie")
-			}
-			err = grpc.SetHeader(ctx, metadata.Pairs("access-control-expose-headers", "set-cookie"))
-			if err != nil {
-				return errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to expose set-cookie header")
-			}
-			return nil
-		},
-		Options: opt,
+		Options:       opt,
 	}
 
 	// Read template files from directory

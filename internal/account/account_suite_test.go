@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/securecookie"
-
 	"github.com/Pallinder/go-randomdata"
 
 	"github.com/gidyon/micro/v2"
@@ -72,9 +70,6 @@ var _ = BeforeSuite(func() {
 	// Logger
 	Logger := micro.NewLogger("account service", 0)
 
-	// Secure cookie
-	sc := securecookie.New([]byte(randomdata.RandStringRunes(32)), []byte(randomdata.RandStringRunes(32)))
-
 	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
 	Expect(err).ShouldNot(HaveOccurred())
 
@@ -91,7 +86,6 @@ var _ = BeforeSuite(func() {
 		SQLDBReads:       db,
 		RedisDBWrites:    redisDB,
 		RedisDBReads:     redisDB,
-		SecureCookie:     sc,
 		Logger:           Logger,
 		MessagingClient:  mocks.MessagingAPI,
 		FirebaseAuth:     mocks.FirebaseAuthAPI,
@@ -106,12 +100,6 @@ var _ = BeforeSuite(func() {
 	var ok bool
 	AccountAPIServer, ok = AccountAPI.(*accountAPIServer)
 	Expect(ok).Should(BeTrue())
-
-	// Mocks
-	AccountAPIServer.cookier = mocks.Cookier
-	AccountAPIServer.setCookie = func(context.Context, string) error {
-		return nil
-	}
 
 	// When creating Accounts API with bad credentials
 	_, err = NewAccountAPI(nil, opt)
@@ -184,11 +172,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).Should(HaveOccurred())
 
 	opt.ActivationURL = randomdata.MacAddress()
-	opt.SecureCookie = nil
-	_, err = NewAccountAPI(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.SecureCookie = sc
 	opt.FirebaseAuth = nil
 	_, err = NewAccountAPI(ctx, opt)
 	Expect(err).Should(HaveOccurred())

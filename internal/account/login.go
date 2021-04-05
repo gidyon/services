@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -166,43 +165,6 @@ func (accountAPI *accountAPIServer) updateSession(
 	err = accountAPI.RedisDBWrites.SAdd(ctx, refreshTokenSet(), refreshToken, 0).Err()
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set refresh token")
-	}
-
-	// Set Cookie in response header
-	encoded, err := accountAPI.cookier.Encode(auth.JWTCookie(), token)
-	if err == nil {
-		// JWT cookie
-		cookie := &http.Cookie{
-			Name:     auth.JWTCookie(),
-			Value:    encoded,
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  time.Now().Add(time.Hour * 8760),
-			SameSite: http.SameSiteNoneMode,
-			Secure:   true,
-		}
-		err = accountAPI.setCookie(ctx, cookie.String())
-		if err != nil {
-			return nil, err
-		}
-
-		// Refresh token
-		cookie.Name = auth.RefreshCookie()
-		cookie.Value = refreshToken
-		cookie.HttpOnly = false
-		err = accountAPI.setCookie(ctx, cookie.String())
-		if err != nil {
-			return nil, err
-		}
-
-		// Acccount ID Cookie
-		cookie.Name = auth.AccountIDCookie()
-		cookie.Value = accountID
-		cookie.HttpOnly = false
-		err = accountAPI.setCookie(ctx, cookie.String())
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// Return token
