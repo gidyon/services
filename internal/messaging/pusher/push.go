@@ -7,8 +7,9 @@ import (
 	"github.com/appleboy/go-fcm"
 	"github.com/golang/protobuf/ptypes/empty"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
+
 	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 	"google.golang.org/grpc/grpclog"
 )
@@ -90,7 +91,7 @@ func (api *pushAPIServer) SendPushMessage(
 	}
 
 	// Convert details to map[string]interaface{}
-	details := make(map[string]interface{}, 0)
+	details := make(map[string]interface{})
 	for key, detail := range pushMsg.Details {
 		details[key] = detail
 	}

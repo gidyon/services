@@ -9,7 +9,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 
 	"github.com/gidyon/micro"
-	micro_mock "github.com/gidyon/micro/pkg/mocks"
+	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
 	push "github.com/gidyon/services/pkg/api/messaging/pusher"
 	"github.com/gidyon/services/pkg/mocks"
 	_ "github.com/go-sql-driver/mysql"
@@ -53,9 +53,6 @@ var _ = BeforeSuite(func() {
 	PushServer.fcmClient = mocks.FCMAPI
 
 	// Pasing incorrect payload
-	_, err = NewPushMessagingServer(nil, opt)
-	Expect(err).Should(HaveOccurred())
-
 	_, err = NewPushMessagingServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
@@ -77,12 +74,6 @@ var _ = BeforeSuite(func() {
 	_, err = NewPushMessagingServer(ctx, opt)
 	Expect(err).ShouldNot(HaveOccurred())
 })
-
-func handleError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
 
 // Declarations for Ginkgo DSL
 type Done ginkgo.Done
