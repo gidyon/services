@@ -1,8 +1,6 @@
 PROJECT_ROOT := /Users/jessegitaka/go/src/github.com/gidyon/services
 SERVICE := messaging-call
 
-API_BLOCK_KEY := 9AI8o4ta02gdqWsVhYe0r276z7my6yDwY78rCsrcofT7pCNq4WwnRoW93hn8WFJM0HheZHDYPc4tD+tUXVNEGw
-API_HASH_KEY := 73H/I3+27Qp3ZETqMzbYa/EGT826Zxx2821cmHUl7fTX/DmkIWPJatczkxN3p8RHbdOGWT/HDRAf7gqhZcZOow
 JWT_KEY := hDI0eBv11TbuboZ01qpnOuYRYLh6gQUOQhC9Mfagzv9l3gJso7CalTt7wGzJCVwbeDIfOX6fwS79pnisW7udhQ
 
 image := gidyon/$(SERVICE):v2
@@ -19,8 +17,6 @@ endif
 run:
 	go build -v -o service && \
 	JWT_SIGNING_KEY=$(JWT_KEY) \
-	API_BLOCK_KEY=$(API_BLOCK_KEY) \
-	API_HASH_KEY=$(API_HASH_KEY) \
 	./service -config-file=./config.yaml
 
 gotest:

@@ -2,23 +2,25 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/healthcheck"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/healthcheck"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	call_app "github.com/gidyon/services/internal/messaging/call"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 
-	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+	"github.com/gidyon/micro/v2/pkg/config"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -38,65 +40,73 @@ func main() {
 
 	appLogger := zaplogger.ZapGrpcLoggerV2(zaplogger.Log)
 
-	callSrv, err := micro.NewService(ctx, cfg, appLogger)
+	service, err := micro.NewService(ctx, cfg, appLogger)
 	errs.Panic(err)
 
 	// Recovery middleware
 	recoveryUIs, recoverySIs := app_grpc_middleware.AddRecovery()
-	callSrv.AddGRPCUnaryServerInterceptors(recoveryUIs...)
-	callSrv.AddGRPCStreamServerInterceptors(recoverySIs...)
+	service.AddGRPCUnaryServerInterceptors(recoveryUIs...)
+	service.AddGRPCStreamServerInterceptors(recoverySIs...)
 
 	// Logging middleware
 	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
-	callSrv.AddGRPCUnaryServerInterceptors(logginUIs...)
-	callSrv.AddGRPCStreamServerInterceptors(loggingSIs...)
+	service.AddGRPCUnaryServerInterceptors(logginUIs...)
+	service.AddGRPCStreamServerInterceptors(loggingSIs...)
 
-	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
+
+	if len(jwtKey) == 0 {
+		errs.Panic(errors.New("missing jwt key"))
+	}
 
 	// Authentication API
-	authAPI, err := auth.NewAPI(jwtKey, "USSD Log API", "users")
+	authAPI, err := auth.NewAPI(&auth.Options{
+		SigningKey: jwtKey,
+		Issuer:     "Call API",
+		Audience:   "users",
+	})
 	errs.Panic(err)
 
 	// Generate jwt token
-	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.AdminGroup()}, time.Now().Add(time.Hour*24))
+	token, err := authAPI.GenToken(context.Background(), &auth.Payload{Group: auth.DefaultAdminGroup()}, time.Now().Add(time.Hour*24))
 	if err == nil {
-		callSrv.Logger().Infof("Test jwt is %s", token)
+		service.Logger().Infof("Test jwt is %s", token)
 	}
 
-	callSrv.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthFunc))
-	callSrv.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthFunc))
+	service.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthorizeFunc))
+	service.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthorizeFunc))
 
 	// Readiness health check
-	callSrv.AddEndpoint("/api/calls/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
-		Service:      callSrv,
+	service.AddEndpoint("/api/calls/health/ready", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+		Service:      service,
 		Type:         healthcheck.ProbeReadiness,
 		AutoMigrator: func() error { return nil },
 	}))
 
 	// Liveness health check
-	callSrv.AddEndpoint("/api/calls/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
-		Service:      callSrv,
+	service.AddEndpoint("/api/calls/health/live", healthcheck.RegisterProbe(&healthcheck.ProbeOptions{
+		Service:      service,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
 	}))
 
 	// Servemux option for JSON Marshaling
-	callSrv.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+	service.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
 			EmitUnpopulated: true,
 		},
 	}))
 
 	// Start the service
-	callSrv.Start(ctx, func() error {
+	service.Start(ctx, func() error {
 		callAPI, err := call_app.NewCallAPIServer(ctx, &call_app.Options{
-			Logger:  callSrv.Logger(),
+			Logger:  service.Logger(),
 			AuthAPI: authAPI,
 		})
 		errs.Panic(err)
 
-		call.RegisterCallAPIServer(callSrv.GRPCServer(), callAPI)
-		call.RegisterCallAPIHandler(ctx, callSrv.RuntimeMux(), callSrv.ClientConn())
+		call.RegisterCallAPIServer(service.GRPCServer(), callAPI)
+		errs.Panic(call.RegisterCallAPIHandler(ctx, service.RuntimeMux(), service.ClientConn()))
 
 		return nil
 	})
