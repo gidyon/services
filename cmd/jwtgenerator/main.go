@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gidyon/micro/utils/errs"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 )
 
 var (
@@ -34,7 +34,7 @@ func main() {
 		Names:        "xxxxxx",
 		PhoneNumber:  "xxxxxx",
 		EmailAddress: "xxxxxx",
-		Group:        auth.DefaultSuperAdminGroup(),
+		Group:        auth.DefaultAdminGroup(),
 	}, time.Now().Add(100*24*time.Hour))
 	errs.Panic(err)
 

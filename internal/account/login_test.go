@@ -5,13 +5,13 @@ import (
 	"math/rand"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/services/pkg/api/account"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var groups = []string{auth.AdminGroup(), auth.SuperAdminGroup(), auth.User()}
+var groups = []string{auth.DefaultAdminGroup(), auth.DefaultSuperAdminGroup(), auth.DefaultUserGroup()}
 
 func getGroup() string {
 	return groups[rand.Intn(len(groups))]

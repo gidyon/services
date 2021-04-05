@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	auth "github.com/gidyon/micro/pkg/grpc/auth"
+	auth "github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -100,8 +100,8 @@ func (_m *AuthAPIMock) AuthorizeActor(ctx context.Context, actorID string) (*aut
 	return r0, r1
 }
 
-// AuthorizeActorOrGroups provides a mock function with given fields: ctx, actorID, allowedGroups
-func (_m *AuthAPIMock) AuthorizeActorOrGroups(ctx context.Context, actorID string, allowedGroups ...string) (*auth.Payload, error) {
+// AuthorizeActorOrGroup provides a mock function with given fields: ctx, actorID, allowedGroups
+func (_m *AuthAPIMock) AuthorizeActorOrGroup(ctx context.Context, actorID string, allowedGroups ...string) (*auth.Payload, error) {
 	_va := make([]interface{}, len(allowedGroups))
 	for _i := range allowedGroups {
 		_va[_i] = allowedGroups[_i]

@@ -11,9 +11,9 @@ import (
 
 	"google.golang.org/grpc/codes"
 
-	"github.com/gidyon/micro/utils/errs"
-	"github.com/gidyon/micro/utils/mdutil"
-	"github.com/gidyon/micro/utils/templateutil"
+	"github.com/gidyon/micro/v2/utils/errs"
+	"github.com/gidyon/micro/v2/utils/mdutil"
+	"github.com/gidyon/micro/v2/utils/templateutil"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
 	"github.com/golang/protobuf/ptypes/empty"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/services/pkg/api/account"
 )
 
@@ -18,7 +18,7 @@ func fakePhone() string {
 
 func createAdmin(accountState account.AccountState) (string, error) {
 	accountPB := fakeAccount()
-	accountPB.Group = auth.AdminGroup()
+	accountPB.Group = auth.DefaultAdminGroup()
 	accountPB.State = accountState
 
 	// Get admin model
@@ -51,7 +51,7 @@ func fakeAccount() *account.Account {
 		Nationality: randomdata.Country(randomdata.FullCountry),
 		ProfileUrl:  randomdata.MacAddress(),
 		State:       account.AccountState_ACTIVE,
-		Group:       auth.User(),
+		Group:       auth.DefaultUserGroup(),
 	}
 }
 

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/encryption"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/encryption"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/settings"
 	"github.com/speps/go-hashids"
 	"google.golang.org/grpc/grpclog"
@@ -26,6 +26,7 @@ type settingsAPIServer struct {
 type Options struct {
 	SQLDB         *gorm.DB
 	Logger        grpclog.LoggerV2
+	API           auth.API
 	JWTSigningKey []byte
 }
 
@@ -44,12 +45,9 @@ func NewSettingsAPI(ctx context.Context, opt *Options) (settings.SettingsAPIServ
 		err = errs.NilObject("logger")
 	case opt.JWTSigningKey == nil:
 		err = errs.NilObject("jwt key")
+	case opt.API == nil:
+		err = errs.NilObject("auth API")
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	authAPI, err := auth.NewAPI(opt.JWTSigningKey, "Operation API", "users")
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +59,6 @@ func NewSettingsAPI(ctx context.Context, opt *Options) (settings.SettingsAPIServ
 
 	settingsAPI := &settingsAPIServer{
 		hasher:  hasher,
-		authAPI: authAPI,
 		Options: opt,
 	}
 
@@ -164,7 +161,7 @@ func (settingsAPI *settingsAPIServer) GetSettings(
 	ctx context.Context, getReq *settings.GetSettingsRequest,
 ) (*settings.GetSettingsResponse, error) {
 	// Authentication
-	_, err := settingsAPI.authAPI.AuthorizeActorOrGroups(ctx, getReq.GetOwnerId(), auth.AdminGroup())
+	_, err := settingsAPI.authAPI.AuthorizeActorOrGroup(ctx, getReq.GetOwnerId(), auth.DefaultAdminGroup())
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +198,7 @@ func (settingsAPI *settingsAPIServer) GetSettings(
 		return nil, err
 	}
 
-	settingsPB := make(map[string]*settings.Setting, 0)
+	settingsPB := make(map[string]*settings.Setting)
 
 	for _, settingPB := range userSettingsPB.Settings {
 		if getReq.Domain != "" && settingPB.Domain == getReq.Domain {

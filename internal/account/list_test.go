@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/services/pkg/api/account"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -192,7 +192,7 @@ var _ = Describe("Listing accounts @list", func() {
 			})
 
 			Describe("Calling ListAccounts with show_groups true", func() {
-				var groups = []string{auth.AdminGroup(), auth.User(), auth.SuperAdminGroup()}
+				var groups = []string{auth.DefaultAdminGroup(), auth.DefaultUserGroup(), auth.DefaultSuperAdminGroup()}
 				It("should succeed and returns only ACTIVE or INACTIVE accounts", func() {
 					listReq.ListCriteria.FilterAccountGroups = true
 					listReq.ListCriteria.Groups = groups

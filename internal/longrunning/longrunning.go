@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/longrunning"
 	redis "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -264,7 +264,7 @@ func (longrunningAPI *longrunningAPIService) ListOperations(
 	ctx context.Context, listReq *longrunning.ListOperationsRequest,
 ) (*longrunning.ListOperationsResponse, error) {
 	// Authentication
-	_, err := longrunningAPI.AuthAPI.AuthorizeActorOrGroups(ctx, listReq.GetFilter().GetUserId(), auth.AdminGroup())
+	_, err := longrunningAPI.AuthAPI.AuthorizeActorOrGroup(ctx, listReq.GetFilter().GetUserId(), auth.DefaultAdminGroup())
 	if err != nil {
 		return nil, err
 	}

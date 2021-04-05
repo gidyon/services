@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/conn"
-	"github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/conn"
+	"github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/settings"
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
@@ -49,7 +49,7 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
-	logger := micro.NewLogger("settings_app")
+	logger := micro.NewLogger("settings_app", 0)
 
 	opt := &Options{
 		SQLDB:         db,

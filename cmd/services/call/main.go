@@ -19,8 +19,8 @@ import (
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 
-	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
 	"github.com/gidyon/micro/v2/pkg/config"
+	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 
 	"github.com/gidyon/services/pkg/api/account"
 	"google.golang.org/grpc/codes"
@@ -97,7 +97,7 @@ var _ = Describe("Searching accounts @search", func() {
 			Describe("Calling SearchAccounts with filter groups", func() {
 				It("should succeed and returns only admin users", func() {
 					searchReq.SearchCriteria.FilterAccountGroups = true
-					searchReq.SearchCriteria.Groups = []string{auth.AdminGroup()}
+					searchReq.SearchCriteria.Groups = []string{auth.DefaultAdminGroup()}
 					searchRes, err := AccountAPI.SearchAccounts(ctx, searchReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))

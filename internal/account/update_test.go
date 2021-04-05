@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Pallinder/go-randomdata"
-	"github.com/gidyon/micro/pkg/grpc/auth"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/services/pkg/api/messaging"
 
 	"github.com/gidyon/services/pkg/api/account"
@@ -81,7 +81,7 @@ var _ = Describe("Update Account @update", func() {
 						ProjectId:      "1",
 					}
 					// Create user account
-					createReq.Account.Group = auth.User()
+					createReq.Account.Group = auth.DefaultUserGroup()
 					createRes, err := AccountAPI.CreateAccount(ctx, createReq)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(status.Code(err)).Should(Equal(codes.OK))
@@ -94,7 +94,7 @@ var _ = Describe("Update Account @update", func() {
 				updateReq.Account.AccountId = accountID
 				// Set the account state to active
 				updateReq.Account.State = account.AccountState_ACTIVE
-				updateReq.Account.Group = auth.AdminGroup()
+				updateReq.Account.Group = auth.DefaultAdminGroup()
 				updateRes, err := AccountAPI.UpdateAccount(ctx, updateReq)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(status.Code(err)).Should(Equal(codes.OK))
