@@ -31,8 +31,8 @@ import (
 
 	messaging_app "github.com/gidyon/services/internal/messaging"
 
-	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
 	"github.com/gidyon/micro/v2/pkg/config"
+	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
 )
 
 func main() {
