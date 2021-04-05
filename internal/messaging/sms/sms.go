@@ -4,14 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gidyon/micro/pkg/grpc/auth"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/grpclog"
 )
-
-type sendSMSFunc func(context.Context, *Options, *sms.SMS)
 
 type smsAPIServer struct {
 	sms.UnimplementedSMSAPIServer

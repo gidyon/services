@@ -12,8 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func sendSmsAT(ctx context.Context, opt *Options, sendRequest *sms.SendSMSRequest) {}
-
 func firstVal(vals ...string) string {
 	for _, v := range vals {
 		if v != "" {
