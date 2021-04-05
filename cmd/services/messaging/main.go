@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/gidyon/micro"
-	httpmiddleware "github.com/gidyon/micro/pkg/http"
-	"github.com/gidyon/micro/utils/encryption"
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
+	"github.com/gidyon/micro/v2/utils/encryption"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/call"
 	"github.com/gidyon/services/pkg/api/subscriber"
-	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -26,23 +26,17 @@ import (
 
 	"github.com/gidyon/services/pkg/api/messaging"
 
-	"github.com/gidyon/micro/pkg/healthcheck"
+	"github.com/gidyon/micro/v2/pkg/healthcheck"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 
 	messaging_app "github.com/gidyon/services/internal/messaging"
 
-	"github.com/gidyon/micro/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/pkg/grpc/middleware"
+	"github.com/gidyon/micro/v2/pkg/config"
 )
 
 func main() {
 	ctx := context.Background()
-
-	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
-
-	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
 
 	// Read config
 	cfg, err := config.New()
@@ -68,7 +62,11 @@ func main() {
 	app.AddGRPCUnaryServerInterceptors(logginUIs...)
 	app.AddGRPCStreamServerInterceptors(loggingSIs...)
 
-	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
+
+	if len(jwtKey) == 0 {
+		errs.Panic(errors.New("missing jwt key"))
+	}
 
 	// Authentication API
 	authAPI, err := auth.NewAPI(&auth.Options{
@@ -99,16 +97,6 @@ func main() {
 		Service:      app,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
-	}))
-
-	sc := securecookie.New(apiHashKey, apiBlockKey)
-
-	// Cookie based authentication
-	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
-		SecureCookie: sc,
-		AuthHeader:   auth.Header(),
-		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.JWTCookie(),
 	}))
 
 	// Servemux option for JSON Marshaling
