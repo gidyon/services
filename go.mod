@@ -10,9 +10,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
-	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
-	github.com/gidyon/micro v1.12.0
-	github.com/gidyon/micro/v2 v2.3.2
+	github.com/gidyon/micro/v2 v2.3.6
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
@@ -21,7 +19,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0
-	github.com/jinzhu/gorm v1.9.16
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
@@ -36,6 +33,7 @@ require (
 	google.golang.org/grpc v1.35.0
 	google.golang.org/grpc/examples v0.0.0-20210203212142-f005af03c24d // indirect
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/mysql v1.0.4 // indirect
 	gorm.io/driver/postgres v1.0.8 // indirect
