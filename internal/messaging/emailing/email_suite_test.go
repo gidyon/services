@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gidyon/micro"
-	"github.com/gidyon/micro/pkg/mocks"
+	"github.com/gidyon/micro/v2"
+	"github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/messaging/emailing"
 
 	"github.com/Pallinder/go-randomdata"
@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 
 	ctx := context.Background()
 
-	logger := micro.NewLogger("email")
+	logger := micro.NewLogger("email", 0)
 
 	opt := &Options{
 		Logger:       logger,
@@ -56,9 +56,6 @@ var _ = BeforeSuite(func() {
 	EmailServer.sender = func(*emailing.SendEmailRequest) {}
 
 	// Pasing incorrect payload
-	_, err = NewEmailingAPIServer(nil, opt)
-	Expect(err).Should(HaveOccurred())
-
 	_, err = NewEmailingAPIServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
