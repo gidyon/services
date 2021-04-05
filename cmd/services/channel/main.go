@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
-	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -17,7 +18,6 @@ import (
 	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
-	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
 	"github.com/gidyon/micro/v2/utils/encryption"
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/channel"
@@ -28,12 +28,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-
-	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
-
-	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
@@ -59,7 +53,11 @@ func main() {
 	app.AddGRPCUnaryServerInterceptors(logginUIs...)
 	app.AddGRPCStreamServerInterceptors(loggingSIs...)
 
-	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
+	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
+
+	if len(jwtKey) == 0 {
+		errs.Panic(errors.New("missing jwt key"))
+	}
 
 	// Authentication API
 	authAPI, err := auth.NewAPI(&auth.Options{
@@ -91,16 +89,6 @@ func main() {
 		Service:      app,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
-	}))
-
-	sc := securecookie.New(apiHashKey, apiBlockKey)
-
-	// Cookie based authentication
-	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
-		SecureCookie: sc,
-		AuthHeader:   auth.Header(),
-		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.JWTCookie(),
 	}))
 
 	// Servemux option for JSON Marshaling

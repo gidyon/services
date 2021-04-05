@@ -1,7 +1,7 @@
 serviceName: channel
 httpPort: 8080
 grpcPort: 8070
-logLevel: 1
+logLevel: 0
 security:
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
