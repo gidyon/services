@@ -10,8 +10,6 @@ import (
 	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
-	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
-	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -30,12 +28,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-
-	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
-
-	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
@@ -98,16 +90,6 @@ func main() {
 		AutoMigrator: func() error { return nil },
 	}))
 
-	sc := securecookie.New(apiHashKey, apiBlockKey)
-
-	// Cookie based authentication
-	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
-		SecureCookie: sc,
-		AuthHeader:   auth.Header(),
-		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.JWTCookie(),
-	}))
-
 	// Servemux option for JSON Marshaling
 	app.AddServeMuxOptions(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
@@ -129,7 +111,7 @@ func main() {
 		errs.Panic(err)
 
 		longrunning.RegisterOperationAPIServer(app.GRPCServer(), longrunningAPI)
-		longrunning.RegisterOperationAPIHandler(ctx, app.RuntimeMux(), app.ClientConn())
+		errs.Panic(longrunning.RegisterOperationAPIHandler(ctx, app.RuntimeMux(), app.ClientConn()))
 
 		return nil
 	})

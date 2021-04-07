@@ -6,13 +6,11 @@ import (
 	"time"
 
 	"github.com/gidyon/micro/v2"
-	"github.com/gorilla/securecookie"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
-	httpmiddleware "github.com/gidyon/micro/v2/pkg/middleware/http"
 
 	subscriber_app "github.com/gidyon/services/internal/subscriber"
 
@@ -31,12 +29,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-
-	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
-
-	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
 
 	// Read config
 	cfg, err := config.New(config.FromFile)
@@ -93,16 +85,6 @@ func main() {
 		Service:      app,
 		Type:         healthcheck.ProbeLiveNess,
 		AutoMigrator: func() error { return nil },
-	}))
-
-	sc := securecookie.New(apiHashKey, apiBlockKey)
-
-	// Cookie based authentication
-	app.AddHTTPMiddlewares(httpmiddleware.CookieToJWTMiddleware(&httpmiddleware.CookieJWTOptions{
-		SecureCookie: sc,
-		AuthHeader:   auth.Header(),
-		AuthScheme:   auth.Scheme(),
-		CookieName:   auth.JWTCookie(),
 	}))
 
 	// Servemux option for JSON Marshaling
