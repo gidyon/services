@@ -119,14 +119,12 @@ func main() {
 		errs.Panic(err)
 
 		// Connect to account service
-		accountCC, err := app.DialExternalService(ctx, "account")
+		accountCC, err := app.ExternalServiceConn("account")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to account service")
 
 		// Connect to channel service
-		channelCC, err := app.DialExternalService(ctx, "channel")
+		channelCC, err := app.ExternalServiceConn("channel")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to channel service")
 
 		app.Logger().Infoln("connected to all services")
 
