@@ -1,8 +1,8 @@
 serviceName: account
 httpPort: 9003
-grpcPort: 9003
-httpOptions:
-  corsEnabled: true
+# grpcPort: 9003
+# httpOptions:
+#   corsEnabled: true
 logLevel: 0
 security:
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem

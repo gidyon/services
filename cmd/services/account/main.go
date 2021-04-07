@@ -12,6 +12,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"go.uber.org/zap"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -37,6 +38,8 @@ import (
 
 func main() {
 	ctx := context.Background()
+
+	fmt.Println(resolver.GetDefaultScheme())
 
 	cfg, err := config.New(config.FromFile)
 	errs.Panic(err)
@@ -154,9 +157,8 @@ func main() {
 	// 5. Bootstrapping service
 	app.Start(ctx, func() error {
 		// Connect to messaging service
-		messagingCC, err := app.DialExternalService(ctx, "messaging")
+		messagingCC, err := app.ExternalServiceConn("messaging")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to messaging service")
 
 		// Firebase app
 		opt := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
