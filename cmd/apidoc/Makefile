@@ -1,7 +1,7 @@
 SERVICE := ussdapidoc
 
 compile:
-	@GOOS=linux CGO_ENABLED=0 go build -a -installsuffix cgo -v -o service .
+	@GOOS=linux CGO_ENABLED=0 go build -tags netgo -installsuffix netgo -v -o service .
 
 docker_build:
 ifdef tag
