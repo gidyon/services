@@ -108,25 +108,20 @@ func main() {
 
 	// Start service
 	app.Start(ctx, func() error {
-		emailConn, err := app.DialExternalService(ctx, "emailing")
+		emailConn, err := app.ExternalServiceConn("emailing")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to emailing service")
 
-		pusherConn, err := app.DialExternalService(ctx, "pusher")
+		pusherConn, err := app.ExternalServiceConn("pusher")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to pusher service")
 
-		smsConn, err := app.DialExternalService(ctx, "sms")
+		smsConn, err := app.ExternalServiceConn("sms")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to sms service")
 
-		callConn, err := app.DialExternalService(ctx, "call")
+		callConn, err := app.ExternalServiceConn("call")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to call service")
 
-		subscriberConn, err := app.DialExternalService(ctx, "subscriber")
+		subscriberConn, err := app.ExternalServiceConn("subscriber")
 		errs.Panic(err)
-		app.Logger().Infoln("connected to subscriber service")
 
 		app.Logger().Infoln("connected to all services")
 
