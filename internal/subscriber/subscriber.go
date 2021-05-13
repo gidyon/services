@@ -388,6 +388,8 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		ID = uint(ids[0])
 	}
 
+	var collectionCount int64
+
 	subscribersDBAll := make([]*Subscriber, 0, pageSize)
 
 	if len(listReq.GetFilter().GetChannels()) > 0 {
@@ -406,7 +408,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 			go func() {
 				defer wg.Done()
 
-				db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
+				db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC").Model(&Subscriber{})
 				if ID != 0 {
 					db = db.Where("id<?", ID)
 				}
@@ -426,9 +428,17 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		// Collect all results
 		wg.Wait()
 	} else {
-		db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC")
+		db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC").Model(&Subscriber{})
 		if ID != 0 {
 			db = db.Where("id<?", ID)
+		}
+
+		// Page token
+		if pageToken == "" {
+			err = db.Count(&collectionCount).Error
+			if err != nil {
+				return nil, errs.SQLQueryFailed(err, "count")
+			}
 		}
 
 		err = db.Find(&subscribersDBAll).Error
@@ -498,8 +508,9 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	return &subscriber.ListSubscribersResponse{
-		NextPageToken: token,
-		Subscribers:   subscribersPB,
+		NextPageToken:   token,
+		Subscribers:     subscribersPB,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
