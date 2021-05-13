@@ -1620,6 +1620,10 @@
           "items": {
             "$ref": "#/definitions/apisAccount"
           }
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "Collection of accounts",

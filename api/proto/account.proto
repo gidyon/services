@@ -395,6 +395,7 @@ message Accounts {
     
     string next_page_token = 1 [(google.api.field_behavior) = OPTIONAL];
     repeated Account accounts = 2;
+    int64 collection_count = 3;
 }
 
 // UpdateOperation
