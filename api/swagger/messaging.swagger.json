@@ -437,6 +437,10 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "A collection of messages",
