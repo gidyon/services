@@ -14,7 +14,6 @@ import (
 
 const (
 	messages = "messages"
-	sep      = ","
 )
 
 // Message model
@@ -101,7 +100,7 @@ func GetMessagePB(messageDB *Message) (*messaging.Message, error) {
 
 	// Details
 	if len(messageDB.Details) != 0 {
-		data := make(map[string]string, 0)
+		data := make(map[string]string)
 		err := json.Unmarshal(messageDB.Details, &data)
 		if err != nil {
 			return nil, errs.FromJSONUnMarshal(err, "Details")
