@@ -262,6 +262,10 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "Response containing collection of subscribers",
