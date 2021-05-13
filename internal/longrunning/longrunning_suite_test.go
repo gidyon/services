@@ -64,9 +64,6 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Pasing incorrect payload
-	_, err = NewOperationAPIService(nil, opt)
-	Expect(err).Should(HaveOccurred())
-
 	_, err = NewOperationAPIService(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 	opt.Logger = nil
