@@ -417,6 +417,10 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
         }
       },
       "description": "Response containing a collection of channel resource",

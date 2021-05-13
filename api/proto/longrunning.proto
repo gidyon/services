@@ -107,6 +107,7 @@ message ListOperationsResponse {
 
     repeated Operation operations = 1;
     string next_page_token = 2;
+    int64 collection_count = 3;
 }
 
 message GetOperationRequest {
