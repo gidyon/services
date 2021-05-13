@@ -3,16 +3,20 @@ SERVICE := messaging-sms
 
 JWT_KEY := hDI0eBv11TbuboZ01qpnOuYRYLh6gQUOQhC9Mfagzv9l3gJso7CalTt7wGzJCVwbeDIfOX6fwS79pnisW7udhQ
 
-image := gidyon/$(SERVICE):v2
+image := gidyon/$(SERVICE)
 context := .
 
 ifdef IMAGE
 	image=$(IMAGE)
+else
+	imagex := $(image)
+	ifdef tag
+		image=$(imagex):$(tag)
+	else
+		image=$(imagex):v2
+	endif
 endif
 
-ifdef BUILD_CONTEXT
-	context=$(BUILD_CONTEXT)
-endif
 run:
 	go build -v -o service && \
 	JWT_SIGNING_KEY=$(JWT_KEY) \
