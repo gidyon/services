@@ -913,8 +913,10 @@ func (accountAPI *accountAPIServer) ListAccounts(
 		id = uint(ids[0])
 	}
 
+	db := accountAPI.SQLDBWrites.Limit(int(pageSize) + 1).Order("account_id DESC").Clauses(hints.ForceIndex("PRIMARY").ForOrderBy()).Model(&Account{})
+
 	// Apply filter criterias
-	db := generateWhereCondition(accountAPI.SQLDBReads, listReq.GetListCriteria()).Debug()
+	db = generateWhereCondition(db, listReq.GetListCriteria()).Debug()
 
 	// For admins
 	for _, group := range accountAPI.AuthAPI.AdminGroups() {
@@ -938,8 +940,15 @@ func (accountAPI *accountAPIServer) ListAccounts(
 		}
 	}
 
-	// Order by ID
-	db = db.Limit(int(pageSize) + 1).Order("account_id DESC").Clauses(hints.ForceIndex("PRIMARY").ForOrderBy())
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
+		}
+	}
 
 	accountsDB := make([]*Account, 0, pageSize+1)
 
@@ -977,8 +986,9 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	return &account.Accounts{
-		NextPageToken: token,
-		Accounts:      accountsPB,
+		NextPageToken:   token,
+		Accounts:        accountsPB,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
@@ -1024,8 +1034,10 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 
 	accountsDB := make([]*Account, 0, pageSize)
 
+	db := accountAPI.SQLDBReads.Limit(int(pageSize)).Order("account_id DESC").Model(&Account{})
+
 	// Apply filter criterias
-	db := generateWhereCondition(accountAPI.SQLDBReads, searchReq.GetSearchCriteria())
+	db = generateWhereCondition(db, searchReq.GetSearchCriteria())
 
 	// For admins
 	for _, group := range accountAPI.AuthAPI.AdminGroups() {
@@ -1044,8 +1056,15 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 		}
 	}
 
-	// Order by ID
-	db = db.Limit(int(pageSize)).Order("account_id DESC")
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
+		}
+	}
 
 	parsedQuery := dbutil.ParseQuery(searchReq.Query)
 
@@ -1085,8 +1104,9 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	return &account.Accounts{
-		NextPageToken: token,
-		Accounts:      accountsPB,
+		NextPageToken:   token,
+		Accounts:        accountsPB,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
