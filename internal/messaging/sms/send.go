@@ -9,6 +9,7 @@ import (
 
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
+	"github.com/gidyon/services/pkg/utils/httputils"
 	"google.golang.org/grpc/codes"
 )
 
@@ -62,12 +63,16 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), smsAPI.SmsAuth.GetAccessKey()))
 			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstVal(sendRequest.GetAuth().GetAuthToken(), smsAPI.SmsAuth.GetAuthToken())))
 
+			httputils.DumpRequest(req, "ONFON SMS RESPONSE")
+
 			res, err := smsAPI.HTTPClient.Do(req)
 			if err != nil {
 				errChan <- errs.WrapErrorWithCode(codes.Unavailable, err)
 				return
 			}
 			defer res.Body.Close()
+
+			httputils.DumpResponse(res, "ONFON SMS RESPONSE")
 
 			resMap := map[string]interface{}{}
 			err = json.NewDecoder(res.Body).Decode(&resMap)
