@@ -1,4 +1,4 @@
-image: 
+image:
   repository: gidyon/messaging
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -27,17 +27,19 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-  
+
 startupProbe:
   httpGet:
     path: /api/messaging/health/live
@@ -86,23 +88,23 @@ existingSecrets:
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
-- name: SENDER_EMAIL_ADDRESS
-  valueFrom:
-    secretKeyRef:
-      name: smtp-credentials
-      key: username
+  - name: SENDER_EMAIL_ADDRESS
+    valueFrom:
+      secretKeyRef:
+        name: smtp-credentials
+        key: username
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
-- name: mysql-credentials
-  mountPath: /app/secrets/mysql/
-  readOnly: true
+  - name: mysql-credentials
+    mountPath: /app/secrets/mysql/
+    readOnly: true
 
 # extraVolumeMount specifies volume mounts for extraVolume
 extraVolumeMount:
-- name: mysql-credentials
-  secret:
-    secretName: mysql-credentials
+  - name: mysql-credentials
+    secret:
+      secretName: mysql-credentials
 
 # config contains values for the service configuration
 config:
@@ -114,49 +116,49 @@ config:
   security:
     insecure: true
   databases:
-  - required: true
-    type: sqlDatabase
-    address: mysql:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlWrites
-      dialect: mysql
-      orm: gorm
-  - required: true
-    type: sqlDatabase
-    address: mysql-slave:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlReads
-      dialect: mysql
-      orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlWrites
+        dialect: mysql
+        orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql-slave:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlReads
+        dialect: mysql
+        orm: gorm
   externalServices:
-  - name: call
-    address: call:8080
-    required: true
-    k8service: true
-    insecure: true
-  - name: emailing
-    address: emailing:8080
-    required: true
-    k8service: true
-    insecure: true
-  - name: pusher
-    address: pusher:8080
-    required: true
-    k8service: true
-    insecure: true
-  - name: sms
-    address: sms:8080
-    required: true
-    k8service: true
-    insecure: true
-  - name: subscriber
-    address: subscriber:8080
-    required: true
-    k8service: true
-    insecure: true
+    - name: call
+      address: call:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: emailing
+      address: emailing:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: pusher
+      address: pusher:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: sms
+      address: sms:8080
+      required: true
+      k8service: true
+      insecure: true
+    - name: subscriber
+      address: subscriber:8080
+      required: true
+      k8service: true
+      insecure: true

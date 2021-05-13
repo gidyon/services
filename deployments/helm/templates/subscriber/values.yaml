@@ -1,7 +1,7 @@
 # replicaCount is the number of replicas to run if autoscaling is not enabled
 replicaCount: 1
 
-image: 
+image:
   repository: gidyon/subscriber
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -30,10 +30,12 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -50,7 +52,7 @@ readinessProbe:
   timeoutSeconds: 3
   periodSeconds: 20
   failureThreshold: 3
-  
+
 livenessProbe:
   httpGet:
     path: /api/subscribers/health/live
@@ -112,34 +114,34 @@ config:
   security:
     insecure: true
   databases:
-  - required: true
-    type: sqlDatabase
-    address: mysql:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlWrites
-      dialect: mysql
-      orm: gorm
-  - required: true
-    type: sqlDatabase
-    address: mysql-slave:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlReads
-      dialect: mysql
-      orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlWrites
+        dialect: mysql
+        orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql-slave:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlReads
+        dialect: mysql
+        orm: gorm
   externalServices:
-  - name: channel
-    required: true
-    address: channel:8080
-    k8service: true
-    insecure: true
-  - name: account
-    required: true
-    address: account:8080
-    k8service: true
-    insecure: true
+    - name: channel
+      required: true
+      address: channel:8080
+      k8service: true
+      insecure: true
+    - name: account
+      required: true
+      address: account:8080
+      k8service: true
+      insecure: true

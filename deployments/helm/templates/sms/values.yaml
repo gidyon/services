@@ -1,4 +1,4 @@
-image: 
+image:
   repository: gidyon/messaging-sms
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -27,17 +27,19 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-  
+
 startupProbe:
   httpGet:
     path: /api/sms/health/live
@@ -85,41 +87,41 @@ existingSecrets:
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
-- name: SMS_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-api-key
-- name: SMS_AUTH_TOKEN
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-auth-token
-- name: SMS_API_USERNAME
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-api-username
-- name: SMS_API_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-api-password
-- name: SMS_API_URL
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-api-url
-- name: SMS_ACCESS_TOKEN
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-access-token
-- name: SENDER_ID
-  valueFrom:
-    secretKeyRef:
-      name: sms-credentials
-      key: sms-sender-id
+  - name: SMS_API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-api-key
+  - name: SMS_AUTH_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-auth-token
+  - name: SMS_API_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-api-username
+  - name: SMS_API_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-api-password
+  - name: SMS_API_URL
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-api-url
+  - name: SMS_ACCESS_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-access-token
+  - name: SENDER_ID
+    valueFrom:
+      secretKeyRef:
+        name: sms-credentials
+        key: sms-sender-id
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:

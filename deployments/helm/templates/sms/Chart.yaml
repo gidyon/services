@@ -6,6 +6,6 @@ version: 0.1.3
 appVersion: v1
 
 dependencies:
-- name: micro
-  version: 0.1.1
-  repository: "https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages"
+  - name: micro
+    version: 0.1.1
+    repository: "https://raw.githubusercontent.com/gidyon/services/master/deployments/helm/packages"

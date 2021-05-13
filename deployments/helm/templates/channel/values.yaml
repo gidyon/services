@@ -1,7 +1,7 @@
 # replicaCount is the number of replicas to run if autoscaling is not enabled
 replicaCount: 1
 
-image: 
+image:
   repository: gidyon/channel
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -30,10 +30,12 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -110,23 +112,23 @@ config:
   security:
     insecure: true
   databases:
-  - required: true
-    type: sqlDatabase
-    address: mysql:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlWrites
-      dialect: mysql
-      orm: gorm
-  - required: true
-    type: sqlDatabase
-    address: mysql-slave:3306
-    userFile: /app/secrets/mysql/mysql-default-user
-    schemaFile: /app/secrets/mysql/mysql-default-schema
-    passwordFile: /app/secrets/mysql/mysql-password
-    metadata:
-      name: sqlReads
-      dialect: mysql
-      orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlWrites
+        dialect: mysql
+        orm: gorm
+    - required: true
+      type: sqlDatabase
+      address: mysql-slave:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: sqlReads
+        dialect: mysql
+        orm: gorm

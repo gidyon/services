@@ -1,4 +1,4 @@
-image: 
+image:
   repository: gidyon/messaging-emailing
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -27,17 +27,19 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-  
+
 startupProbe:
   httpGet:
     path: /api/emailing/health/live
@@ -85,26 +87,26 @@ existingSecrets:
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
-- name: SMTP_HOST
-  valueFrom:
-    secretKeyRef:
-      name: smtp-credentials
-      key: host
-- name: SMTP_PORT
-  valueFrom:
-    secretKeyRef:
-      name: smtp-credentials
-      key: port
-- name: SMTP_USERNAME
-  valueFrom:
-    secretKeyRef:
-      name: smtp-credentials
-      key: username
-- name: SMTP_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: smtp-credentials
-      key: password
+  - name: SMTP_HOST
+    valueFrom:
+      secretKeyRef:
+        name: smtp-credentials
+        key: host
+  - name: SMTP_PORT
+    valueFrom:
+      secretKeyRef:
+        name: smtp-credentials
+        key: port
+  - name: SMTP_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: smtp-credentials
+        key: username
+  - name: SMTP_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: smtp-credentials
+        key: password
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:

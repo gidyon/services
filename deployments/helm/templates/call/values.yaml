@@ -1,4 +1,4 @@
-image: 
+image:
   repository: gidyon/messaging-call
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -27,10 +27,12 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL

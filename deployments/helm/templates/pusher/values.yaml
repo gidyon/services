@@ -1,4 +1,4 @@
-image: 
+image:
   repository: gidyon/messaging-pusher
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -27,17 +27,19 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-  
+
 startupProbe:
   httpGet:
     path: /api/pusher/health/live
@@ -85,11 +87,11 @@ existingSecrets:
 
 # extraEnv contains additional environment variables suppliws by the user
 extraEnv:
-- name: FCM_SERVER_KEY
-  valueFrom:
-    secretKeyRef:
-      name: symmetric-keys
-      key: fcm-server-key
+  - name: FCM_SERVER_KEY
+    valueFrom:
+      secretKeyRef:
+        name: symmetric-keys
+        key: fcm-server-key
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
