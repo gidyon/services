@@ -93,12 +93,6 @@ var _ = BeforeSuite(func() {
 	Expect(err).ShouldNot(HaveOccurred())
 })
 
-func handleError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
 // Declarations for Ginkgo DSL
 type Done ginkgo.Done
 type Benchmarker ginkgo.Benchmarker
