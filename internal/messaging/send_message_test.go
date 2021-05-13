@@ -27,10 +27,6 @@ func randomSendMethod() messaging.SendMethod {
 	return messaging.SendMethod(index)
 }
 
-func randomPhone() string {
-	return randomdata.PhoneNumber()[:12]
-}
-
 func randoParagraph() string {
 	par := randomdata.Paragraph()
 	if len(par) > 256 {
