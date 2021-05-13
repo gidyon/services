@@ -406,8 +406,7 @@ func (api *messagingServer) SendMessage(
 }
 
 const (
-	defaultPageSize  = 10
-	defaultPageToken = 1000000000
+	defaultPageSize = 50
 )
 
 func (api *messagingServer) ListMessages(
@@ -446,33 +445,45 @@ func (api *messagingServer) ListMessages(
 		id = uint(ids[0])
 	}
 
-	db := api.SQLDBReads.Order("id DESC").Limit(int(pageSize + 1))
+	db := api.SQLDBReads.Order("id DESC").Limit(int(pageSize + 1)).Model(&Message{})
 	if id > 0 {
 		db = db.Where("id<?", id)
 	}
 
-	if len(listReq.GetFilter().GetTypeFilters()) > 0 {
-		types := make([]int8, 0)
-		filter := true
-		for _, msgType := range listReq.GetFilter().GetTypeFilters() {
-			types = append(types, int8(msgType))
-			if msgType == messaging.MessageType_ALL {
-				filter = false
-				break
+	// Apply filters
+	if listReq.Filter != nil {
+		if len(listReq.GetFilter().GetTypeFilters()) > 0 {
+			types := make([]int8, 0)
+			filter := true
+			for _, msgType := range listReq.GetFilter().GetTypeFilters() {
+				types = append(types, int8(msgType))
+				if msgType == messaging.MessageType_ALL {
+					filter = false
+					break
+				}
+			}
+			if filter {
+				db = db.Where("type IN(?)", types)
 			}
 		}
-		if filter {
-			db = db.Where("type IN(?)", types)
+		if listReq.Filter.GetUserId() != "" {
+			db = db.Where("user_id=?", ID)
+		}
+	}
+
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
 		}
 	}
 
 	messagesDB := make([]*Message, 0, pageSize+1)
 
-	if listReq.GetFilter().GetUserId() != "" {
-		err = db.Find(&messagesDB, "user_id=?", ID).Error
-	} else {
-		err = db.Find(&messagesDB).Error
-	}
+	err = db.Find(&messagesDB).Error
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to fetch messages")
 	}
@@ -503,8 +514,9 @@ func (api *messagingServer) ListMessages(
 	}
 
 	return &messaging.Messages{
-		Messages:      messagesPB,
-		NextPageToken: token,
+		Messages:        messagesPB,
+		NextPageToken:   token,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
