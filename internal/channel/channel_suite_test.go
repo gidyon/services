@@ -35,7 +35,7 @@ const (
 func startDB() (*gorm.DB, error) {
 	return conn.OpenGormConn(&conn.DBOptions{
 		Dialect:  "mysql",
-		Address:  "localhost:3306",
+		Address:  dbAddress,
 		User:     "root",
 		Password: "hakty11",
 		Schema:   schema,
@@ -76,9 +76,6 @@ var _ = BeforeSuite(func() {
 	Expect(ok).Should(BeTrue())
 
 	// Pasing incorrect payload
-	_, err = NewChannelAPIServer(nil, opt)
-	Expect(err).Should(HaveOccurred())
-
 	_, err = NewChannelAPIServer(ctx, nil)
 	Expect(err).Should(HaveOccurred())
 
