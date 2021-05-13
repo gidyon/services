@@ -21,8 +21,6 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
-const channelsPageSize = 20
-
 type channelAPIServer struct {
 	channel.UnimplementedChannelAPIServer
 	logger grpclog.LoggerV2
@@ -240,9 +238,25 @@ func (channelAPI *channelAPIServer) ListChannels(
 
 	channelsDB := make([]*Channel, 0, pageSize)
 
-	db := channelAPI.SQLDBReads.Unscoped().Limit(int(pageSize)).Order("id DESC")
-	if ID != 0 {
+	// Order by ID
+	db := channelAPI.SQLDBReads.Limit(int(pageSize + 1)).Order("id DESC").Model(&Channel{})
+
+	// Apply filter criterias
+	db = generateWhereCondition(db, listReq.GetFilter())
+
+	// ID filter
+	if ID > 0 {
 		db = db.Where("id<?", ID)
+	}
+
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
+		}
 	}
 
 	err = db.Find(&channelsDB).Error
@@ -273,8 +287,9 @@ func (channelAPI *channelAPIServer) ListChannels(
 	}
 
 	return &channel.ListChannelsResponse{
-		NextPageToken: token,
-		Channels:      channelsPB,
+		NextPageToken:   token,
+		Channels:        channelsPB,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
@@ -319,17 +334,27 @@ func (channelAPI *channelAPIServer) SearchChannels(
 
 	channelsDB := make([]*Channel, 0, pageSize)
 
-	// Apply filter criterias
-	db := generateWhereCondition(channelAPI.SQLDBReads, searchReq.GetFilter())
-
 	// Order by ID
-	db = db.Limit(int(pageSize + 1)).Order("id DESC")
+	db := channelAPI.SQLDBReads.Limit(int(pageSize + 1)).Order("id DESC").Model(&Channel{})
+
+	// Apply filter criterias
+	db = generateWhereCondition(db, searchReq.GetFilter())
 
 	parsedQuery := dbutil.ParseQuery(searchReq.Query)
 
 	// ID filter
 	if ID > 0 {
 		db = db.Where("id<?", ID)
+	}
+
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
+		}
 	}
 
 	err = db.Find(&channelsDB, "MATCH(title, label, description) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
@@ -367,8 +392,9 @@ func (channelAPI *channelAPIServer) SearchChannels(
 	}
 
 	return &channel.ListChannelsResponse{
-		NextPageToken: token,
-		Channels:      channelsPB,
+		NextPageToken:   token,
+		Channels:        channelsPB,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
