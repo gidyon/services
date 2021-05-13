@@ -932,6 +932,10 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	// Apply project filter
 	if payload.ProjectID != "" {
 		db = db.Where("project_id=?", payload.ProjectID)
+	} else {
+		if !accountAPI.AuthAPI.IsAdmin(payload.Group) {
+			return nil, errs.WrapMessage(codes.PermissionDenied, "permission denied to fetch all accounts")
+		}
 	}
 
 	// Order by ID
@@ -1034,6 +1038,10 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Apply project project
 	if payload.ProjectID != "" {
 		db = db.Where("project_id=?", payload.ProjectID)
+	} else {
+		if !accountAPI.AuthAPI.IsAdmin(payload.Group) {
+			return nil, errs.WrapMessage(codes.PermissionDenied, "permission denied to search all accounts")
+		}
 	}
 
 	// Order by ID
