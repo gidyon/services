@@ -294,6 +294,17 @@ func (longrunningAPI *longrunningAPIService) ListOperations(
 		id = int64(ids[0])
 	}
 
+	var collectionCount int64
+
+	// Page token
+	if pageToken == "" {
+		res, err := longrunningAPI.RedisClient.LLen(ctx, getUserOpList(userID)).Result()
+		if err != nil {
+			return nil, errs.RedisCmdFailed(err, "LLEN")
+		}
+		collectionCount = res - id
+	}
+
 	// Get longrunnings ids
 	opKeys, err := longrunningAPI.RedisClient.LRange(ctx, getUserOpList(userID), id, int64(pageSize)+id).Result()
 	if err != nil {
@@ -329,8 +340,9 @@ func (longrunningAPI *longrunningAPIService) ListOperations(
 	}
 
 	return &longrunning.ListOperationsResponse{
-		Operations:    longrunningsPB,
-		NextPageToken: token,
+		Operations:      longrunningsPB,
+		NextPageToken:   token,
+		CollectionCount: collectionCount,
 	}, nil
 }
 
