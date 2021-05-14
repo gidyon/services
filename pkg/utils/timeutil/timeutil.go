@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gidyon/micro/utils/errs"
+	"github.com/gidyon/micro/v2/utils/errs"
 	"google.golang.org/grpc/codes"
 )
 
