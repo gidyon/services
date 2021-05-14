@@ -1,11 +1,8 @@
 package subscriber
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
-	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 
 	"github.com/gidyon/services/pkg/api/subscriber"
@@ -15,8 +12,9 @@ const subscribersTable = "subscribers"
 
 // Subscriber is model for subscribers
 type Subscriber struct {
-	ID        uint   `gorm:"primary_key"`
-	Channels  []byte `gorm:"type:json;not null"`
+	ID        uint   `gorm:"primaryKey;autoIncrement"`
+	UserID    string `gorm:"index;type:varchar(20);not null"`
+	Channel   string `gorm:"index;type:varchar(50);not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -28,21 +26,13 @@ func (*Subscriber) TableName() string {
 }
 
 // GetSubscriberPB creates a proto message from subscriber model
-func GetSubscriberPB(subscriberDB *Subscriber, userPB *account.Account) (*subscriber.Subscriber, error) {
+func GetSubscriberPB(userPB *account.Account, channels []string) (*subscriber.Subscriber, error) {
 	subscriberPB := &subscriber.Subscriber{
-		SubscriberId: fmt.Sprint(subscriberDB.ID),
+		SubscriberId: userPB.AccountId,
 		Email:        userPB.Email,
 		Phone:        userPB.Phone,
 		DeviceToken:  userPB.DeviceToken,
-		Channels:     []string{},
-	}
-
-	// safe json unmarshal
-	if len(subscriberDB.Channels) > 0 {
-		err := json.Unmarshal(subscriberDB.Channels, &subscriberPB.Channels)
-		if err != nil {
-			return nil, errs.FromJSONUnMarshal(err, "channels")
-		}
+		Channels:     channels,
 	}
 
 	return subscriberPB, nil
