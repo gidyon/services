@@ -50,6 +50,8 @@ var _ = BeforeSuite(func() {
 	db, err := startDB()
 	Expect(err).ShouldNot(HaveOccurred())
 
+	db = db.Debug()
+
 	// Remove all
 	Expect(db.Migrator().DropTable(&Subscriber{})).ShouldNot(HaveOccurred())
 

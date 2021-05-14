@@ -2,11 +2,8 @@ package subscriber
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
-	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -86,32 +83,12 @@ func NewSubscriberAPIServer(
 	return subscriberAPI, nil
 }
 
-const defaultChannel = "public"
-
-func (subscriberAPI *subscriberAPIServer) createSubscriber(ID int) error {
-	channels, err := json.Marshal([]string{defaultChannel})
-	if err != nil {
-		return errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to json marshal")
-	}
-	err = subscriberAPI.SQLDB.Create(&Subscriber{
-		ID:       uint(ID),
-		Channels: channels,
-	}).Error
-	if err != nil {
-		return errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to create subscriber")
-	}
-	return nil
-}
-
 func (subscriberAPI *subscriberAPIServer) Subscribe(
 	ctx context.Context, subReq *subscriber.SubscriberRequest,
 ) (*empty.Empty, error) {
 
 	// Check that account id and channelId is provided
-	var (
-		ID  int
-		err error
-	)
+	var err error
 	switch {
 	case subReq == nil:
 		return nil, errs.NilObject("SubscriberRequest")
@@ -119,11 +96,6 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		return nil, errs.MissingField("channel names")
 	case subReq.SubscriberId == "":
 		return nil, errs.MissingField("subscriber id")
-	default:
-		ID, err = strconv.Atoi(subReq.SubscriberId)
-		if err != nil {
-			return nil, errs.IncorrectVal("subscriber id")
-		}
 	}
 
 	// Authorize the request
@@ -145,60 +117,28 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 		return nil, errs.FailedToBeginTx(err)
 	}
 
-	sub := &Subscriber{}
+	subscribersDB := make([]*Subscriber, 0, len(subReq.Channels))
 
-	// Get user channels
-	err = tx.First(sub, "id=?", ID).Error
-	switch {
-	case err == nil:
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		err = subscriberAPI.createSubscriber(ID)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	default:
-		tx.Rollback()
-		return nil, errs.SQLQueryFailed(err, "Get")
-	}
-
-	channels := []string{}
-
-	// safe json unmarshal
-	if len(sub.Channels) > 0 {
-		err = json.Unmarshal(sub.Channels, &channels)
-		if err != nil {
-			tx.Rollback()
-			return nil, errs.FromJSONUnMarshal(err, "subscribers channels")
-		}
-	} else {
-		channels = []string{defaultChannel}
-	}
-
-	channelsV2 := make([]string, 0, len(channels)+1)
-
-	// Check if already subscribed
 	for _, channel := range subReq.Channels {
-		if inArray(channel, channels) {
-			continue
+		// Check if subscribed
+		err = tx.First(&Subscriber{}, "user_id = ? AND channel = ?", subReq.SubscriberId, channel).Error
+		switch {
+		case err == nil:
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			subscribersDB = append(subscribersDB, &Subscriber{
+				UserID:  subReq.SubscriberId,
+				Channel: channel,
+			})
+		default:
+			tx.Rollback()
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to check if subcriber is subscribe to channel")
 		}
-		channelsV2 = append(channelsV2, channel)
 	}
 
-	// Add channel
-	channelsV2 = append(channelsV2, channels...)
-
-	sub.Channels, err = json.Marshal(channelsV2)
+	err = tx.CreateInBatches(subscribersDB, len(subReq.Channels)+1).Error
 	if err != nil {
 		tx.Rollback()
-		return nil, errs.FromJSONMarshal(err, "channels")
-	}
-
-	// Subscribe user to the channel
-	err = tx.Table(subscribersTable).Where("id=?", ID).Select("channels").Updates(sub).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, errs.FailedToUpdate("subscriber", err)
+		return nil, errs.SQLQueryFailed(err, "creating subscriber channel")
 	}
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
@@ -217,7 +157,7 @@ func (subscriberAPI *subscriberAPIServer) Subscribe(
 	err = tx.Commit().Error
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errs.FailedToCommitTx(err)
 	}
 
 	return &empty.Empty{}, nil
@@ -228,11 +168,7 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 ) (*empty.Empty, error) {
 
 	// Validation
-	var (
-		ID        int
-		err       error
-		accountID = unSubReq.GetSubscriberId()
-	)
+	var err error
 	switch {
 	case unSubReq == nil:
 		return nil, errs.NilObject("unsubscribe request")
@@ -240,11 +176,6 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		return nil, errs.MissingField("channels")
 	case unSubReq.SubscriberId == "":
 		return nil, errs.MissingField("subscriber id")
-	default:
-		ID, err = strconv.Atoi(accountID)
-		if err != nil {
-			return nil, errs.IncorrectVal("subscriber id")
-		}
 	}
 
 	// Authorize the request
@@ -266,64 +197,13 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 		return nil, errs.FailedToBeginTx(err)
 	}
 
-	sub := &Subscriber{}
-
-	// Get user channels
-	err = tx.First(sub, "id=?", ID).Error
-	switch {
-	case err == nil:
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		err = subscriberAPI.createSubscriber(ID)
+	for _, channel := range unSubReq.Channels {
+		// Delete the channel
+		err = tx.Delete(&Subscriber{}, "user_id = ? AND channel = ?", unSubReq.SubscriberId, channel).Error
 		if err != nil {
 			tx.Rollback()
-			return nil, err
+			return nil, errs.FailedToDelete("subcriber channel", err)
 		}
-		tx.Commit()
-		return &empty.Empty{}, nil
-	default:
-		tx.Rollback()
-		return nil, errs.SQLQueryFailed(err, "Get")
-	}
-
-	channels := []string{}
-
-	// safe json unmarshal
-	if len(sub.Channels) > 0 {
-		err = json.Unmarshal(sub.Channels, &channels)
-		if err != nil {
-			tx.Rollback()
-			return nil, errs.FromJSONUnMarshal(err, "Subscribers")
-		}
-	}
-
-	var found bool
-	// Find the channel to unsubcribe
-	for pos, ch := range unSubReq.Channels {
-		if inArray(ch, channels) {
-			// Remove with append
-			channels = append(channels[:pos], channels[pos+1:]...)
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return &empty.Empty{}, nil
-	}
-
-	if len(sub.Channels) > 0 {
-		sub.Channels, err = json.Marshal(channels)
-		if err != nil {
-			tx.Rollback()
-			return nil, errs.FromJSONMarshal(err, "channels")
-		}
-	}
-
-	// Unsubscribe user from the channel
-	err = tx.Table(subscribersTable).Where("id=?", accountID).Updates(sub).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, errs.FailedToUpdate("subscriber", err)
 	}
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
@@ -342,22 +222,13 @@ func (subscriberAPI *subscriberAPIServer) Unsubscribe(
 	err = tx.Commit().Error
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, errs.FailedToCommitTx(err)
 	}
 
 	return &empty.Empty{}, nil
 }
 
 const defaultPageSize = 50
-
-func inArray(v string, arr []string) bool {
-	for _, v2 := range arr {
-		if v == v2 {
-			return true
-		}
-	}
-	return false
-}
 
 func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	ctx context.Context, listReq *subscriber.ListSubscribersRequest,
@@ -388,96 +259,45 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		ID = uint(ids[0])
 	}
 
-	var collectionCount int64
+	db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC").Model(&Subscriber{})
+	if ID != 0 {
+		db = db.Where("id<?", ID)
+	}
 
-	subscribersDBAll := make([]*Subscriber, 0, pageSize)
-
-	if len(listReq.GetFilter().GetChannels()) > 0 {
-		var (
-			wg            = &sync.WaitGroup{}
-			mu            = sync.Mutex{} // guards subscribersDB
-			subscribersDB = make([]*Subscriber, 0, pageSize)
-		)
-
-		// Get subscriber for each channel
-		for _, channel := range listReq.Filter.GetChannels() {
-			wg.Add(1)
-
-			channel := channel
-
-			go func() {
-				defer wg.Done()
-
-				db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC").Model(&Subscriber{})
-				if ID != 0 {
-					db = db.Where("id<?", ID)
-				}
-
-				err = db.Where("? MEMBER OF (channels)", channel).Find(&subscribersDB).Error
-				if err != nil {
-					subscriberAPI.Logger.Errorf("failed to finds subscribers: %v", err)
-					return
-				}
-
-				mu.Lock()
-				subscribersDBAll = append(subscribersDBAll, subscribersDB...)
-				mu.Unlock()
-			}()
-		}
-
-		// Collect all results
-		wg.Wait()
-	} else {
-		db := subscriberAPI.SQLDB.Limit(int(pageSize)).Order("id DESC").Model(&Subscriber{})
-		if ID != 0 {
-			db = db.Where("id<?", ID)
-		}
-
-		// Page token
-		if pageToken == "" {
-			err = db.Count(&collectionCount).Error
-			if err != nil {
-				return nil, errs.SQLQueryFailed(err, "count")
-			}
-		}
-
-		err = db.Find(&subscribersDBAll).Error
-		switch {
-		case err == nil:
-		default:
-			if err != nil {
-				return nil, errs.SQLQueryFailed(err, "LIST")
-			}
+	// Apply filters
+	if listReq.Filter != nil {
+		if len(listReq.Filter.Channels) > 0 {
+			db = db.Group("user_id").Where("channel IN (?)", listReq.Filter.Channels)
 		}
 	}
 
-	var (
-		subscribersPB = make([]*subscriber.Subscriber, 0, len(subscribersDBAll))
-		seen          = make(map[uint]struct{}, int(pageSize))
-	)
+	var collectionCount int64
+
+	if pageToken == "" {
+		err = db.Count(&collectionCount).Error
+		if err != nil {
+			return nil, errs.SQLQueryFailed(err, "count")
+		}
+	}
+
+	subscriberDBs := make([]*Subscriber, 0, pageSize)
+
+	err = db.Find(&subscriberDBs).Error
+	switch {
+	case err == nil:
+	default:
+		return nil, errs.SQLQueryFailed(err, "Get subscribers")
+	}
+
+	subscribersPB := make([]*subscriber.Subscriber, 0, len(subscriberDBs))
 
 	ctxGet := mdutil.AddFromCtx(ctx)
 
-	for _, subscriberDB := range subscribersDBAll {
-
-		if _, ok := seen[subscriberDB.ID]; ok {
-			continue
-		}
-
-		seen[subscriberDB.ID] = struct{}{}
-
-		channels := make([]string, 0)
-
-		if len(subscriberDB.Channels) > 0 {
-			err = json.Unmarshal(subscriberDB.Channels, &channels)
-			if err != nil {
-				return nil, errs.FromJSONMarshal(err, "channels")
-			}
-		}
+	for _, subscriberDB := range subscriberDBs {
 
 		// Lets get the user
 		accountPB, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
-			AccountId:  fmt.Sprint(subscriberDB.ID),
+			AccountId:  subscriberDB.UserID,
 			Priviledge: subscriberAPI.AuthAPI.IsAdmin(payload.Group),
 		})
 		switch {
@@ -488,7 +308,14 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 			return nil, errs.WrapErrorWithMsg(err, "failed to get subscriber")
 		}
 
-		subscriberPB, err := GetSubscriberPB(subscriberDB, accountPB)
+		channels := make([]string, 0, 5)
+
+		err = subscriberAPI.SQLDB.Model(&Subscriber{}).Where("user_id = ?", subscriberDB.UserID).Select("channel").Distinct("channel").Scan(&channels).Error
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to get subcriber channels")
+		}
+
+		subscriberPB, err := GetSubscriberPB(accountPB, channels)
 		if err != nil {
 			return nil, err
 		}
@@ -499,7 +326,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	}
 
 	var token string
-	if int(pageSize) <= len(subscribersDBAll) {
+	if len(subscriberDBs) > int(pageSize) {
 		// Next page token
 		token, err = subscriberAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
 		if err != nil {
@@ -529,29 +356,17 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	}
 
 	// Validation
-	var ID int
 	switch {
 	case getReq.SubscriberId == "":
 		return nil, errs.MissingField("subscriber id")
 	default:
-		ID, err = strconv.Atoi(getReq.SubscriberId)
-		if err != nil {
-			return nil, errs.IncorrectVal("subscriber id")
-		}
 	}
 
-	// Get subscriber
-	subscriberDB := &Subscriber{}
-	err = subscriberAPI.SQLDB.First(subscriberDB, "id=?", ID).Error
-	switch {
-	case err == nil:
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		err = subscriberAPI.createSubscriber(ID)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, errs.SQLQueryFailed(err, "GET")
+	channels := make([]string, 0, 5)
+
+	err = subscriberAPI.SQLDB.Model(&Subscriber{}).Where("user_id = ?", getReq.SubscriberId).Select("channel").Distinct("channel").Scan(&channels).Error
+	if err != nil {
+		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to get subcriber channels")
 	}
 
 	ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
@@ -566,5 +381,5 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 		return nil, errs.WrapErrorWithMsg(err, "failed to get susbcriber profile")
 	}
 
-	return GetSubscriberPB(subscriberDB, accountPB)
+	return GetSubscriberPB(accountPB, channels)
 }

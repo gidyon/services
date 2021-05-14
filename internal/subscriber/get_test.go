@@ -43,14 +43,6 @@ var _ = Describe("Getting subscriber @get", func() {
 			Expect(getRes).To(BeNil())
 			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
 		})
-
-		It("should fail when subscriber id is incorrect", func() {
-			getReq.SubscriberId = uuid.New().String()
-			subscribeRes, err := SubsriberAPI.GetSubscriber(ctx, getReq)
-			Expect(err).Should(HaveOccurred())
-			Expect(subscribeRes).Should(BeNil())
-			Expect(status.Code(err)).Should(Equal(codes.InvalidArgument))
-		})
 	})
 
 	Describe("Getting subscriber with valid request", func() {

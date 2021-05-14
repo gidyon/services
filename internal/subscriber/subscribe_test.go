@@ -19,10 +19,12 @@ var _ = Describe("Subsribing A User To A Channel @subscribe", func() {
 		ctx          context.Context
 	)
 
+	defaultChannel := randomdata.Month()
+
 	BeforeEach(func() {
 		subscribeReq = &subscriber.SubscriberRequest{
 			SubscriberId: uuid.New().String(),
-			Channels:     []string{randomdata.Month()},
+			Channels:     []string{randomdata.Month(), randomdata.Month(), defaultChannel, defaultChannel},
 		}
 		ctx = context.Background()
 	})
