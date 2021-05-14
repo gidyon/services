@@ -110,9 +110,14 @@ func main() {
 
 		app.Logger().Infoln("connected to all services")
 
+		db := app.GormDBByName("sqlWrites")
+		if os.Getenv("DB_DEBUG") != "" {
+			db = db.Debug()
+		}
+
 		// Create subscriber API
 		subscriberAPI, err := subscriber_app.NewSubscriberAPIServer(ctx, &subscriber_app.Options{
-			SQLDB:            app.GormDBByName("sqlWrites"),
+			SQLDB:            db,
 			Logger:           app.Logger(),
 			ChannelClient:    channel.NewChannelAPIClient(channelCC),
 			AccountClient:    account.NewAccountAPIClient(accountCC),
