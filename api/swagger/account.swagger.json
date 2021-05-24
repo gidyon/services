@@ -2169,7 +2169,8 @@
         "UNBLOCK",
         "BLOCK",
         "CHANGE_GROUP",
-        "ADMIN_ACTIVATE"
+        "ADMIN_ACTIVATE",
+        "PASSWORD_RESET"
       ],
       "default": "UPDATE_OPERATION_INSPECIFIED",
       "title": "UpdateOperation"

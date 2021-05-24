@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -218,6 +219,22 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		title = "Your Account Has Been Activated"
 		data = fmt.Sprintf(
 			"Hello %s. Your account has been activated by the administrator", fullName,
+		)
+
+	case account.UpdateOperation_PASSWORD_RESET:
+		newPass, err := genHash(strings.Join(updateReq.Payload, ""))
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate hash password")
+		}
+		err = tx.Update("password", newPass).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, errs.WrapErrorWithMsg(err, "failed to activate account")
+		}
+		messageType = messaging.MessageType_INFO
+		title = "Your Account Pasword Has Been Updated"
+		data = fmt.Sprintf(
+			"Hello %s. Your account password has been updated by the administrator. <br>New password is: %s", fullName, updateReq.Payload,
 		)
 	}
 
