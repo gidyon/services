@@ -1564,6 +1564,12 @@
         "nationality": {
           "type": "string"
         },
+        "idNumber": {
+          "type": "string"
+        },
+        "residence": {
+          "type": "string"
+        },
         "profileUrl": {
           "type": "string"
         },

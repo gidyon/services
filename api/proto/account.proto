@@ -37,7 +37,9 @@ message Account {
     string birth_date = 7;
     Gender gender = 8;
     string nationality = 9;
-    string profile_url = 11;
+    string id_number = 10;
+    string residence = 11;
+    string profile_url = 12;
     string group = 13;
     string linked_accounts = 14;
     AccountState state = 15;
