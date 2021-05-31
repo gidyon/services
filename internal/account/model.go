@@ -23,6 +23,7 @@ type Account struct {
 	BirthDate        string `gorm:"type:varchar(30);"`
 	Gender           string `gorm:"index;type:enum('GENDER_UNSPECIFIED', 'MALE', 'FEMALE');default:'GENDER_UNSPECIFIED';not null"`
 	IDNumber         string `gorm:"index;type:varchar(15)"`
+	Profession       string `gorm:"type:varchar(100)"`
 	Residence        string `gorm:"type:varchar(100)"`
 	Nationality      string `gorm:"type:varchar(50);default:'Kenyan'"`
 	ProfileURL       string `gorm:"type:varchar(256)"`
@@ -117,6 +118,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		Gender:          account.Account_Gender(account.Account_Gender_value[accountDB.Gender]),
 		Nationality:     accountDB.Nationality,
 		Residence:       accountDB.Residence,
+		Profession:      accountDB.Profession,
 		IdNumber:        accountDB.IDNumber,
 		ProfileUrl:      accountDB.ProfileURL,
 		LinkedAccounts:  accountDB.LinkedAccounts,
@@ -145,6 +147,7 @@ func GetAccountDB(accountPB *account.Account) (*Account, error) {
 		Nationality:    accountPB.Nationality,
 		Residence:      accountPB.Residence,
 		IDNumber:       accountPB.IdNumber,
+		Profession:     accountPB.Profession,
 		ProfileURL:     accountPB.ProfileUrl,
 		LinkedAccounts: accountPB.LinkedAccounts,
 		PrimaryGroup:   accountPB.Group,

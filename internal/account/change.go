@@ -234,7 +234,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		messageType = messaging.MessageType_INFO
 		title = "Your Account Pasword Has Been Updated"
 		data = fmt.Sprintf(
-			"Hello %s. Your account password has been updated by the administrator. <br>New password is: %s", fullName, updateReq.Payload,
+			"Hello %s. Your account password has been updated by the administrator. <br>New password is: %s", fullName, strings.Join(updateReq.Payload, ""),
 		)
 	}
 
