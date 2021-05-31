@@ -23,7 +23,7 @@ type Account struct {
 	BirthDate        string `gorm:"type:varchar(30);"`
 	Gender           string `gorm:"index;type:enum('GENDER_UNSPECIFIED', 'MALE', 'FEMALE');default:'GENDER_UNSPECIFIED';not null"`
 	IDNumber         string `gorm:"index;type:varchar(15)"`
-	Profession       string `gorm:"type:varchar(100)"`
+	Profession       string `gorm:"type:varchar(50)"`
 	Residence        string `gorm:"type:varchar(100)"`
 	Nationality      string `gorm:"type:varchar(50);default:'Kenyan'"`
 	ProfileURL       string `gorm:"type:varchar(256)"`
