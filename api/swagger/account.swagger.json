@@ -1567,6 +1567,9 @@
         "idNumber": {
           "type": "string"
         },
+        "profession": {
+          "type": "string"
+        },
         "residence": {
           "type": "string"
         },

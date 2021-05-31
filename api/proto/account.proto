@@ -38,12 +38,13 @@ message Account {
     Gender gender = 8;
     string nationality = 9;
     string id_number = 10;
-    string residence = 11;
-    string profile_url = 12;
-    string group = 13;
-    string linked_accounts = 14;
-    AccountState state = 15;
-    repeated string secondary_groups = 16;
+    string profession = 11;
+    string residence = 12;
+    string profile_url = 13;
+    string group = 14;
+    string linked_accounts = 15;
+    AccountState state = 16;
+    repeated string secondary_groups = 17;
 }
 
 message PrivateAccount {
