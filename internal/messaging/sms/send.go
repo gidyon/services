@@ -63,7 +63,7 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 			req.Header.Add("AccessKey", firstVal(sendRequest.GetAuth().GetAccessKey(), smsAPI.SmsAuth.GetAccessKey()))
 			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", firstVal(sendRequest.GetAuth().GetAuthToken(), smsAPI.SmsAuth.GetAuthToken())))
 
-			httputils.DumpRequest(req, "ONFON SMS RESPONSE")
+			httputils.DumpRequest(req, "ONFON SMS GATEWAY REQUEST")
 
 			res, err := smsAPI.HTTPClient.Do(req)
 			if err != nil {
@@ -72,7 +72,7 @@ func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.S
 			}
 			defer res.Body.Close()
 
-			httputils.DumpResponse(res, "ONFON SMS RESPONSE")
+			httputils.DumpResponse(res, "ONFON SMS GATEWAY RESPONSE")
 
 			resMap := map[string]interface{}{}
 			err = json.NewDecoder(res.Body).Decode(&resMap)
