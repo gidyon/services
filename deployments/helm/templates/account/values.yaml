@@ -101,6 +101,8 @@ extraEnv:
     value: https://ldaddress/activate
   - name: FIREBASE_CREDENTIALS_FILE
     value: /app/secrets/firebase/creds
+  - name: DB_DEBUG
+    value: enabled
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:

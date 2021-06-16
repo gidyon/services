@@ -14,6 +14,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/protobuf/encoding/protojson"
+	"gorm.io/gorm"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
@@ -182,13 +183,23 @@ func main() {
 			ActivationURL:      os.Getenv("ACTIVATION_URL"),
 			AuthAPI:            authAPI,
 			PaginationHasher:   paginationHasher,
-			SQLDBWrites:        app.GormDBByName("sqlWrites"),
-			SQLDBReads:         app.GormDBByName("sqlReads"),
-			RedisDBWrites:      app.RedisClientByName("redisWrites"),
-			RedisDBReads:       app.RedisClientByName("redisReads"),
-			Logger:             app.Logger(),
-			MessagingClient:    messaging.NewMessagingClient(messagingCC),
-			FirebaseAuth:       firebaseAuth,
+			SQLDBWrites: func() *gorm.DB {
+				if os.Getenv("DB_DEBUG") != "" {
+					return app.GormDBByName("sqlWrites").Debug()
+				}
+				return app.GormDBByName("sqlWrites")
+			}(),
+			SQLDBReads: func() *gorm.DB {
+				if os.Getenv("DB_DEBUG") != "" {
+					return app.GormDBByName("sqlReads").Debug()
+				}
+				return app.GormDBByName("sqlReads")
+			}(),
+			RedisDBWrites:   app.RedisClientByName("redisWrites"),
+			RedisDBReads:    app.RedisClientByName("redisReads"),
+			Logger:          app.Logger(),
+			MessagingClient: messaging.NewMessagingClient(messagingCC),
+			FirebaseAuth:    firebaseAuth,
 		})
 		errs.Panic(err)
 

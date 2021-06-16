@@ -6,39 +6,39 @@ security:
   tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
   serverName: localhost
 databases:
-- required: true
-  type: sqlDatabase
-  address: localhost:3306
-  user: root
-  password: hakty11
-  schema: services
-  metadata:
-    name: sqlWrites
-    dialect: mysql
-    orm: gorm
-- required: true
-  type: sqlDatabase
-  address: localhost:3306
-  user: root
-  password: hakty11
-  schema: services
-  metadata:
-    name: sqlReads
-    dialect: mysql
-    orm: gorm
-- required: true
-  type: redisDatabase
-  address: localhost:6379
-  metadata:
-    name: redisWrites
-- required: true
-  type: redisDatabase
-  address: localhost:6379
-  metadata:
-    name: redisReads
+  - required: true
+    type: sqlDatabase
+    address: localhost:3306
+    user: root
+    password: hakty11
+    schema: services
+    metadata:
+      name: sqlWrites
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: sqlDatabase
+    address: localhost:3306
+    user: root
+    password: hakty11
+    schema: services
+    metadata:
+      name: sqlReads
+      dialect: mysql
+      orm: gorm
+  - required: true
+    type: redisDatabase
+    address: localhost:6379
+    metadata:
+      name: redisWrites
+  - required: true
+    type: redisDatabase
+    address: localhost:6379
+    metadata:
+      name: redisReads
 externalServices:
-- name: messaging
-  required: true
-  address: localhost:9070
-  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
-  serverName: localhost
+  - name: messaging
+    required: true
+    address: localhost:9070
+    tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+    serverName: localhost

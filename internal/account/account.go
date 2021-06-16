@@ -174,9 +174,9 @@ func (accountAPI *accountAPIServer) SignInExternal(
 	// Get user
 	switch {
 	case signInReq.Account.Email != "":
-		err = accountAPI.SQLDBWrites.First(accountDB, "email=?", signInReq.Account.Email).Error
+		err = accountAPI.SQLDBWrites.First(accountDB, "email=? AND project_id = ?", signInReq.Account.Email, signInReq.ProjectId).Error
 	case signInReq.Account.Phone != "":
-		err = accountAPI.SQLDBWrites.First(accountDB, "phone=?", signInReq.Account.Phone).Error
+		err = accountAPI.SQLDBWrites.First(accountDB, "phone=? AND project_id = ?", signInReq.Account.Phone, signInReq.ProjectId).Error
 	}
 	switch {
 	case err == nil:
@@ -198,9 +198,11 @@ func (accountAPI *accountAPIServer) SignInExternal(
 		return nil, errs.FailedToSave("account", err)
 	}
 
+	// Omit fields
+	omitFields := []string{"project_id", "id_number", "linked_accounts", "password", "primary_group", "account_state", "secondary_groups", "security_question", "security-answer", "account_id", "gender", "created_at"}
+
 	// Update account
-	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id= ?", ID).
-		Updates(accountDB).Error
+	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id= ?", ID).Omit(omitFields...).Updates(accountDB).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)
 	}
@@ -877,14 +879,17 @@ func (accountAPI *accountAPIServer) ExistAccount(
 	}
 }
 
-const defaultPageSize = 20
+const defaultPageSize = 100
 
 func (accountAPI *accountAPIServer) ListAccounts(
-	ctx context.Context, listReq *account.ListAccountsRequest,
+	ctx context.Context, req *account.ListAccountsRequest,
 ) (*account.Accounts, error) {
 	// Request must not be nil
-	if listReq == nil {
+	switch {
+	case req == nil:
 		return nil, errs.NilObject("ListRequest")
+	case req.PageSize < 0:
+		return nil, errs.IncorrectVal("page size")
 	}
 
 	// Authenticate the request
@@ -894,17 +899,17 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	}
 
 	// Parse page size and page token
-	pageSize := listReq.GetPageSize()
-	if pageSize <= 0 || pageSize > defaultPageSize {
+	pageSize := req.GetPageSize()
+	if pageSize > defaultPageSize && !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 		pageSize = defaultPageSize
 	}
 
 	var id uint
 
 	// Get last id from page token
-	pageToken := listReq.GetPageToken()
+	pageToken := req.GetPageToken()
 	if pageToken != "" {
-		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(req.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(
 				codes.InvalidArgument, err, "failed to parse page token",
@@ -916,7 +921,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	db := accountAPI.SQLDBWrites.Limit(int(pageSize) + 1).Order("account_id DESC").Clauses(hints.ForceIndex("PRIMARY").ForOrderBy()).Model(&Account{})
 
 	// Apply filter criterias
-	db = generateWhereCondition(db, listReq.GetListCriteria()).Debug()
+	db = generateWhereCondition(db, req.GetListCriteria()).Debug()
 
 	// For admins
 	for _, group := range accountAPI.AuthAPI.AdminGroups() {
@@ -934,6 +939,9 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	// Apply project filter
 	if payload.ProjectID != "" {
 		db = db.Where("project_id=?", payload.ProjectID)
+		if req.ListCriteria != nil {
+			req.ListCriteria.ProjectIds = []string{}
+		}
 	} else {
 		if !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 			return nil, errs.WrapMessage(codes.PermissionDenied, "permission denied to fetch all accounts")
@@ -972,7 +980,7 @@ func (accountAPI *accountAPIServer) ListAccounts(
 			break
 		}
 
-		accountsPB = append(accountsPB, GetAccountPBView(accountPB, listReq.GetView()))
+		accountsPB = append(accountsPB, GetAccountPBView(accountPB, req.GetView()))
 		id = accountDB.AccountID
 	}
 
@@ -994,10 +1002,10 @@ func (accountAPI *accountAPIServer) ListAccounts(
 
 // Searches for accounts
 func (accountAPI *accountAPIServer) SearchAccounts(
-	ctx context.Context, searchReq *account.SearchAccountsRequest,
+	ctx context.Context, req *account.SearchAccountsRequest,
 ) (*account.Accounts, error) {
 	// Request must not be nil
-	if searchReq == nil {
+	if req == nil {
 		return nil, errs.NilObject("SearchRequest")
 	}
 
@@ -1008,24 +1016,24 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	}
 
 	// For empty queries
-	if searchReq.Query == "" {
+	if req.Query == "" {
 		return &account.Accounts{
 			Accounts: []*account.Account{},
 		}, nil
 	}
 
 	// Parse page size and page token
-	pageSize := searchReq.GetPageSize()
-	if pageSize <= 0 || pageSize > defaultPageSize {
+	pageSize := req.GetPageSize()
+	if pageSize > defaultPageSize && !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 		pageSize = defaultPageSize
 	}
 
 	var ID uint
 
 	// Get last id from page token
-	pageToken := searchReq.GetPageToken()
+	pageToken := req.GetPageToken()
 	if pageToken != "" {
-		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(searchReq.GetPageToken())
+		ids, err := accountAPI.PaginationHasher.DecodeInt64WithError(req.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
@@ -1037,7 +1045,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	db := accountAPI.SQLDBReads.Limit(int(pageSize)).Order("account_id DESC").Model(&Account{})
 
 	// Apply filter criterias
-	db = generateWhereCondition(db, searchReq.GetSearchCriteria())
+	db = generateWhereCondition(db, req.GetSearchCriteria())
 
 	// For admins
 	for _, group := range accountAPI.AuthAPI.AdminGroups() {
@@ -1050,6 +1058,9 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Apply project project
 	if payload.ProjectID != "" {
 		db = db.Where("project_id=?", payload.ProjectID)
+		if req.SearchCriteria != nil {
+			req.SearchCriteria.ProjectIds = []string{}
+		}
 	} else {
 		if !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 			return nil, errs.WrapMessage(codes.PermissionDenied, "permission denied to search all accounts")
@@ -1066,7 +1077,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 		}
 	}
 
-	parsedQuery := dbutil.ParseQuery(searchReq.Query)
+	parsedQuery := dbutil.ParseQuery(req.Query)
 
 	// "names", "email", "phone", "linked_accounts"
 	err = db.Find(&accountsDB, "MATCH(names, email, phone, linked_accounts) AGAINST(? IN BOOLEAN MODE)", parsedQuery).
@@ -1090,7 +1101,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 			break
 		}
 
-		accountsPB = append(accountsPB, GetAccountPBView(accountPB, searchReq.GetView()))
+		accountsPB = append(accountsPB, GetAccountPBView(accountPB, req.GetView()))
 		ID = accountDB.AccountID
 	}
 
@@ -1158,6 +1169,11 @@ func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
 	// Filter by primary_groups
 	if criteria.FilterAccountGroups {
 		db = db.Where("primary_group IN (?)", criteria.GetGroups())
+	}
+
+	// Filter by project id
+	if criteria.FilterAccountGroups {
+		db = db.Where("project_id IN (?)", criteria.GetProjectIds())
 	}
 
 	return db

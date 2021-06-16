@@ -454,6 +454,7 @@ message Criteria {
     int64 created_until = 9;
     bool filter_account_groups = 10;
     repeated string groups = 11;
+	repeated string project_ids = 12;
 }
 
 message ListAccountsRequest {

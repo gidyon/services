@@ -130,6 +130,16 @@
             "collectionFormat": "multi"
           },
           {
+            "name": "listCriteria.projectIds",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "name": "view",
             "in": "query",
             "required": false,
@@ -627,6 +637,16 @@
           },
           {
             "name": "searchCriteria.groups",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "searchCriteria.projectIds",
             "in": "query",
             "required": false,
             "type": "array",
@@ -1816,6 +1836,12 @@
           "type": "boolean"
         },
         "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "projectIds": {
           "type": "array",
           "items": {
             "type": "string"
