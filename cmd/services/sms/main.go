@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -97,18 +99,22 @@ func main() {
 
 	// Start service
 	app.Start(ctx, func() error {
+		// HTTP Client
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				ForceAttemptHTTP2: true,
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true,
+				},
+			},
+			Timeout: 15 * time.Second,
+		}
+
 		// Create sms API instance
 		smsAPI, err := sms_app.NewSMSAPIServer(ctx, &sms_app.Options{
-			Logger:  app.Logger(),
-			AuthAPI: authAPI,
-			SmsAuth: sms.SendSMSRequest_SMSAuth{
-				ApiUrl:    os.Getenv("SMS_API_URL"),
-				SenderId:  os.Getenv("SENDER_ID"),
-				ApiKey:    os.Getenv("SMS_API_KEY"),
-				ClientId:  os.Getenv("SMS_API_USERNAME"),
-				AuthToken: os.Getenv("SMS_AUTH_TOKEN"),
-				AccessKey: os.Getenv("SMS_ACCESS_TOKEN"),
-			},
+			Logger:     app.Logger(),
+			AuthAPI:    authAPI,
+			HTTPClient: httpClient,
 		})
 		errs.Panic(err)
 
