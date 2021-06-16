@@ -21,7 +21,6 @@ type Options struct {
 	Logger     grpclog.LoggerV2
 	AuthAPI    auth.API
 	HTTPClient *http.Client
-	SmsAuth    sms.SendSMSRequest_SMSAuth
 }
 
 // NewSMSAPIServer creates a new sms API server
