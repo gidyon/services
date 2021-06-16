@@ -54,15 +54,26 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 func (api *smsAPIServer) SendSMS(
 	ctx context.Context, sendReq *sms.SendSMSRequest,
 ) (*empty.Empty, error) {
-	// Request must not be nil
-	if sendReq == nil {
-		return nil, errs.NilObject("SMS")
-	}
-
-	// Validate sms
-	err := validateSMS(sendReq.Sms)
-	if err != nil {
-		return nil, err
+	// Validation
+	switch {
+	case sendReq == nil:
+		return nil, errs.NilObject("send sms request")
+	case sendReq.Auth == nil:
+		return nil, errs.NilObject("sender auth data")
+	case sendReq.Auth.ApiKey == "":
+		return nil, errs.MissingField("sender api key")
+	case sendReq.Auth.ClientId == "":
+		return nil, errs.MissingField("sender client id")
+	case sendReq.Auth.AccessKey == "":
+		return nil, errs.MissingField("sender access key")
+	case sendReq.Auth.SenderId == "":
+		return nil, errs.MissingField("sender id")
+	default:
+		// Validate sms
+		err := validateSMS(sendReq.Sms)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Send sms
