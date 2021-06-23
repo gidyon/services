@@ -423,6 +423,8 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 		return nil, errs.NilObject("request change private request")
 	case req.Payload == "":
 		return nil, errs.MissingField("payload")
+	case req.Project == "":
+		return nil, errs.MissingField("project")
 	case req.FallbackUrl == "":
 		return nil, errs.MissingField("fallback url")
 	case req.SendMethod == messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
@@ -432,7 +434,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 	// GetAccount the user from database
 	accountDB := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "email=? OR phone=?", req.Payload, req.Payload).Error
+		First(accountDB, "(email=? OR phone=?) AND project_id = ?", req.Payload, req.Payload, req.Project).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -519,30 +521,30 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 }
 
 func (accountAPI *accountAPIServer) UpdatePrivateAccount(
-	ctx context.Context, updatePrivateReq *account.UpdatePrivateAccountRequest,
+	ctx context.Context, req *account.UpdatePrivateAccountRequest,
 ) (*empty.Empty, error) {
 	var err error
 
 	// Validation
 	var ID int
 	switch {
-	case updatePrivateReq == nil:
+	case req == nil:
 		return nil, errs.NilObject("UpdatePrivateRequest")
-	case updatePrivateReq.AccountId == "":
+	case req.AccountId == "":
 		return nil, errs.MissingField("account id")
-	case updatePrivateReq.PrivateAccount == nil:
+	case req.PrivateAccount == nil:
 		return nil, errs.NilObject("private account")
-	case updatePrivateReq.ChangeToken == "":
+	case req.ChangeToken == "":
 		return nil, errs.MissingField("change token")
 	default:
-		ID, err = strconv.Atoi(updatePrivateReq.AccountId)
+		ID, err = strconv.Atoi(req.AccountId)
 		if err != nil {
 			return nil, errs.IncorrectVal("account id")
 		}
 	}
 
 	// Authorization
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, updatePrivateReq.AccountId, accountAPI.AuthAPI.AdminGroups()...)
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, req.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +555,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.DoesNotExist("account", updatePrivateReq.AccountId)
+		return nil, errs.DoesNotExist("account", req.AccountId)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
@@ -564,7 +566,7 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 	}
 
 	// Lets get the update token
-	token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(updatePrivateReq.AccountId)).Result()
+	token, err := accountAPI.RedisDBWrites.Get(ctx, updateToken(req.AccountId)).Result()
 	switch {
 	case err == nil:
 	case err == redis.Nil:
@@ -573,18 +575,18 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 		return nil, errs.RedisCmdFailed(err, "get token")
 	}
 
-	if token != updatePrivateReq.ChangeToken {
+	if token != req.ChangeToken {
 		return nil, errs.WrapMessage(codes.InvalidArgument, "token is incorrect")
 	}
 
 	// Hash the password if not empty
-	if updatePrivateReq.PrivateAccount.Password != "" {
+	if req.PrivateAccount.Password != "" {
 		// Passwords must be similar
-		if updatePrivateReq.PrivateAccount.ConfirmPassword != updatePrivateReq.PrivateAccount.Password {
+		if req.PrivateAccount.ConfirmPassword != req.PrivateAccount.Password {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "passwords do not match")
 		}
 
-		updatePrivateReq.PrivateAccount.Password, err = genHash(updatePrivateReq.PrivateAccount.Password)
+		req.PrivateAccount.Password, err = genHash(req.PrivateAccount.Password)
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate password hash")
 		}
@@ -592,9 +594,9 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 
 	// Create database model of the new account
 	privateDB := &Account{
-		SecurityQuestion: updatePrivateReq.PrivateAccount.SecurityQuestion,
-		SecurityAnswer:   updatePrivateReq.PrivateAccount.SecurityAnswer,
-		Password:         updatePrivateReq.PrivateAccount.Password,
+		SecurityQuestion: req.PrivateAccount.SecurityQuestion,
+		SecurityAnswer:   req.PrivateAccount.SecurityAnswer,
+		Password:         req.PrivateAccount.Password,
 	}
 
 	// Update the model
@@ -607,43 +609,46 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccount(
 }
 
 func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
-	ctx context.Context, updatePrivateReq *account.UpdatePrivateAccountExternalRequest,
+	ctx context.Context, req *account.UpdatePrivateAccountExternalRequest,
 ) (*empty.Empty, error) {
 	var err error
 
 	// Validation
 	switch {
-	case updatePrivateReq == nil:
+	case req == nil:
 		return nil, errs.NilObject("UpdatePrivateRequest")
-	case updatePrivateReq.Jwt == "":
+	case req.Jwt == "":
 		return nil, errs.MissingField("jwt")
-	case updatePrivateReq.Username == "":
+	case req.Username == "":
 		return nil, errs.MissingField("username")
-	case updatePrivateReq.PrivateAccount == nil:
+	case req.ProjectId == "":
+		return nil, errs.MissingField("project_id")
+	case req.PrivateAccount == nil:
 		return nil, errs.NilObject("private account")
-	case updatePrivateReq.ChangeToken == "":
+	case req.ChangeToken == "":
 		return nil, errs.MissingField("change token")
 	default:
 	}
 
 	// Validate jwt token from request
-	payload, err := accountAPI.AuthAPI.GetPayloadFromJwt(updatePrivateReq.Jwt)
+	payload, err := accountAPI.AuthAPI.GetPayloadFromJwt(req.Jwt)
 	if err != nil {
 		return nil, err
 	}
 
 	// The username should match payload data
-	if payload.EmailAddress != updatePrivateReq.Username && payload.PhoneNumber != updatePrivateReq.Username {
+	if payload.EmailAddress != req.Username && payload.PhoneNumber != req.Username {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "you are not allowed to perform this operation")
 	}
 
 	// GetAccount the account details from database
 	accountDB := &Account{}
-	err = accountAPI.SQLDBWrites.Select("account_id,account_state").First(accountDB, "email=? OR phone=?", updatePrivateReq.Username, updatePrivateReq.Username).Error
+	err = accountAPI.SQLDBWrites.Select("account_id,account_state").
+		First(accountDB, "(email=? OR phone=?) AND project_id = ?", req.Username, req.Username, req.ProjectId).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.DoesNotExist("account", updatePrivateReq.Username)
+		return nil, errs.DoesNotExist("account", req.Username)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
@@ -663,18 +668,18 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
 		return nil, errs.RedisCmdFailed(err, "get token")
 	}
 
-	if token != updatePrivateReq.ChangeToken {
+	if token != req.ChangeToken {
 		return nil, errs.WrapMessage(codes.InvalidArgument, "reset token is incorrect")
 	}
 
 	// Hash the password if not empty
-	if updatePrivateReq.PrivateAccount.Password != "" {
+	if req.PrivateAccount.Password != "" {
 		// Passwords must be similar
-		if updatePrivateReq.PrivateAccount.ConfirmPassword != updatePrivateReq.PrivateAccount.Password {
+		if req.PrivateAccount.ConfirmPassword != req.PrivateAccount.Password {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "passwords do not match")
 		}
 
-		updatePrivateReq.PrivateAccount.Password, err = genHash(updatePrivateReq.PrivateAccount.Password)
+		req.PrivateAccount.Password, err = genHash(req.PrivateAccount.Password)
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate password hash")
 		}
@@ -682,9 +687,9 @@ func (accountAPI *accountAPIServer) UpdatePrivateAccountExternal(
 
 	// Create database model of the new account
 	privateDB := &Account{
-		SecurityQuestion: updatePrivateReq.PrivateAccount.SecurityQuestion,
-		SecurityAnswer:   updatePrivateReq.PrivateAccount.SecurityAnswer,
-		Password:         updatePrivateReq.PrivateAccount.Password,
+		SecurityQuestion: req.PrivateAccount.SecurityQuestion,
+		SecurityAnswer:   req.PrivateAccount.SecurityAnswer,
+		Password:         req.PrivateAccount.Password,
 	}
 
 	// Update the model
