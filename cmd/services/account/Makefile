@@ -20,7 +20,7 @@ else
 	ifdef tag
 		image=$(imagex):$(tag)
 	else
-		image=$(imagex):v2
+		image=$(imagex):latest
 	endif
 endif
 
