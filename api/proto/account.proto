@@ -530,24 +530,36 @@ service AccountAPI {
 	// Request to sign in using OTP
 	rpc RequestSignInOTP (RequestSignInOTPRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-			post: "/api/accounts:requestSignInOTP"
+            post: "/api/accounts/action/request-otp"
 			body: "*"
+			additional_bindings {
+				post: "/api/accounts:requestSignInOTP"
+				body: "*"
+			}
         };
 	};
 
 	// Sign in using provided OTPs
 	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
 		option (google.api.http) = {
-			post: "/api/accounts:signInOTP"
+            post: "/api/accounts/action/sign-in-otp"
 			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInOTP"
+				body: "*"
+			}
         };
 	};
 
     // Signs in a user into their account
     rpc SignIn (SignInRequest) returns (SignInResponse) {
         option (google.api.http) = {
-			post: "/api/accounts:signIn"
+            post: "/api/accounts/action/login"
 			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signIn"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "username,group,password";
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -558,8 +570,12 @@ service AccountAPI {
      // Signs in a user using third parties like Google, Facebook, Twitter etc
      rpc SignInExternal (SignInExternalRequest) returns (SignInResponse) {
         option (google.api.http) = {
-			post: "/api/accounts:signInExternal"
-			body: "*"
+            post: "/api/accounts/action/login-external"
+            body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInExternal"
+				body: "*"
+			}
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
 			security: {}
@@ -569,8 +585,11 @@ service AccountAPI {
     // Fetch new JWT using refresh token and updates session
     rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
         option (google.api.http) = {
-			post: "/api/accounts:refreshSession"
-			body: "*"
+			get: "/api/accounts/action/refresh-session"
+			additional_bindings {
+				post: "/api/accounts:refreshSession"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -587,8 +606,11 @@ service AccountAPI {
     // Activates an account to being active
     rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
         option (google.api.http) = {
-			post: "/api/accounts:activateAccount"
-			body: "*"
+			get: "/api/accounts/{account_id}/action/activate-account"
+			additional_bindings {
+				post: "/api/accounts:activateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -621,8 +643,11 @@ service AccountAPI {
     // Request to change private account information
     rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
         option (google.api.http) = {
-			post: "/api/accounts:requestChangePrivateAccount"
-			body: "*"
+			get: "/api/accounts/action/request-change-private-account"
+			additional_bindings {
+				post: "/api/accounts:requestChangePrivateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "payload,fallback_url";
 		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -634,8 +659,12 @@ service AccountAPI {
     // Updates a user private account information
     rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-			post: "/api/accounts:updatePrivateAccount"
+            patch: "/api/accounts/{account_id}/action/update-private-account"
 			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccount"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "account_id,private_account";
     };
@@ -643,8 +672,12 @@ service AccountAPI {
     // Updates a user private account information while not logged in to the account
     rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-			post: "/api/accounts:updatePrivateAccountExternal"
+            patch: "/api/accounts/action/update-private-account"
 			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccountExternal"
+				body: "*"
+			}
         };
         option (google.api.method_signature) = "jwt,private_account";
     };

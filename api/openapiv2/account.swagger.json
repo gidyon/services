@@ -195,6 +195,269 @@
         ]
       }
     },
+    "/api/accounts/action/login": {
+      "post": {
+        "summary": "Signs in a user into their account",
+        "operationId": "AccountAPI_SignIn",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/action/login-external": {
+      "post": {
+        "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
+        "operationId": "AccountAPI_SignInExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ],
+        "security": []
+      }
+    },
+    "/api/accounts/action/refresh-session": {
+      "get": {
+        "summary": "Fetch new JWT using refresh token and updates session",
+        "operationId": "AccountAPI_RefreshSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "refreshToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "accountId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "accountGroup",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/request-change-private-account": {
+      "get": {
+        "summary": "Request token to update password",
+        "description": "Will send a reset link to the email address provided or OTP if phone number was used. The jwt returned is to be pass inside request body updating private account information (passwords or security data). Default bearer token should be passed as authorization",
+        "operationId": "AccountAPI_RequestChangePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisRequestChangePrivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "payload",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "fallbackUrl",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "project",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sendMethod",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SEND_METHOD_UNSPECIFIED",
+              "EMAIL",
+              "SMSV2",
+              "CALL",
+              "PUSH"
+            ],
+            "default": "SEND_METHOD_UNSPECIFIED"
+          },
+          {
+            "name": "sender.emailSender",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sender.displayName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sender.appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.apiUrl",
+            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.senderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.apiKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.clientId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.authToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.accessKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "smsAuth.appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/request-otp": {
+      "post": {
+        "summary": "Request to sign in using OTP",
+        "operationId": "AccountAPI_RequestSignInOTP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisRequestSignInOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts/action/search": {
       "get": {
         "summary": "Searches accounts and linked accounts",
@@ -340,6 +603,72 @@
         ]
       }
     },
+    "/api/accounts/action/sign-in-otp": {
+      "post": {
+        "summary": "Sign in using provided OTPs",
+        "operationId": "AccountAPI_SignInOTP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSignInResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSignInOTPRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/action/update-private-account": {
+      "patch": {
+        "summary": "Updates a user private account information while not logged in to the account",
+        "operationId": "AccountAPI_UpdatePrivateAccountExternal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountExternalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts/{account.accountId}": {
       "patch": {
         "summary": "Updates a user account",
@@ -458,10 +787,92 @@
         ]
       }
     },
+    "/api/accounts/{accountId}/action/activate-account": {
+      "get": {
+        "summary": "Activates an account to being active",
+        "operationId": "AccountAPI_ActivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisActivateAccountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "otp",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
+    "/api/accounts/{accountId}/action/update-private-account": {
+      "patch": {
+        "summary": "Updates a user private account information",
+        "operationId": "AccountAPI_UpdatePrivateAccount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdatePrivateAccountRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts:activateAccount": {
       "post": {
         "summary": "Activates an account to being active",
-        "operationId": "AccountAPI_ActivateAccount",
+        "operationId": "AccountAPI_ActivateAccount2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -692,7 +1103,7 @@
     "/api/accounts:refreshSession": {
       "post": {
         "summary": "Fetch new JWT using refresh token and updates session",
-        "operationId": "AccountAPI_RefreshSession",
+        "operationId": "AccountAPI_RefreshSession2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -759,7 +1170,7 @@
       "post": {
         "summary": "Request token to update password",
         "description": "Will send a reset link to the email address provided or OTP if phone number was used. The jwt returned is to be pass inside request body updating private account information (passwords or security data). Default bearer token should be passed as authorization",
-        "operationId": "AccountAPI_RequestChangePrivateAccount",
+        "operationId": "AccountAPI_RequestChangePrivateAccount2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -792,7 +1203,7 @@
     "/api/accounts:requestSignInOTP": {
       "post": {
         "summary": "Request to sign in using OTP",
-        "operationId": "AccountAPI_RequestSignInOTP",
+        "operationId": "AccountAPI_RequestSignInOTP2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -858,7 +1269,7 @@
     "/api/accounts:signIn": {
       "post": {
         "summary": "Signs in a user into their account",
-        "operationId": "AccountAPI_SignIn",
+        "operationId": "AccountAPI_SignIn2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -892,7 +1303,7 @@
     "/api/accounts:signInExternal": {
       "post": {
         "summary": "Signs in a user using third parties like Google, Facebook, Twitter etc",
-        "operationId": "AccountAPI_SignInExternal",
+        "operationId": "AccountAPI_SignInExternal2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -926,7 +1337,7 @@
     "/api/accounts:signInOTP": {
       "post": {
         "summary": "Sign in using provided OTPs",
-        "operationId": "AccountAPI_SignInOTP",
+        "operationId": "AccountAPI_SignInOTP2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -959,7 +1370,7 @@
     "/api/accounts:updatePrivateAccount": {
       "post": {
         "summary": "Updates a user private account information",
-        "operationId": "AccountAPI_UpdatePrivateAccount",
+        "operationId": "AccountAPI_UpdatePrivateAccount2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -992,7 +1403,7 @@
     "/api/accounts:updatePrivateAccountExternal": {
       "post": {
         "summary": "Updates a user private account information while not logged in to the account",
-        "operationId": "AccountAPI_UpdatePrivateAccountExternal",
+        "operationId": "AccountAPI_UpdatePrivateAccountExternal2",
         "responses": {
           "200": {
             "description": "A successful response.",
