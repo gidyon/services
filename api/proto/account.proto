@@ -5,7 +5,7 @@ package gidyon.apis;
 option go_package="github.com/gidyon/services/pkg/api/account";
 
 import "google/protobuf/empty.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
@@ -14,7 +14,7 @@ import "emailing.proto";
 import "sms.proto";
  
 message Account {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Account"
 			description: "Account profile information"
@@ -48,7 +48,7 @@ message Account {
 }
 
 message PrivateAccount {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "PrivateAccount"
 			description: "Contains account sensitive information such as password and security QA"
@@ -71,7 +71,7 @@ enum AccountState {
 }
 
 message SignInRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SignInRequest"
 			description: "Request to sign in to an account"
@@ -85,10 +85,10 @@ message SignInRequest {
     string project_id = 4;
 }
 
-message RequestOTPRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+message RequestSignInOTPRequest {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
-			title: "RequestOTPRequest"
+			title: "RequestSignInOTPRequest"
 			description: "Request request to sign in"
 		}
     };
@@ -99,7 +99,7 @@ message RequestOTPRequest {
 }
 
 message SignInOTPRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SignInOTPRequest"
 			description: "Request to sign in using OTP"
@@ -112,7 +112,7 @@ message SignInOTPRequest {
 }
 
 message SignInExternalRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SignInExternalRequest"
 			description: "Request to sign in using an external provider like Google, Facebook or Github"
@@ -126,7 +126,7 @@ message SignInExternalRequest {
 }
 
 message RefreshSessionRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "RefreshSessionRequest"
 			description: "Request to refresh session credential"
@@ -140,7 +140,7 @@ message RefreshSessionRequest {
 }
 
 message SignInResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
             title: "SignInResponse"
 			description: "Response after signing in"
@@ -157,7 +157,7 @@ message SignInResponse {
 }
 
 message CreateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateAccountRequest"
 			description: "Request to create an account"
@@ -180,7 +180,7 @@ message CreateAccountRequest {
 }
 
 message CreateAccountResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
             title: "CreateAccountResponse"
 			description: "Response after creating an account"
@@ -191,7 +191,7 @@ message CreateAccountResponse {
 }
 
 message ActivateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ActivateAccountRequest"
 			description: "Request to activate an account that was inactive"
@@ -200,11 +200,12 @@ message ActivateAccountRequest {
     };
     
     string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-    string token = 2 [(google.api.field_behavior) = REQUIRED];
+    string token = 2 [(google.api.field_behavior) = OPTIONAL];
+	string otp = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ActivateAccountResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
             title: "ActivateAccountResponse"
 			description: "Response after activating an account"
@@ -213,7 +214,7 @@ message ActivateAccountResponse {
 }
 
 message UpdateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateAccountRequest"
 			description: "Request to update an account"
@@ -225,17 +226,17 @@ message UpdateAccountRequest {
 }
 
 message RequestChangePrivateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "RequestChangePrivateAccountRequest"
 			description: "Request to change private account information"
-			required: ["payload", "fallback_url", "send_method"]
+			required: ["payload", "fallback_url", "project", "send_method"]
 		}
     };
     
     string payload = 1 [(google.api.field_behavior) = REQUIRED];
     string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
-	string project = 3;
+	string project = 3 [(google.api.field_behavior) = REQUIRED];
     gidyon.apis.SendMethod send_method = 4 [(google.api.field_behavior) = REQUIRED];
 	oneof notification_channel {
 		gidyon.apis.EmailSender sender = 5;
@@ -244,7 +245,7 @@ message RequestChangePrivateAccountRequest {
 }
 
 message RequestChangePrivateAccountResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
             title: "RequestChangePrivateAccountResponse"
 			description: "Response after requesting for the change"
@@ -256,7 +257,7 @@ message RequestChangePrivateAccountResponse {
 }
 
 message UpdatePrivateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdatePrivateAccountRequest"
 			description: "Request to update account private information"
@@ -270,7 +271,7 @@ message UpdatePrivateAccountRequest {
 }
 
 message UpdatePrivateAccountExternalRequest {
-  option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdatePrivateAccountExternalRequest"
 			description: "Request to update account private information from external source"
@@ -280,12 +281,13 @@ message UpdatePrivateAccountExternalRequest {
     
 	string jwt = 1 [(google.api.field_behavior) = REQUIRED];
 	string username = 2 [(google.api.field_behavior) = REQUIRED];
-    PrivateAccount private_account = 3 [(google.api.field_behavior) = REQUIRED];
-    string change_token = 4 [(google.api.field_behavior) = REQUIRED];
+	string project_id = 3 [(google.api.field_behavior) = REQUIRED];
+    PrivateAccount private_account = 4 [(google.api.field_behavior) = REQUIRED];
+    string change_token = 5 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DeleteAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "DeleteAccountRequest"
 			description: "Request to delete an account"
@@ -305,7 +307,7 @@ enum AccountView {
 }
 
 message GetAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetAccountRequest"
 			description: "Request to retrieve an account"
@@ -319,7 +321,7 @@ message GetAccountRequest {
 }
 
 message BatchGetAccountsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "BatchGetAccountsRequest"
 			description: "Request to get multiple accounts"
@@ -331,7 +333,7 @@ message BatchGetAccountsRequest {
 }
 
 message BatchGetAccountsResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "BatchGetAccountsResponse"
 		}
@@ -341,7 +343,7 @@ message BatchGetAccountsResponse {
 }
 
 message GetLinkedAccountsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetLinkedAccountsRequest"
 			description: "Request to retrive linked accounts for an account"
@@ -353,7 +355,7 @@ message GetLinkedAccountsRequest {
 }
 
 message GetLinkedAccountsResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
             title: "GetLinkedAccountsResponse"
             description: "Response containing linked accounts"
@@ -364,7 +366,7 @@ message GetLinkedAccountsResponse {
 }
 
 message ExistAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ExistAccountRequest"
 			description: "Request to check if an account exists"
@@ -377,7 +379,7 @@ message ExistAccountRequest {
 }
 
 message ExistAccountResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ExistAccountResponse"
 		}
@@ -389,7 +391,7 @@ message ExistAccountResponse {
 }
 
 message Accounts {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Accounts"
 			description: "Collection of accounts"
@@ -414,7 +416,7 @@ enum UpdateOperation {
 }
 
 message AdminUpdateAccountRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "AdminUpdateAccountRequest"
 			description: "Request to update an account data by admininstrator"
@@ -436,7 +438,7 @@ message AdminUpdateAccountRequest {
 }
 
 message Criteria {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Criteria"
 			description: "Filtering criteria for fetching collection of accounts"
@@ -458,7 +460,7 @@ message Criteria {
 }
 
 message ListAccountsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListAccountsRequest"
 			description: "Request to retrieve collection of accounts"
@@ -473,7 +475,7 @@ message ListAccountsRequest {
 }
 
 message SearchAccountsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SearchAccountsRequest"
 			description: "Request to search for accounts"
@@ -488,9 +490,36 @@ message SearchAccountsRequest {
     AccountView view = 6;
 }
 
+
+message RequestActivateAccountOTPRequest {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		json_schema: {
+			title: "RequestActivateAccountOTPRequest"
+			description: "Request to send OTP for activating an account"
+		}
+    };
+
+	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+	string jwt = 2 [(google.api.field_behavior) = REQUIRED];
+	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ActivateAccountOTPRequest {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		json_schema: {
+			title: "ActivateAccountOTPRequest"
+			description: "Request to activate an account"
+		}
+    };
+
+	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+	string jwt = 2 [(google.api.field_behavior) = REQUIRED];
+	string otp = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
 // Manages account activities
 service AccountAPI {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_tag) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
 		description: "Account API description -- Managing user accounts!"
 		external_docs: {
 			url: "https://github.com/gidyon/services/blob/master";
@@ -499,41 +528,29 @@ service AccountAPI {
     };
 
 	// Request to sign in using OTP
-	rpc RequestOTP (RequestOTPRequest) returns (google.protobuf.Empty) {
+	rpc RequestSignInOTP (RequestSignInOTPRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
-            post: "/api/accounts/action/request-otp"
+			post: "/api/accounts:requestSignInOTP"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:requestOTP"
-				body: "*"
-			}
         };
 	};
 
 	// Sign in using provided OTPs
 	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
 		option (google.api.http) = {
-            post: "/api/accounts/action/sign-in-otp"
+			post: "/api/accounts:signInOTP"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:signInOTP"
-				body: "*"
-			}
         };
 	};
 
     // Signs in a user into their account
     rpc SignIn (SignInRequest) returns (SignInResponse) {
         option (google.api.http) = {
-            post: "/api/accounts/action/login"
+			post: "/api/accounts:signIn"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:signIn"
-				body: "*"
-			}
         };
         option (google.api.method_signature) = "username,group,password";
-        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
 			security: {}
 		};
     };
@@ -541,14 +558,10 @@ service AccountAPI {
      // Signs in a user using third parties like Google, Facebook, Twitter etc
      rpc SignInExternal (SignInExternalRequest) returns (SignInResponse) {
         option (google.api.http) = {
-            post: "/api/accounts/action/login-external"
-            body: "*"
-			additional_bindings {
-				post: "/api/accounts:signInExternal"
-				body: "*"
-			}
+			post: "/api/accounts:signInExternal"
+			body: "*"
         };
-        option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
 			security: {}
 		};
     };
@@ -556,11 +569,8 @@ service AccountAPI {
     // Fetch new JWT using refresh token and updates session
     rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/action/refresh-session"
-			additional_bindings {
-				post: "/api/accounts:refreshSession"
-				body: "*"
-			}
+			post: "/api/accounts:refreshSession"
+			body: "*"
         };
         option (google.api.method_signature) = "account_id,token";
     };
@@ -577,14 +587,27 @@ service AccountAPI {
     // Activates an account to being active
     rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/{account_id}/action/activate-account"
-			additional_bindings {
-				post: "/api/accounts:activateAccount"
-				body: "*"
-			}
+			post: "/api/accounts:activateAccount"
+			body: "*"
         };
         option (google.api.method_signature) = "account_id,token";
     };
+
+	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	rpc RequestActivateAccountOTP (RequestActivateAccountOTPRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+			post: "/api/accounts:requestActivateAccountOTP"
+			body: "*"
+        };
+	};
+
+	// Activates the account by passing along the OTP code sent and token
+	rpc ActivateAccountOTP (ActivateAccountOTPRequest) returns (ActivateAccountResponse) {
+		option (google.api.http) = {
+			post: "/api/accounts:activateAccountOTP"
+			body: "*"
+        };
+	};
 
     // Updates a user account
     rpc UpdateAccount (UpdateAccountRequest) returns (google.protobuf.Empty) {
@@ -598,24 +621,21 @@ service AccountAPI {
     // Request to change private account information
     rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/action/request-change-private-account"
-			additional_bindings {
-				post: "/api/accounts:requestChangePrivateAccount"
-				body: "*"
-			}
+			post: "/api/accounts:requestChangePrivateAccount"
+			body: "*"
         };
         option (google.api.method_signature) = "payload,fallback_url";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Request token to update password";
+			description: "Will send a reset link to the email address provided or OTP if phone number was used. The jwt returned is to be pass inside request body updating private account information (passwords or security data). Default bearer token should be passed as authorization";
+		};
     };
 
     // Updates a user private account information
     rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            patch: "/api/accounts/{account_id}/action/update-private-account"
+			post: "/api/accounts:updatePrivateAccount"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:updatePrivateAccount"
-				body: "*"
-			}
         };
         option (google.api.method_signature) = "account_id,private_account";
     };
@@ -623,12 +643,8 @@ service AccountAPI {
     // Updates a user private account information while not logged in to the account
     rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            patch: "/api/accounts/action/update-private-account"
+			post: "/api/accounts:updatePrivateAccountExternal"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:updatePrivateAccountExternal"
-				body: "*"
-			}
         };
         option (google.api.method_signature) = "jwt,private_account";
     };
@@ -652,11 +668,8 @@ service AccountAPI {
     //  Retrieves multiple user accounts
     rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/action/batch-get"
-			additional_bindings {
-				post: "/api/accounts:batchGetAccounts"
-				body: "*"
-			}
+			post: "/api/accounts:batchGetAccounts"
+			body: "*"
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -664,11 +677,8 @@ service AccountAPI {
     //  Retrieves deeply linked accounts
     rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/{account_id}/action/get-linked-accounts"
-			additional_bindings {
-				post: "/api/accounts:getLinkedAccounts"
-				body: "*"
-			}
+			post: "/api/accounts:getLinkedAccounts"
+			body: "*"
         };
         option (google.api.method_signature) = "account_id";
     };
@@ -676,11 +686,8 @@ service AccountAPI {
     // Checks if an account exists
     rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
         option (google.api.http) = {
-			get: "/api/accounts/action/exists"
-			additional_bindings {
-				post: "/api/accounts:existAccount"
-				body: "*"
-			}
+			post: "/api/accounts:existAccount"
+			body: "*"
         };
         option (google.api.method_signature) = "email,phone,huduma_id";
     };
@@ -688,12 +695,8 @@ service AccountAPI {
     // Updates account
     rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            patch: "/api/accounts/{account_id}/action/admin-update-account"
+			post: "/api/accounts:adminUpdateAccount"
 			body: "*"
-			additional_bindings {
-				post: "/api/accounts:adminUpdateAccount"
-				body: "*"
-			}
         };
         option (google.api.method_signature) = "admin_id,account_id";
     };
@@ -723,7 +726,7 @@ service AccountAPI {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Accounts Service";
         description: "API for managing user account"

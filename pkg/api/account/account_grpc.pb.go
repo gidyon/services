@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountAPIClient interface {
 	// Request to sign in using OTP
-	RequestOTP(ctx context.Context, in *RequestOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	RequestSignInOTP(ctx context.Context, in *RequestSignInOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Sign in using provided OTPs
 	SignInOTP(ctx context.Context, in *SignInOTPRequest, opts ...grpc.CallOption) (*SignInResponse, error)
 	// Signs in a user into their account
@@ -32,6 +32,10 @@ type AccountAPIClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*CreateAccountResponse, error)
 	// Activates an account to being active
 	ActivateAccount(ctx context.Context, in *ActivateAccountRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error)
+	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	RequestActivateAccountOTP(ctx context.Context, in *RequestActivateAccountOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Activates the account by passing along the OTP code sent and token
+	ActivateAccountOTP(ctx context.Context, in *ActivateAccountOTPRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error)
 	// Updates a user account
 	UpdateAccount(ctx context.Context, in *UpdateAccountRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Request to change private account information
@@ -66,9 +70,9 @@ func NewAccountAPIClient(cc grpc.ClientConnInterface) AccountAPIClient {
 	return &accountAPIClient{cc}
 }
 
-func (c *accountAPIClient) RequestOTP(ctx context.Context, in *RequestOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+func (c *accountAPIClient) RequestSignInOTP(ctx context.Context, in *RequestSignInOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
 	out := new(empty.Empty)
-	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/RequestOTP", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/RequestSignInOTP", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +127,24 @@ func (c *accountAPIClient) CreateAccount(ctx context.Context, in *CreateAccountR
 func (c *accountAPIClient) ActivateAccount(ctx context.Context, in *ActivateAccountRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error) {
 	out := new(ActivateAccountResponse)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/ActivateAccount", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountAPIClient) RequestActivateAccountOTP(ctx context.Context, in *RequestActivateAccountOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/RequestActivateAccountOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountAPIClient) ActivateAccountOTP(ctx context.Context, in *ActivateAccountOTPRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error) {
+	out := new(ActivateAccountResponse)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/ActivateAccountOTP", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +264,7 @@ func (c *accountAPIClient) SearchAccounts(ctx context.Context, in *SearchAccount
 // for forward compatibility
 type AccountAPIServer interface {
 	// Request to sign in using OTP
-	RequestOTP(context.Context, *RequestOTPRequest) (*empty.Empty, error)
+	RequestSignInOTP(context.Context, *RequestSignInOTPRequest) (*empty.Empty, error)
 	// Sign in using provided OTPs
 	SignInOTP(context.Context, *SignInOTPRequest) (*SignInResponse, error)
 	// Signs in a user into their account
@@ -255,6 +277,10 @@ type AccountAPIServer interface {
 	CreateAccount(context.Context, *CreateAccountRequest) (*CreateAccountResponse, error)
 	// Activates an account to being active
 	ActivateAccount(context.Context, *ActivateAccountRequest) (*ActivateAccountResponse, error)
+	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	RequestActivateAccountOTP(context.Context, *RequestActivateAccountOTPRequest) (*empty.Empty, error)
+	// Activates the account by passing along the OTP code sent and token
+	ActivateAccountOTP(context.Context, *ActivateAccountOTPRequest) (*ActivateAccountResponse, error)
 	// Updates a user account
 	UpdateAccount(context.Context, *UpdateAccountRequest) (*empty.Empty, error)
 	// Request to change private account information
@@ -286,8 +312,8 @@ type AccountAPIServer interface {
 type UnimplementedAccountAPIServer struct {
 }
 
-func (UnimplementedAccountAPIServer) RequestOTP(context.Context, *RequestOTPRequest) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RequestOTP not implemented")
+func (UnimplementedAccountAPIServer) RequestSignInOTP(context.Context, *RequestSignInOTPRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestSignInOTP not implemented")
 }
 func (UnimplementedAccountAPIServer) SignInOTP(context.Context, *SignInOTPRequest) (*SignInResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignInOTP not implemented")
@@ -306,6 +332,12 @@ func (UnimplementedAccountAPIServer) CreateAccount(context.Context, *CreateAccou
 }
 func (UnimplementedAccountAPIServer) ActivateAccount(context.Context, *ActivateAccountRequest) (*ActivateAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ActivateAccount not implemented")
+}
+func (UnimplementedAccountAPIServer) RequestActivateAccountOTP(context.Context, *RequestActivateAccountOTPRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestActivateAccountOTP not implemented")
+}
+func (UnimplementedAccountAPIServer) ActivateAccountOTP(context.Context, *ActivateAccountOTPRequest) (*ActivateAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActivateAccountOTP not implemented")
 }
 func (UnimplementedAccountAPIServer) UpdateAccount(context.Context, *UpdateAccountRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAccount not implemented")
@@ -356,20 +388,20 @@ func RegisterAccountAPIServer(s grpc.ServiceRegistrar, srv AccountAPIServer) {
 	s.RegisterService(&_AccountAPI_serviceDesc, srv)
 }
 
-func _AccountAPI_RequestOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestOTPRequest)
+func _AccountAPI_RequestSignInOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestSignInOTPRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AccountAPIServer).RequestOTP(ctx, in)
+		return srv.(AccountAPIServer).RequestSignInOTP(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gidyon.apis.AccountAPI/RequestOTP",
+		FullMethod: "/gidyon.apis.AccountAPI/RequestSignInOTP",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountAPIServer).RequestOTP(ctx, req.(*RequestOTPRequest))
+		return srv.(AccountAPIServer).RequestSignInOTP(ctx, req.(*RequestSignInOTPRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -478,6 +510,42 @@ func _AccountAPI_ActivateAccount_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountAPIServer).ActivateAccount(ctx, req.(*ActivateAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountAPI_RequestActivateAccountOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestActivateAccountOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).RequestActivateAccountOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/RequestActivateAccountOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).RequestActivateAccountOTP(ctx, req.(*RequestActivateAccountOTPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountAPI_ActivateAccountOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ActivateAccountOTPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).ActivateAccountOTP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/ActivateAccountOTP",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).ActivateAccountOTP(ctx, req.(*ActivateAccountOTPRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -703,8 +771,8 @@ var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*AccountAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RequestOTP",
-			Handler:    _AccountAPI_RequestOTP_Handler,
+			MethodName: "RequestSignInOTP",
+			Handler:    _AccountAPI_RequestSignInOTP_Handler,
 		},
 		{
 			MethodName: "SignInOTP",
@@ -729,6 +797,14 @@ var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ActivateAccount",
 			Handler:    _AccountAPI_ActivateAccount_Handler,
+		},
+		{
+			MethodName: "RequestActivateAccountOTP",
+			Handler:    _AccountAPI_RequestActivateAccountOTP_Handler,
+		},
+		{
+			MethodName: "ActivateAccountOTP",
+			Handler:    _AccountAPI_ActivateAccountOTP_Handler,
 		},
 		{
 			MethodName: "UpdateAccount",
