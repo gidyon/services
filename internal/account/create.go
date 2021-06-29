@@ -62,8 +62,6 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, err
 	}
 
-	// Check if project exists
-
 	// Check if account already exists
 	existRes, err := accountAPI.ExistAccount(ctx, &account.ExistAccountRequest{
 		Email:     accountPB.Email,
@@ -183,7 +181,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.FailedToCommitTx(err)
 	}
 
-	if !createReq.GetUpdateOnly() && createReq.Notify {
+	if !createReq.GetUpdateOnly() && createReq.Notify && accountState != account.AccountState_ACTIVE {
 		// Generate jwt token with expiration of 6 hours
 		jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,
@@ -206,11 +204,13 @@ func (accountAPI *accountAPIServer) CreateAccount(
 			return []messaging.SendMethod{messaging.SendMethod_EMAIL, messaging.SendMethod_SMSV2}
 		}()
 
+		appName := firstVal(createReq.GetSender().GetAppName(), createReq.GetSmsAuth().GetAppName(), accountAPI.AppName)
+
 		// CreateAccount message
 		messagePB := &messaging.Message{
 			UserId:      accountID,
-			Title:       fmt.Sprintf("Activate Your %s account", firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
-			Data:        fmt.Sprintf("Hello %s. Activate your %s account", accountDB.Names, firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
+			Title:       fmt.Sprintf("%s Account created successfully", appName),
+			Data:        fmt.Sprintf("Hello %s. Your %s account was created successfully, but you'll need to verify and activate the account", accountDB.Names, appName),
 			Link:        fmt.Sprintf("%s?token=%s?&account_id=%s", accountAPI.activationURL, jwtToken, accountID),
 			Save:        true,
 			Type:        messaging.MessageType_REMINDER,
@@ -220,10 +220,10 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		if createReq.GetByAdmin() {
 			messagePB = &messaging.Message{
 				UserId: accountID,
-				Title:  fmt.Sprintf("%s created by an administrator", firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName)),
+				Title:  fmt.Sprintf("%s Account created successfully by Admin", appName),
 				Data: fmt.Sprintf(
-					"Hello %s. An account has been created for you by our administrator. Sign in to your account, head on to %s website. ",
-					accountDB.Names, firstVal(createReq.GetSender().GetAppName(), accountAPI.AppName),
+					"Hello %s. %s account has been created successfully by the administrator. You can now sign in to your account.",
+					accountDB.Names, appName,
 				),
 				Save:        true,
 				Type:        messaging.MessageType_REMINDER,
