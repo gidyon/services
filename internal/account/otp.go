@@ -23,8 +23,8 @@ func otpKey(accountID string) string {
 	return "otplogin:" + accountID
 }
 
-func (accountAPI *accountAPIServer) RequestOTP(
-	ctx context.Context, req *account.RequestOTPRequest,
+func (accountAPI *accountAPIServer) RequestSignInOTP(
+	ctx context.Context, req *account.RequestSignInOTPRequest,
 ) (*empty.Empty, error) {
 	var err error
 
@@ -174,14 +174,14 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	switch {
 	case err == nil:
 	case errors.Is(err, redis.Nil):
-		return nil, errs.WrapMessage(codes.DeadlineExceeded, "OTP expired, request another OTP")
+		return nil, errs.WrapMessage(codes.DeadlineExceeded, "Login OTP expired, request another OTP")
 	default:
 		return nil, errs.RedisCmdFailed(err, "GET")
 	}
 
 	// Compare otp
 	if otp != req.Otp {
-		return nil, errs.WrapMessage(codes.Unauthenticated, "OTP do not match")
+		return nil, errs.WrapMessage(codes.Unauthenticated, "Login OTP do not match")
 	}
 
 	// Delete key
@@ -191,4 +191,159 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	}
 
 	return accountAPI.updateSession(ctx, accountDB, req.Group)
+}
+
+func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
+	ctx context.Context, req *account.RequestActivateAccountOTPRequest,
+) (*empty.Empty, error) {
+	var err error
+
+	// Validation
+	switch {
+	case req == nil:
+		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
+	case req.AccountId == "":
+		return nil, errs.MissingField("account id")
+	case req.Jwt == "":
+		return nil, errs.MissingField("jwt")
+	case req.SmsAuth == nil:
+		return nil, errs.MissingField("sms auth")
+	}
+
+	// Retrieve token claims
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(
+		auth.AddTokenMD(ctx, req.Jwt), req.AccountId, accountAPI.AuthAPI.AdminGroups()...,
+	)
+	if err != nil {
+		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
+	}
+
+	// GetAccount the user from database
+	accountDB := &Account{}
+	err = accountAPI.SQLDBWrites.
+		First(accountDB, "account_id = ?", req.AccountId).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.WrapMessagef(codes.NotFound, "account with id %s does not exist", req.AccountId)
+	default:
+		return nil, errs.FailedToFind("account", err)
+	}
+
+	accountID := fmt.Sprint(accountDB.AccountID)
+
+	uniqueNumber := randomdata.Number(100000, 999999)
+
+	// Set token with expiration of 5 minutes
+	err = accountAPI.RedisDBWrites.Set(
+		ctx, otpKey(accountID), uniqueNumber, time.Duration(5*time.Minute),
+	).Err()
+	if err != nil {
+		return nil, errs.RedisCmdFailed(err, "SET")
+	}
+
+	// Generate token
+	jwt, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
+		ID:           accountID,
+		ProjectID:    accountDB.ProjectID,
+		Names:        accountDB.Names,
+		EmailAddress: accountDB.Email,
+		PhoneNumber:  accountDB.Phone,
+		Group:        accountDB.PrimaryGroup,
+	}, time.Now().Add(10*time.Minute))
+	if err != nil {
+		return nil, err
+	}
+
+	// Outgoing context
+	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
+
+	data := fmt.Sprintf("Account verification OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", accountDB.ProjectID, uniqueNumber)
+
+	// Send message
+	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
+		Message: &messaging.Message{
+			UserId:      accountID,
+			Title:       "Account Verification OTP",
+			Data:        data,
+			Save:        true,
+			Type:        messaging.MessageType_INFO,
+			SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2},
+		},
+		SmsAuth: req.GetSmsAuth(),
+	})
+	if err != nil {
+		return nil, errs.WrapErrorWithMsg(err, "failed to send otp to phone")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (accountAPI *accountAPIServer) ActivateAccountOTP(
+	ctx context.Context, req *account.ActivateAccountOTPRequest,
+) (*account.ActivateAccountResponse, error) {
+	var (
+		ID  int
+		err error
+	)
+
+	// Validation
+	switch {
+	case req == nil:
+		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
+	case req.AccountId == "":
+		return nil, errs.MissingField("account id")
+	case req.Jwt == "":
+		return nil, errs.MissingField("jwt")
+	case req.Otp == "":
+		return nil, errs.MissingField("OTP code")
+	}
+
+	// Authorization
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(
+		auth.AddTokenMD(ctx, req.Jwt), req.AccountId, accountAPI.AuthAPI.AdminGroups()...,
+	)
+	if err != nil {
+		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
+	}
+
+	// Get the user from database
+	accountDB := &Account{}
+	err = accountAPI.SQLDBWrites.
+		First(accountDB, "account_id = ?", req.AccountId).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.WrapMessage(codes.NotFound, "account does not exist")
+	default:
+		return nil, errs.FailedToFind("account", err)
+	}
+
+	if accountDB.AccountState == blockedState {
+		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
+	}
+
+	// Get otp
+	otp, err := accountAPI.RedisDBWrites.Get(ctx, otpKey(req.AccountId)).Result()
+	switch {
+	case err == nil:
+	case errors.Is(err, redis.Nil):
+		return nil, errs.WrapMessage(codes.DeadlineExceeded, "Verification OTP expired, request another OTP")
+	default:
+		return nil, errs.RedisCmdFailed(err, "GET")
+	}
+
+	// Compare otp
+	if otp != req.Otp {
+		return nil, errs.WrapMessage(codes.Unauthenticated, "Verification OTP do not match")
+	}
+
+	// Update the model of the user to activate their account
+	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id=?", ID).
+		Update("account_state", account.AccountState_ACTIVE.String()).Error
+	if err != nil {
+		return nil, errs.FailedToUpdate("account", err)
+	}
+
+	return &account.ActivateAccountResponse{}, nil
 }
