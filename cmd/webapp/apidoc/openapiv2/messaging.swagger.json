@@ -1,0 +1,549 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Messaging API",
+    "description": "Sends, saves and retrives notification messages",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/messaging.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/messaging": {
+      "get": {
+        "summary": "Retrieves a collection of messages",
+        "operationId": "Messaging_ListMessages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisMessages"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.typeFilters",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "PROMOTIONAL",
+                "REMINDER",
+                "WARNING",
+                "ALERT",
+                "INFO"
+              ]
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/action:broadcast": {
+      "post": {
+        "summary": "Broadcasts a message",
+        "operationId": "Messaging_BroadCastMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisBroadCastMessageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/action:list": {
+      "post": {
+        "summary": "Retrieves a collection of messages",
+        "operationId": "Messaging_ListMessages2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisMessages"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisListMessagesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/action:send": {
+      "post": {
+        "summary": "Sends message to a single destination",
+        "operationId": "Messaging_SendMessage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSendMessageResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSendMessageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/users/{userId}:newcount": {
+      "get": {
+        "summary": "Fetches count of new messages",
+        "operationId": "Messaging_GetNewMessagesCount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisNewMessagesCount"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    },
+    "/api/messaging/users/{userId}:readall": {
+      "patch": {
+        "summary": "Updates unread messages statuses to read",
+        "operationId": "Messaging_ReadAll",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Messaging"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "SendSMSRequestCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SendSMSRequestSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SendSMSRequestCookie"
+          }
+        },
+        "appName": {
+          "type": "string"
+        }
+      }
+    },
+    "apisBroadCastMessageRequest": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "$ref": "#/definitions/apisMessage"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisEmailSender"
+        }
+      },
+      "description": "Request to broadcast message to clients",
+      "title": "BroadCastMessageRequest",
+      "required": [
+        "channels",
+        "message"
+      ]
+    },
+    "apisEmailSender": {
+      "type": "object",
+      "properties": {
+        "emailSender": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string"
+        }
+      },
+      "description": "Sender information for email",
+      "title": "EmailSender"
+    },
+    "apisListMessagesFilter": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "typeFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisMessageType"
+          }
+        }
+      },
+      "description": "Filter criteria for filtering messages",
+      "title": "ListMessagesFilter"
+    },
+    "apisListMessagesRequest": {
+      "type": "object",
+      "properties": {
+        "pageToken": {
+          "type": "string"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "filter": {
+          "$ref": "#/definitions/apisListMessagesFilter"
+        }
+      },
+      "description": "Request to retrieve a collection of messages",
+      "title": "ListMessagesRequest"
+    },
+    "apisMessage": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "link": {
+          "type": "string"
+        },
+        "createTimeSeconds": {
+          "type": "string",
+          "format": "int64"
+        },
+        "seen": {
+          "type": "boolean"
+        },
+        "save": {
+          "type": "boolean"
+        },
+        "type": {
+          "$ref": "#/definitions/apisMessageType"
+        },
+        "sendMethods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisSendMethod"
+          }
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Message to be sent",
+      "title": "Message"
+    },
+    "apisMessageType": {
+      "type": "string",
+      "enum": [
+        "ALL",
+        "PROMOTIONAL",
+        "REMINDER",
+        "WARNING",
+        "ALERT",
+        "INFO"
+      ],
+      "default": "ALL",
+      "title": "MessageType"
+    },
+    "apisMessages": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisMessage"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "A collection of messages",
+      "title": "Messages"
+    },
+    "apisNewMessagesCount": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Contains count of new messages",
+      "title": "NewMessagesCount"
+    },
+    "apisSendMessageRequest": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "$ref": "#/definitions/apisMessage"
+        },
+        "smsAuth": {
+          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+        },
+        "sender": {
+          "$ref": "#/definitions/apisEmailSender"
+        }
+      },
+      "description": "Request to send a message to clients",
+      "title": "SendMessageRequest",
+      "required": [
+        "channels",
+        "message"
+      ]
+    },
+    "apisSendMessageResponse": {
+      "type": "object",
+      "properties": {
+        "messageId": {
+          "type": "string"
+        }
+      },
+      "description": "Response after sending message containing the message id",
+      "title": "SendMessageResponse"
+    },
+    "apisSendMethod": {
+      "type": "string",
+      "enum": [
+        "SEND_METHOD_UNSPECIFIED",
+        "EMAIL",
+        "SMSV2",
+        "CALL",
+        "PUSH"
+      ],
+      "default": "SEND_METHOD_UNSPECIFIED",
+      "title": "SendMethod"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

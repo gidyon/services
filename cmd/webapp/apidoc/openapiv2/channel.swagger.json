@@ -1,0 +1,515 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Channel Service",
+    "description": "Manages channels/topics for subscriptions",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/channel.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/channels": {
+      "get": {
+        "summary": "Searches for channels",
+        "operationId": "ChannelAPI_SearchChannels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisListChannelsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.labels",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      },
+      "post": {
+        "summary": "Creates a new subscriber channel",
+        "operationId": "ChannelAPI_CreateChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisCreateChannelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisCreateChannelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/action:decrementSub": {
+      "get": {
+        "summary": "Decrement subscribers by one.",
+        "operationId": "ChannelAPI_DecrementSubscribers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "channelNames",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/action:incrementsub": {
+      "get": {
+        "summary": "Increment subscribers by one.",
+        "operationId": "ChannelAPI_IncrementSubscribers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "channelNames",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/{channel.id}": {
+      "patch": {
+        "summary": "Updates an existing channel resource",
+        "operationId": "ChannelAPI_UpdateChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "channel.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisUpdateChannelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels/{id}": {
+      "get": {
+        "summary": "Retrieves a single channel resource",
+        "operationId": "ChannelAPI_GetChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisChannel"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      },
+      "delete": {
+        "summary": "Removes a subscribers channel",
+        "operationId": "ChannelAPI_DeleteChannel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ownerId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels:decrementSubscribers": {
+      "post": {
+        "summary": "Decrement subscribers by one.",
+        "operationId": "ChannelAPI_DecrementSubscribers2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscribersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    },
+    "/api/channels:incrementSubscribers": {
+      "post": {
+        "summary": "Increment subscribers by one.",
+        "operationId": "ChannelAPI_IncrementSubscribers2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscribersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ChannelAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apisChannel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "createTimeSeconds": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "subscribers": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "A subscription network",
+      "title": "Channel"
+    },
+    "apisCreateChannelRequest": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "$ref": "#/definitions/apisChannel"
+        }
+      },
+      "description": "Request to create a new channel",
+      "title": "CreateChannelRequest",
+      "required": [
+        "channel"
+      ]
+    },
+    "apisCreateChannelResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "description": "Response after creating a channel",
+      "title": "CreateChannelResponse"
+    },
+    "apisListChannelsResponse": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisChannel"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "Response containing a collection of channel resource",
+      "title": "ListChannelsResponse"
+    },
+    "apisListFilter": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Filter for querying channels",
+      "title": "ListFilter"
+    },
+    "apisSubscribersRequest": {
+      "type": "object",
+      "properties": {
+        "channelNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Request to increment or decrement subscribers for a channel or topic",
+      "title": "SubscribersRequest",
+      "required": [
+        "id"
+      ]
+    },
+    "apisUpdateChannelRequest": {
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string"
+        },
+        "channel": {
+          "$ref": "#/definitions/apisChannel"
+        }
+      },
+      "description": "Request to update a channel resource",
+      "title": "UpdateChannelRequest"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}
