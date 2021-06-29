@@ -7,10 +7,10 @@ option go_package="github.com/gidyon/services/pkg/api/messaging/call";
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 message CallPayload {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CallPayload"
             description: "Information for making a call"
@@ -33,7 +33,7 @@ service CallAPI {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Call API";
         description: "API for making programmatic phone calls"

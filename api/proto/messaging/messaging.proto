@@ -7,7 +7,7 @@ option go_package="github.com/gidyon/services/pkg/api/messaging";
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "sms.proto";
 import "emailing.proto";
 
@@ -31,7 +31,7 @@ enum SendMethod {
 }
 
 message Message {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Message"
 			description: "Message to be sent"
@@ -52,7 +52,7 @@ message Message {
 }
 
 message BroadCastMessageRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "BroadCastMessageRequest"
             description: "Request to broadcast message to clients"
@@ -67,7 +67,7 @@ message BroadCastMessageRequest {
 }
 
 message SendMessageRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SendMessageRequest"
             description: "Request to send a message to clients"
@@ -81,7 +81,7 @@ message SendMessageRequest {
 }
 
 message SendMessageResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SendMessageResponse"
 			description: "Response after sending message containing the message id"
@@ -92,7 +92,7 @@ message SendMessageResponse {
 }
 
 message ListMessagesFilter {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListMessagesFilter"
 			description: "Filter criteria for filtering messages"
@@ -104,7 +104,7 @@ message ListMessagesFilter {
 }
 
 message ListMessagesRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListMessagesRequest"
 			description: "Request to retrieve a collection of messages"
@@ -117,7 +117,7 @@ message ListMessagesRequest {
 }
 
 message Messages {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Messages"
 			description: "A collection of messages"
@@ -130,7 +130,7 @@ message Messages {
 }
 
 message MessageRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "MessageRequest"
             description: "Request to perform an action to a message resource"
@@ -142,7 +142,7 @@ message MessageRequest {
 }
 
 message NewMessagesCount {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "NewMessagesCount"
             description: "Contains count of new messages"
@@ -196,7 +196,7 @@ service Messaging {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Messaging API";
         description: "Sends, saves and retrives notification messages"

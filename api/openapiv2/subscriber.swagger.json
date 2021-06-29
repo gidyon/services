@@ -1,0 +1,366 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Subscriber Service",
+    "description": "Manages subscribers for channel(s)",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/subscriber.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/subscribers": {
+      "get": {
+        "summary": "Lists subscribers for a channel",
+        "operationId": "SubscriberAPI_ListSubscribers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisListSubscribersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.channels",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/action:subscribe": {
+      "post": {
+        "summary": "Subscribes a user to a channel",
+        "operationId": "SubscriberAPI_Subscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/action:unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes a user from a channel",
+        "operationId": "SubscriberAPI_Unsubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers/{subscriberId}": {
+      "get": {
+        "summary": "GetSubscriber retrieves information about a single subscriber",
+        "operationId": "SubscriberAPI_GetSubscriber",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSubscriber"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "subscriberId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers:subscribe": {
+      "post": {
+        "summary": "Subscribes a user to a channel",
+        "operationId": "SubscriberAPI_Subscribe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    },
+    "/api/subscribers:unsubscribe": {
+      "post": {
+        "summary": "Unsubscribes a user from a channel",
+        "operationId": "SubscriberAPI_Unsubscribe2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSubscriberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SubscriberAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apisListSubscribersFilter": {
+      "type": "object",
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Filters for retrieving subscribers",
+      "title": "ListSubscribersFilter"
+    },
+    "apisListSubscribersResponse": {
+      "type": "object",
+      "properties": {
+        "subscribers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisSubscriber"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "Response containing collection of subscribers",
+      "title": "ListSubscribersResponse"
+    },
+    "apisSubscriber": {
+      "type": "object",
+      "properties": {
+        "subscriberId": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "externalId": {
+          "type": "string"
+        },
+        "deviceToken": {
+          "type": "string"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Party that subscribes to a channel",
+      "title": "Subscriber"
+    },
+    "apisSubscriberRequest": {
+      "type": "object",
+      "properties": {
+        "subscriberId": {
+          "type": "string"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Request to subscribes an entity to a channel",
+      "title": "SubscriberRequest",
+      "required": [
+        "subscriber_id",
+        "channel_id"
+      ]
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

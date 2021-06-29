@@ -7,10 +7,10 @@ option go_package="github.com/gidyon/services/pkg/api/messaging/emailing";
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 message Attachemnt {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Attachemnt"
 			description: "Attachment contained in the body of the email"
@@ -24,7 +24,7 @@ message Attachemnt {
 }
 
 message Email {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Email"
             description: "Email message to be delivered"
@@ -42,7 +42,7 @@ message Email {
 }
 
 message EmailSender {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "EmailSender"
             description: "Sender information for email"
@@ -55,7 +55,7 @@ message EmailSender {
 }
 
 message SendEmailRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SendEmailRequest"
             description: "Request to send email message to clients"
@@ -76,7 +76,7 @@ service Emailing {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Emailing API";
         description: "Sends emails to client(s)"

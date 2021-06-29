@@ -8,11 +8,11 @@ option go_package="github.com/gidyon/services/pkg/api/subscriber";
 import "google/protobuf/empty.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/client.proto";
 
 message Subscriber {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Subscriber"
             description: "Party that subscribes to a channel"
@@ -28,7 +28,7 @@ message Subscriber {
 }
 
 message SubscriberRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SubscriberRequest"
             description: "Request to subscribes an entity to a channel"
@@ -41,7 +41,7 @@ message SubscriberRequest {
 }
 
 message ListSubscribersFilter {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListSubscribersFilter"
 			description: "Filters for retrieving subscribers"
@@ -52,7 +52,7 @@ message ListSubscribersFilter {
 }
 
 message ListSubscribersRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListSubscribersRequest"
 			description: "Request to list subscribers for channel(s)"
@@ -65,7 +65,7 @@ message ListSubscribersRequest {
 }
 
 message ListSubscribersResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListSubscribersResponse"
 			description: "Response containing collection of subscribers"
@@ -78,7 +78,7 @@ message ListSubscribersResponse {
 }
 
 message GetSubscriberRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetSubscriberRequest"
             description: "Request to retrieve a single subscriber"
@@ -134,7 +134,7 @@ service SubscriberAPI {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Subscriber Service";
         description: "Manages subscribers for channel(s)"

@@ -1,0 +1,298 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Longrunning Service",
+    "description": "Manages longrunning operations",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/longrunning.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/longrunning": {
+      "get": {
+        "summary": "Retrieves collection of long running operations",
+        "operationId": "OperationAPI_ListOperations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisListOperationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OperationAPI"
+        ]
+      },
+      "post": {
+        "summary": "Creates a long running operation",
+        "operationId": "OperationAPI_CreateOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "OperationAPI"
+        ]
+      },
+      "patch": {
+        "summary": "Updates a long running operation",
+        "operationId": "OperationAPI_UpdateOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "OperationAPI"
+        ]
+      }
+    },
+    "/api/longrunning/operation_id": {
+      "get": {
+        "summary": "Retrives a single long running operation",
+        "operationId": "OperationAPI_GetOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gidyonapisOperation"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OperationAPI"
+        ]
+      }
+    },
+    "/api/longrunning/{operationId}": {
+      "delete": {
+        "summary": "Deletes a long running operation",
+        "operationId": "OperationAPI_DeleteOperation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OperationAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apisListOperationsFilter": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      },
+      "description": "Filter for long running operations",
+      "title": "ListOperationsFilter"
+    },
+    "apisListOperationsResponse": {
+      "type": "object",
+      "properties": {
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/gidyonapisOperation"
+          }
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "collectionCount": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "Response containing collection of long running operations",
+      "title": "ListOperationsResponse"
+    },
+    "apisOperationStatus": {
+      "type": "string",
+      "enum": [
+        "OPERATION_STATUS_UNSPECIFIED",
+        "PENDING",
+        "COMPLETED",
+        "FAILED"
+      ],
+      "default": "OPERATION_STATUS_UNSPECIFIED",
+      "title": "OperationStatus"
+    },
+    "gidyonapisOperation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/apisOperationStatus"
+        },
+        "timestampSec": {
+          "type": "string",
+          "format": "int64"
+        }
+      },
+      "description": "A long running operation",
+      "title": "Operation"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

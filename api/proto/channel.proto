@@ -7,10 +7,10 @@ option go_package="github.com/gidyon/services/pkg/api/channel";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behaviour.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 message Channel {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Channel"
 			description: "A subscription network"
@@ -27,7 +27,7 @@ message Channel {
 }
 
 message CreateChannelRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateChannelRequest"
 			description: "Request to create a new channel"
@@ -39,7 +39,7 @@ message CreateChannelRequest {
 }
 
 message CreateChannelResponse {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateChannelResponse"
 			description: "Response after creating a channel"
@@ -50,7 +50,7 @@ message CreateChannelResponse {
 }
 
 message UpdateChannelRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateChannelRequest"
 			description: "Request to update a channel resource"
@@ -62,7 +62,7 @@ message UpdateChannelRequest {
 }
 
 message DeleteChannelRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "DeleteChannelRequest"
 			description: "Request to delete a channel resource"
@@ -74,7 +74,7 @@ message DeleteChannelRequest {
 }
 
 message ListFilter {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListFilter"
 			description: "Filter for querying channels"
@@ -85,7 +85,7 @@ message ListFilter {
 }
 
 message ListChannelsRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListChannelsRequest"
 			description: "Request to retrieve a collection of channel resources"
@@ -98,7 +98,7 @@ message ListChannelsRequest {
 }
 
 message SearchChannelsRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SearchChannelsRequest"
 			description: "Request to search for channels"
@@ -112,7 +112,7 @@ message SearchChannelsRequest {
 }
 
 message ListChannelsResponse {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListChannelsResponse"
 			description: "Response containing a collection of channel resource"
@@ -125,7 +125,7 @@ message ListChannelsResponse {
 }
 
 message GetChannelRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetChannelRequest"
 			description: "Request to retrieve a channel resource"
@@ -137,7 +137,7 @@ message GetChannelRequest {
 }
 
 message SubscribersRequest {
-	option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "SubscribersRequest"
 			description: "Request to increment or decrement subscribers for a channel or topic"
@@ -217,7 +217,7 @@ service ChannelAPI {
 	};
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
 		title: "Channel Service";
 		description: "Manages channels/topics for subscriptions"

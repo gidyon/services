@@ -3,7 +3,7 @@ syntax = "proto3";
 package gidyon.apis;
 
 import "google/protobuf/empty.proto";
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/annotations.proto";
  
 
@@ -18,7 +18,7 @@ enum OperationStatus {
 }
 
 message Operation {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Operation"
 			description: "A long running operation"
@@ -35,7 +35,7 @@ message Operation {
 }
 
 message CreateOperationRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "CreateOperationRequest"
             description: "Request to create a long running operation"
@@ -47,7 +47,7 @@ message CreateOperationRequest {
 }
 
 message UpdateOperationRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateOperationRequest"
             description: "Request to update a long running operation"
@@ -61,7 +61,7 @@ message UpdateOperationRequest {
 }
 
 message DeleteOperationRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "DeleteOperationRequest"
             description: "Request to delete a long running operation"
@@ -74,7 +74,7 @@ message DeleteOperationRequest {
 }
 
 message ListOperationsFilter {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListOperationsFilter"
             description: "Filter for long running operations"
@@ -85,7 +85,7 @@ message ListOperationsFilter {
 }
 
 message ListOperationsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListOperationsRequest"
             description: "Request to list long running operations"
@@ -98,7 +98,7 @@ message ListOperationsRequest {
 }
 
 message ListOperationsResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "ListOperationsResponse"
             description: "Response containing collection of long running operations"
@@ -111,7 +111,7 @@ message ListOperationsResponse {
 }
 
 message GetOperationRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetOperationRequest"
             description: "Request to get a long running operation"
@@ -160,7 +160,7 @@ service OperationAPI {
     };
 }
 
-option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 	info: {
         title: "Longrunning Service";
         description: "Manages longrunning operations"

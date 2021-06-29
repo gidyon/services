@@ -1,0 +1,248 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SMS API",
+    "description": "Send text messages to client(s)",
+    "version": "v1",
+    "contact": {
+      "name": "Github \u003cGideon Kamau\u003e",
+      "url": "https://github.com/gidyon/services/blob/master/api/proto/messaging/sms.proto",
+      "email": "gideonhacer@gmail.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://github.com/gidyon/services/blob/master/LICENSE"
+    }
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/sms:sendSMS": {
+      "get": {
+        "summary": "Send an sms to its destination(s)",
+        "operationId": "SMSAPI_SendSMS",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sms.destinationPhones",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sms.keyword",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sms.message",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.apiUrl",
+            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.senderId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.apiKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.clientId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.authToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.accessKey",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "auth.appName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ONFON"
+            ],
+            "default": "ONFON"
+          }
+        ],
+        "tags": [
+          "SMSAPI"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "SendSMSRequestCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "SendSMSRequestSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SendSMSRequestCookie"
+          }
+        },
+        "appName": {
+          "type": "string"
+        }
+      }
+    },
+    "apisSMS": {
+      "type": "object",
+      "properties": {
+        "destinationPhones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keyword": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "description": "SMS is a text message that is to be sent to client(s)",
+      "title": "SMS",
+      "required": [
+        "destination_phones",
+        "message"
+      ]
+    },
+    "apisSmsProvider": {
+      "type": "string",
+      "enum": [
+        "ONFON"
+      ],
+      "default": "ONFON"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

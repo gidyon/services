@@ -4,12 +4,12 @@ package gidyon.apis;
 
 option go_package="github.com/gidyon/services/pkg/api/settings";
 
-import "protoc-gen-swagger/options/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 
 message Setting {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Setting"
 			description: "Party preferences and settings"
@@ -22,7 +22,7 @@ message Setting {
 }
 
 message Settings {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Settings"
 			description: "Settings resources"
@@ -33,7 +33,7 @@ message Settings {
 }
 
 message UpdateSettingRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateSettingRequest"
             description: "Request to update settings resource"
@@ -46,7 +46,7 @@ message UpdateSettingRequest {
 }
 
 message UpdateSettingResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "UpdateSettingResponse"
 			description: "Response containing the updated settings"
@@ -57,7 +57,7 @@ message UpdateSettingResponse {
 }
 
 message GetSettingsRequest {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetSettingsRequest"
             description: "Request to retrieve settings resources"
@@ -70,7 +70,7 @@ message GetSettingsRequest {
 }
 
 message GetSettingsResponse {
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "GetSettingsResponse"
             description: "Response containing a collection of settings resources"
