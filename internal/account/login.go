@@ -130,10 +130,12 @@ func (accountAPI *accountAPIServer) updateSession(
 				found = true
 				// Generates JWT
 				token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
-					ID:        fmt.Sprint(accountDB.AccountID),
-					Names:     accountDB.Names,
-					Group:     signInGroup,
-					ProjectID: accountDB.ProjectID,
+					ID:           fmt.Sprint(accountDB.AccountID),
+					Names:        accountDB.Names,
+					Group:        signInGroup,
+					ProjectID:    accountDB.ProjectID,
+					EmailAddress: accountDB.Email,
+					PhoneNumber:  accountDB.Phone,
 				}, time.Now().Add(time.Duration(dur)*time.Minute))
 				if err != nil {
 					return nil,
@@ -150,10 +152,12 @@ func (accountAPI *accountAPIServer) updateSession(
 		signInGroup = accountDB.PrimaryGroup
 		// Generate JWT
 		token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
-			ID:        accountID,
-			Names:     accountDB.Names,
-			Group:     accountDB.PrimaryGroup,
-			ProjectID: accountDB.ProjectID,
+			ID:           accountID,
+			Names:        accountDB.Names,
+			Group:        accountDB.PrimaryGroup,
+			ProjectID:    accountDB.ProjectID,
+			EmailAddress: accountDB.Email,
+			PhoneNumber:  accountDB.Phone,
 		}, time.Now().Add(time.Duration(dur)*time.Minute))
 		if err != nil {
 			return nil,
