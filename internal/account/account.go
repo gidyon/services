@@ -908,6 +908,9 @@ func (accountAPI *accountAPIServer) ListAccounts(
 	if pageSize > defaultPageSize && !accountAPI.AuthAPI.IsAdmin(payload.Group) {
 		pageSize = defaultPageSize
 	}
+	if pageSize == 0 {
+		pageSize = defaultPageSize
+	}
 
 	var id uint
 
@@ -1030,6 +1033,9 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 	// Parse page size and page token
 	pageSize := req.GetPageSize()
 	if pageSize > defaultPageSize && !accountAPI.AuthAPI.IsAdmin(payload.Group) {
+		pageSize = defaultPageSize
+	}
+	if pageSize == 0 {
 		pageSize = defaultPageSize
 	}
 
