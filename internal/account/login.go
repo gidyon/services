@@ -49,7 +49,7 @@ func (accountAPI *accountAPIServer) SignIn(
 	accountDB := &Account{}
 
 	// Query for user with email or phone or huduma id
-	err = accountAPI.SQLDBWrites.Select("account_id,names,primary_group,account_state,password,project_id").First(
+	err = accountAPI.SQLDBWrites.Select("account_id,names,email,phone,primary_group,account_state,password,project_id").First(
 		accountDB, "(phone=? OR email=?) AND project_id=?", signInReq.Username, signInReq.Username, signInReq.ProjectId,
 	).Error
 	switch {
