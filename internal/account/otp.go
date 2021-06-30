@@ -204,16 +204,12 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
 	case req.AccountId == "":
 		return nil, errs.MissingField("account id")
-	case req.Jwt == "":
-		return nil, errs.MissingField("jwt")
 	case req.SmsAuth == nil:
 		return nil, errs.MissingField("sms auth")
 	}
 
 	// Retrieve token claims
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(
-		auth.AddTokenMD(ctx, req.Jwt), req.AccountId, accountAPI.AuthAPI.AdminGroups()...,
-	)
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, req.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
 	}
