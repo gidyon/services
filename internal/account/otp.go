@@ -282,11 +282,7 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 func (accountAPI *accountAPIServer) ActivateAccountOTP(
 	ctx context.Context, req *account.ActivateAccountOTPRequest,
 ) (*account.ActivateAccountResponse, error) {
-	var (
-		ID  int
-		err error
-	)
-
+	var err error
 	// Validation
 	switch {
 	case req == nil:
@@ -339,7 +335,7 @@ func (accountAPI *accountAPIServer) ActivateAccountOTP(
 	}
 
 	// Update the model of the user to activate their account
-	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id=?", ID).
+	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id=?", accountDB.AccountID).
 		Update("account_state", account.AccountState_ACTIVE.String()).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)
