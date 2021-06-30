@@ -500,8 +500,7 @@ message RequestActivateAccountOTPRequest {
     };
 
 	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-	string jwt = 2 [(google.api.field_behavior) = REQUIRED];
-	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 3 [(google.api.field_behavior) = REQUIRED];
+	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ActivateAccountOTPRequest {
@@ -513,8 +512,7 @@ message ActivateAccountOTPRequest {
     };
 
 	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-	string jwt = 2 [(google.api.field_behavior) = REQUIRED];
-	string otp = 3 [(google.api.field_behavior) = REQUIRED];
+	string otp = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Manages account activities

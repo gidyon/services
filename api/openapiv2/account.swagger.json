@@ -1599,9 +1599,6 @@
         "accountId": {
           "type": "string"
         },
-        "jwt": {
-          "type": "string"
-        },
         "otp": {
           "type": "string"
         }
@@ -1947,9 +1944,6 @@
       "type": "object",
       "properties": {
         "accountId": {
-          "type": "string"
-        },
-        "jwt": {
           "type": "string"
         },
         "smsAuth": {

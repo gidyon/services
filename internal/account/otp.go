@@ -289,16 +289,12 @@ func (accountAPI *accountAPIServer) ActivateAccountOTP(
 		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
 	case req.AccountId == "":
 		return nil, errs.MissingField("account id")
-	case req.Jwt == "":
-		return nil, errs.MissingField("jwt")
 	case req.Otp == "":
 		return nil, errs.MissingField("OTP code")
 	}
 
 	// Authorization
-	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(
-		auth.AddTokenMD(ctx, req.Jwt), req.AccountId, accountAPI.AuthAPI.AdminGroups()...,
-	)
+	_, err = accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, req.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Unauthenticated, err, "failed to authorize request")
 	}
