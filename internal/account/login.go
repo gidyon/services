@@ -49,7 +49,7 @@ func (accountAPI *accountAPIServer) SignIn(
 	accountDB := &Account{}
 
 	// Query for user with email or phone or huduma id
-	err = accountAPI.SQLDBWrites.Select("account_id,names,email,phone,primary_group,account_state,password,project_id").First(
+	err = accountAPI.SQLDBWrites.Select("account_id,names,email,phone,primary_group,account_state,password,project_id,secondary_groups").First(
 		accountDB, "(phone=? OR email=?) AND project_id=?", signInReq.Username, signInReq.Username, signInReq.ProjectId,
 	).Error
 	switch {
@@ -136,6 +136,7 @@ func (accountAPI *accountAPIServer) updateSession(
 					ProjectID:    accountDB.ProjectID,
 					EmailAddress: accountDB.Email,
 					PhoneNumber:  accountDB.Phone,
+					Roles:        secondaryGroups,
 				}, time.Now().Add(time.Duration(dur)*time.Minute))
 				if err != nil {
 					return nil,
@@ -158,6 +159,7 @@ func (accountAPI *accountAPIServer) updateSession(
 			ProjectID:    accountDB.ProjectID,
 			EmailAddress: accountDB.Email,
 			PhoneNumber:  accountDB.Phone,
+			Roles:        secondaryGroups,
 		}, time.Now().Add(time.Duration(dur)*time.Minute))
 		if err != nil {
 			return nil,
