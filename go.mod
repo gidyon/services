@@ -10,13 +10,12 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
-	github.com/gidyon/micro/v2 v2.4.0
+	github.com/gidyon/micro/v2 v2.4.2
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/onsi/ginkgo v1.15.0
