@@ -50,7 +50,7 @@ func (_m *AccountAPIMock) ActivateAccount(ctx context.Context, in *account.Activ
 }
 
 // ActivateAccountOTP provides a mock function with given fields: ctx, in, opts
-func (_m *AccountAPIMock) ActivateAccountOTP(ctx context.Context, in *account.ActivateAccountOTPRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (_m *AccountAPIMock) ActivateAccountOTP(ctx context.Context, in *account.ActivateAccountOTPRequest, opts ...grpc.CallOption) (*account.ActivateAccountResponse, error) {
 	_va := make([]interface{}, len(opts))
 	for _i := range opts {
 		_va[_i] = opts[_i]
@@ -60,12 +60,12 @@ func (_m *AccountAPIMock) ActivateAccountOTP(ctx context.Context, in *account.Ac
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *emptypb.Empty
-	if rf, ok := ret.Get(0).(func(context.Context, *account.ActivateAccountOTPRequest, ...grpc.CallOption) *emptypb.Empty); ok {
+	var r0 *account.ActivateAccountResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *account.ActivateAccountOTPRequest, ...grpc.CallOption) *account.ActivateAccountResponse); ok {
 		r0 = rf(ctx, in, opts...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*emptypb.Empty)
+			r0 = ret.Get(0).(*account.ActivateAccountResponse)
 		}
 	}
 
