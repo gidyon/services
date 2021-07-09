@@ -13,15 +13,326 @@ import "messaging.proto";
 import "emailing.proto";
 import "sms.proto";
  
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+	info: {
+        title: "Accounts/Customer/Auth Service";
+        description: "API for managing user/customers accounts and managing authentication"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/account.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+	schemes: HTTP;
+	schemes: HTTPS;
+	consumes: "application/json";
+	produces: "application/json";
+	security_definitions: {
+		security: {
+		  key: "bearer"
+		  value: {
+			type: TYPE_API_KEY
+			in: IN_HEADER
+			name: "Authorization"
+			description: "Authentication token, prefixed by Bearer: Bearer <token>"
+		  }
+		}
+	}
+	security: {
+		security_requirement: {
+		  key: "bearer"
+		}
+	}
+};
+
+
+// Manages account activities
+service AccountAPI {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+		description: "Account/Customer/Auth API -- Managing user accounts and sessions!"
+		external_docs: {
+			url: "https://github.com/gidyon/services/blob/master";
+			description: "Find more about accounts service";
+		}
+    };
+
+	// Request to sign in using OTP
+	rpc RequestSignInOTP (RequestSignInOTPRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+            post: "/api/accounts/action/request-otp"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:requestSignInOTP"
+				body: "*"
+			}
+        };
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Request sign in using mobile OTP code (Implemented as 2FA)";
+			description: "Will send OTP to the account associated phone number, they will use the OTP to sign.";
+		};
+	};
+
+	// Sign in using provided OTPs
+	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
+		option (google.api.http) = {
+            post: "/api/accounts/action/sign-in-otp"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInOTP"
+				body: "*"
+			}
+        };
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Sign in using the OTP provided";
+			description: "Pass the OTP in RequestSignInOTP to sign in to the account";
+		};
+	};
+
+    // Signs in a user into their account
+    rpc SignIn (SignInRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+            post: "/api/accounts/action/login"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:signIn"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "username,group,password";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Sign in using username and password";
+			description: "Sign in user using username, password and project_id they belong to";
+		};
+    };
+
+     // Signs in a user using third parties like Google, Facebook, Twitter etc
+     rpc SignInExternal (SignInExternalRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+            post: "/api/accounts/action/login-external"
+            body: "*"
+			additional_bindings {
+				post: "/api/accounts:signInExternal"
+				body: "*"
+			}
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Sign in using external auth provider like Google, FB.";
+			description: "Signing in using external auth providers requires necessary permission and credential data retrieved and set with the auth providers";
+		};
+    };
+
+    // Fetch new JWT using refresh token and updates session
+    rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
+        option (google.api.http) = {
+			get: "/api/accounts/action/refresh-session"
+			additional_bindings {
+				post: "/api/accounts:refreshSession"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "account_id,token";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Refresh jwt";
+			description: "Refreshes jwt since it expires after 30 minutes. Pass the refresh token, account id and account group to retrieve the new jwt";
+		};
+    };
+
+    // Creates an account for a new user
+    rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+        option (google.api.http) = {
+            post: "/api/accounts"
+            body: "*"
+        };
+        option (google.api.method_signature) = "account,project_id";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Creates an account for a user";
+			description: "Required information is names, email or phone, (under account field) and project_id. If users will need/use password, pass it in the private_account field";
+		};
+    };
+
+    // Activates an account to being active
+    rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
+        option (google.api.http) = {
+			get: "/api/accounts/{account_id}/action/activate-account"
+			additional_bindings {
+				post: "/api/accounts:activateAccount"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "account_id,token";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Activate the account";
+			description: "Changes the status of the account to ACTIVE, only done by administrators group";
+		};
+    };
+
+	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	rpc RequestActivateAccountOTP (RequestActivateAccountOTPRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+			post: "/api/accounts:requestActivateAccountOTP"
+			body: "*"
+        };
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Request for OTP to activate an account";
+			description: "Request OTP to verify and activate their account, this happens after user has created an account and it is inactive. They will use the OTP to activate their account";
+		};
+	};
+
+	// Activates the account by passing along the OTP code sent and token
+	rpc ActivateAccountOTP (ActivateAccountOTPRequest) returns (ActivateAccountResponse) {
+		option (google.api.http) = {
+			post: "/api/accounts:activateAccountOTP"
+			body: "*"
+        };
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Activate/Verify the account";
+			description: "Verifies/Activates user account using OTP gotten from RequestActivateAccountOTP call";
+		};
+	};
+
+    // Updates a user account
+    rpc UpdateAccount (UpdateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/{account.account_id}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "account_id,account";
+    };
+
+    // Request to change private account information
+    rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
+        option (google.api.http) = {
+			get: "/api/accounts/action/request-change-private-account"
+			additional_bindings {
+				post: "/api/accounts:requestChangePrivateAccount"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "payload,fallback_url";
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Request token to update password";
+			description: "This will send a reset link to the email address provided or OTP if phone number was used. The jwt returned is to be pass inside request body updating private account information (passwords or security data). Default bearer token should be passed as authorization";
+		};
+    };
+
+    // Updates a user private account information
+    rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/{account_id}/action/update-private-account"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccount"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "account_id,private_account";
+    };
+  
+    // Updates a user private account information while not logged in to the account
+    rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/api/accounts/action/update-private-account"
+			body: "*"
+			additional_bindings {
+				post: "/api/accounts:updatePrivateAccountExternal"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "jwt,private_account";
+    };
+
+    // Deletes a user account
+    rpc DeleteAccount (DeleteAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/accounts/{account_id}"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    // Retrieves a user account
+    rpc GetAccount (GetAccountRequest) returns (Account) {
+        option (google.api.http) = {
+            get: "/api/accounts/{account_id}"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    //  Retrieves multiple user accounts
+    rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
+        option (google.api.http) = {
+			post: "/api/accounts:batchGetAccounts"
+			body: "*"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    //  Retrieves deeply linked accounts
+    rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
+        option (google.api.http) = {
+			post: "/api/accounts:getLinkedAccounts"
+			body: "*"
+        };
+        option (google.api.method_signature) = "account_id";
+    };
+
+    // Checks if an account exists
+    rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
+        option (google.api.http) = {
+			post: "/api/accounts:existAccount"
+			body: "*"
+        };
+        option (google.api.method_signature) = "email,phone,huduma_id";
+    };
+
+    // Updates account
+    rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+			post: "/api/accounts:adminUpdateAccount"
+			body: "*"
+        };
+        option (google.api.method_signature) = "admin_id,account_id";
+    };
+
+    // Fetches collection of accounts
+    rpc ListAccounts (ListAccountsRequest) returns (Accounts) {
+        option (google.api.http) = {
+			get: "/api/accounts"
+			additional_bindings {
+				post: "/api/accounts:listAccounts"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "parent";
+    };
+
+    // Searches accounts and linked accounts
+    rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
+        option (google.api.http) = {
+			get: "/api/accounts/action/search"
+			additional_bindings {
+				post: "/api/accounts:searchAccounts"
+				body: "*"
+			}
+        };
+        option (google.api.method_signature) = "query";
+    };
+}
+
 message Account {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
 			title: "Account"
 			description: "Account profile information"
 		}
+		example: "{ \"email\": \"gkamai@onfonmedia.com\", \"phone\": \"xxxx\",\"names\": \"Full Names\", \"birth_date\": \"Feb 03 1990\", \"gender\": \"MALE\", \"nationality\": \"Kenyan\",\"group\": \"SUPER_ADMIN\"}"
     };
     
-    // Gender
+    // Gendern of the account
     enum Gender {
         GENDER_UNSPECIFIED = 0;
         MALE = 1;
@@ -514,282 +825,3 @@ message ActivateAccountOTPRequest {
 	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
 	string otp = 2 [(google.api.field_behavior) = REQUIRED];
 }
-
-// Manages account activities
-service AccountAPI {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-		description: "Account API description -- Managing user accounts!"
-		external_docs: {
-			url: "https://github.com/gidyon/services/blob/master";
-			description: "Find more about accounts service";
-		}
-    };
-
-	// Request to sign in using OTP
-	rpc RequestSignInOTP (RequestSignInOTPRequest) returns (google.protobuf.Empty) {
-		option (google.api.http) = {
-            post: "/api/accounts/action/request-otp"
-			body: "*"
-			additional_bindings {
-				post: "/api/accounts:requestSignInOTP"
-				body: "*"
-			}
-        };
-	};
-
-	// Sign in using provided OTPs
-	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
-		option (google.api.http) = {
-            post: "/api/accounts/action/sign-in-otp"
-			body: "*"
-			additional_bindings {
-				post: "/api/accounts:signInOTP"
-				body: "*"
-			}
-        };
-	};
-
-    // Signs in a user into their account
-    rpc SignIn (SignInRequest) returns (SignInResponse) {
-        option (google.api.http) = {
-            post: "/api/accounts/action/login"
-			body: "*"
-			additional_bindings {
-				post: "/api/accounts:signIn"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "username,group,password";
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			security: {}
-		};
-    };
-
-     // Signs in a user using third parties like Google, Facebook, Twitter etc
-     rpc SignInExternal (SignInExternalRequest) returns (SignInResponse) {
-        option (google.api.http) = {
-            post: "/api/accounts/action/login-external"
-            body: "*"
-			additional_bindings {
-				post: "/api/accounts:signInExternal"
-				body: "*"
-			}
-        };
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			security: {}
-		};
-    };
-
-    // Fetch new JWT using refresh token and updates session
-    rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
-        option (google.api.http) = {
-			get: "/api/accounts/action/refresh-session"
-			additional_bindings {
-				post: "/api/accounts:refreshSession"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "account_id,token";
-    };
-
-    // Creates an account for a new user
-    rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
-        option (google.api.http) = {
-            post: "/api/accounts"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account,project_id";
-    };
-
-    // Activates an account to being active
-    rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
-        option (google.api.http) = {
-			get: "/api/accounts/{account_id}/action/activate-account"
-			additional_bindings {
-				post: "/api/accounts:activateAccount"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "account_id,token";
-    };
-
-	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
-	rpc RequestActivateAccountOTP (RequestActivateAccountOTPRequest) returns (google.protobuf.Empty) {
-		option (google.api.http) = {
-			post: "/api/accounts:requestActivateAccountOTP"
-			body: "*"
-        };
-	};
-
-	// Activates the account by passing along the OTP code sent and token
-	rpc ActivateAccountOTP (ActivateAccountOTPRequest) returns (ActivateAccountResponse) {
-		option (google.api.http) = {
-			post: "/api/accounts:activateAccountOTP"
-			body: "*"
-        };
-	};
-
-    // Updates a user account
-    rpc UpdateAccount (UpdateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            patch: "/api/accounts/{account.account_id}"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account_id,account";
-    };
-
-    // Request to change private account information
-    rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
-        option (google.api.http) = {
-			get: "/api/accounts/action/request-change-private-account"
-			additional_bindings {
-				post: "/api/accounts:requestChangePrivateAccount"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "payload,fallback_url";
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Request token to update password";
-			description: "Will send a reset link to the email address provided or OTP if phone number was used. The jwt returned is to be pass inside request body updating private account information (passwords or security data). Default bearer token should be passed as authorization";
-		};
-    };
-
-    // Updates a user private account information
-    rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            patch: "/api/accounts/{account_id}/action/update-private-account"
-			body: "*"
-			additional_bindings {
-				post: "/api/accounts:updatePrivateAccount"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "account_id,private_account";
-    };
-  
-    // Updates a user private account information while not logged in to the account
-    rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            patch: "/api/accounts/action/update-private-account"
-			body: "*"
-			additional_bindings {
-				post: "/api/accounts:updatePrivateAccountExternal"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "jwt,private_account";
-    };
-
-    // Deletes a user account
-    rpc DeleteAccount (DeleteAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/accounts/{account_id}"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
-
-    // Retrieves a user account
-    rpc GetAccount (GetAccountRequest) returns (Account) {
-        option (google.api.http) = {
-            get: "/api/accounts/{account_id}"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
-
-    //  Retrieves multiple user accounts
-    rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
-        option (google.api.http) = {
-			post: "/api/accounts:batchGetAccounts"
-			body: "*"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
-
-    //  Retrieves deeply linked accounts
-    rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
-        option (google.api.http) = {
-			post: "/api/accounts:getLinkedAccounts"
-			body: "*"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
-
-    // Checks if an account exists
-    rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
-        option (google.api.http) = {
-			post: "/api/accounts:existAccount"
-			body: "*"
-        };
-        option (google.api.method_signature) = "email,phone,huduma_id";
-    };
-
-    // Updates account
-    rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-			post: "/api/accounts:adminUpdateAccount"
-			body: "*"
-        };
-        option (google.api.method_signature) = "admin_id,account_id";
-    };
-
-    // Fetches collection of accounts
-    rpc ListAccounts (ListAccountsRequest) returns (Accounts) {
-        option (google.api.http) = {
-			get: "/api/accounts"
-			additional_bindings {
-				post: "/api/accounts:listAccounts"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "parent";
-    };
-
-    // Searches accounts and linked accounts
-    rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
-        option (google.api.http) = {
-			get: "/api/accounts/action/search"
-			additional_bindings {
-				post: "/api/accounts:searchAccounts"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "query";
-    };
-}
-
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-	info: {
-        title: "Accounts Service";
-        description: "API for managing user account"
-		version: "v1";
-		contact: {
-			name: "Github <Gideon Kamau>";
-			url: "https://github.com/gidyon/services/blob/master/api/proto/account.proto";
-			email: "gideonhacer@gmail.com";
-        };
-        license: {
-			name: "MIT License";
-			url: "https://github.com/gidyon/services/blob/master/LICENSE";
-		};
-    };
-	schemes: HTTP;
-	schemes: HTTPS;
-	consumes: "application/json";
-	produces: "application/json";
-	security_definitions: {
-		security: {
-		  key: "bearer"
-		  value: {
-			type: TYPE_API_KEY
-			in: IN_HEADER
-			name: "Authorization"
-			description: "Authentication token, prefixed by Bearer: Bearer <token>"
-		  }
-		}
-	}
-	security: {
-		security_requirement: {
-		  key: "bearer"
-		}
-	}
-};
