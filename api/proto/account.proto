@@ -629,6 +629,8 @@ message GetAccountRequest {
     string account_id = 1 [(google.api.field_behavior) = REQUIRED];
     AccountView view = 2 [(google.api.field_behavior) = OPTIONAL];
     bool priviledge = 3;
+	bool use_phone = 4;
+	bool use_email = 5;
 }
 
 message BatchGetAccountsRequest {

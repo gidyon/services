@@ -753,15 +753,15 @@ func (accountAPI *accountAPIServer) DeleteAccount(
 }
 
 func (accountAPI *accountAPIServer) GetAccount(
-	ctx context.Context, getReq *account.GetAccountRequest,
+	ctx context.Context, req *account.GetAccountRequest,
 ) (*account.Account, error) {
 	// Request must not be nil
-	if getReq == nil {
+	if req == nil {
 		return nil, errs.NilObject("GetAccountRequest")
 	}
 
 	// Authorization
-	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, getReq.AccountId, accountAPI.AuthAPI.AdminGroups()...)
+	payload, err := accountAPI.AuthAPI.AuthorizeActorOrGroup(ctx, req.AccountId, accountAPI.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -769,10 +769,11 @@ func (accountAPI *accountAPIServer) GetAccount(
 	// Validation
 	var ID int
 	switch {
-	case getReq.AccountId == "":
+	case req.AccountId == "":
 		return nil, errs.MissingField("account id")
+	case req.UseEmail || req.UsePhone:
 	default:
-		ID, err = strconv.Atoi(getReq.AccountId)
+		ID, err = strconv.Atoi(req.AccountId)
 		if err != nil {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "incorrect accoint id")
 		}
@@ -781,30 +782,36 @@ func (accountAPI *accountAPIServer) GetAccount(
 	// GetAccount account from database
 	accountDB := &Account{}
 
-	if getReq.Priviledge {
+	if req.Priviledge {
 		if accountAPI.AuthAPI.IsAdmin(payload.Group) {
 			err = accountAPI.SQLDBWrites.Unscoped().First(accountDB, "account_id=?", ID).Error
 		} else {
 			err = accountAPI.SQLDBWrites.First(accountDB, "account_id=?", ID).Error
 		}
 	} else {
-		err = accountAPI.SQLDBWrites.First(accountDB, "account_id=?", ID).Error
+		if req.UsePhone {
+			err = accountAPI.SQLDBWrites.First(accountDB, "phone=?", req.AccountId).Error
+		} else if req.UseEmail {
+			err = accountAPI.SQLDBWrites.First(accountDB, "email=?", req.AccountId).Error
+		} else {
+			err = accountAPI.SQLDBWrites.First(accountDB, "account_id=?", ID).Error
+		}
 	}
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return nil, errs.DoesNotExist("account", getReq.AccountId)
+		return nil, errs.DoesNotExist("account", req.AccountId)
 	default:
 		return nil, errs.FailedToFind("account", err)
 	}
 
 	// Account should not be deleted
-	if accountDB.DeletedAt.Valid && !getReq.Priviledge {
-		return nil, errs.DoesExist("account", getReq.AccountId)
+	if accountDB.DeletedAt.Valid && !req.Priviledge {
+		return nil, errs.DoesExist("account", req.AccountId)
 	}
 
 	// Account should not be blocked
-	if accountDB.AccountState == account.AccountState_BLOCKED.String() && !getReq.Priviledge {
+	if accountDB.AccountState == account.AccountState_BLOCKED.String() && !req.Priviledge {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
@@ -813,7 +820,7 @@ func (accountAPI *accountAPIServer) GetAccount(
 		return nil, err
 	}
 
-	return GetAccountPBView(accountPB, getReq.GetView()), nil
+	return GetAccountPBView(accountPB, req.GetView()), nil
 }
 
 func (accountAPI *accountAPIServer) BatchGetAccounts(
@@ -823,7 +830,7 @@ func (accountAPI *accountAPIServer) BatchGetAccounts(
 }
 
 func (accountAPI *accountAPIServer) GetLinkedAccounts(
-	ctx context.Context, getReq *account.GetLinkedAccountsRequest,
+	ctx context.Context, req *account.GetLinkedAccountsRequest,
 ) (*account.GetLinkedAccountsResponse, error) {
 	return nil, nil
 }

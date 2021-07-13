@@ -755,6 +755,18 @@
             "in": "query",
             "required": false,
             "type": "boolean"
+          },
+          {
+            "name": "usePhone",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "useEmail",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [
