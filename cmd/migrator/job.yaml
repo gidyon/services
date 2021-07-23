@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: services-migrator
+  namespace: services
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+        - name: services-db-migrations
+          image: gidyon/services-migrator
+          imagePullPolicy: Always
+          args:
+            - "-db-address=mysql:3306"
+            - "-db-user=fhi"
+            - "-db-schema=fhi"
+            - "-db-password=$(MYSQL_ROOT_PASSWORD)"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: mysql-password
+      restartPolicy: Never
+  backoffLimit: 4
