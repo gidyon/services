@@ -206,6 +206,9 @@ func main() {
 		account.RegisterAccountAPIServer(app.GRPCServer(), accountAPI)
 		errs.Panic(account.RegisterAccountAPIHandler(ctx, app.RuntimeMux(), app.ClientConn()))
 
+		// Downloading users API
+		app.AddEndpointFunc("/api/accounts/downloads/users", downloadUsersHandler(accountAPI, authAPI))
+
 		return nil
 	})
 }
