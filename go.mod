@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/firestore v1.4.0 // indirect
 	cloud.google.com/go/storage v1.13.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
+	github.com/360EntSecGroup-Skylar/excelize v1.4.1
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
@@ -17,6 +18,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0
+	github.com/jszwec/csvutil v1.5.0
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
