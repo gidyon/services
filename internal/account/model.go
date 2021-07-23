@@ -34,8 +34,9 @@ type Account struct {
 	PrimaryGroup     string `gorm:"index;type:varchar(50);not null"`
 	SecondaryGroups  []byte `gorm:"type:json"`
 	AccountState     string `gorm:"index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	LastLogin        time.Time
+	CreatedAt        time.Time `gorm:"autoUpdateTime"`
+	UpdatedAt        time.Time `gorm:"autoCreateTime"`
 	DeletedAt        gorm.DeletedAt
 }
 
@@ -122,6 +123,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		IdNumber:        accountDB.IDNumber,
 		ProfileUrl:      accountDB.ProfileURL,
 		LinkedAccounts:  accountDB.LinkedAccounts,
+		LastLogin:       accountDB.LastLogin.Format(time.RFC3339),
 		CreatedAt:       accountDB.CreatedAt.Format(time.RFC3339),
 		Group:           accountDB.PrimaryGroup,
 		State:           accountState,

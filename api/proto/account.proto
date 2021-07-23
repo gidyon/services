@@ -354,8 +354,10 @@ message Account {
     string profile_url = 13;
     string group = 14;
     string linked_accounts = 15;
-    AccountState state = 16;
-    repeated string secondary_groups = 17;
+	string last_login = 16;
+	string created_at = 17;
+    AccountState state = 18;
+    repeated string secondary_groups = 19;
 }
 
 message PrivateAccount {

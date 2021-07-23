@@ -1569,6 +1569,12 @@
         "linkedAccounts": {
           "type": "string"
         },
+        "lastLogin": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
         "state": {
           "$ref": "#/definitions/apisAccountState"
         },

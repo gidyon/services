@@ -92,6 +92,12 @@ func (accountAPI *accountAPIServer) SignIn(
 		return nil, errs.WrapMessage(codes.Internal, "wrong password")
 	}
 
+	// Update last login
+	err = accountAPI.SQLDBWrites.Model(accountDB).Update("last_login", time.Now()).Error
+	if err != nil {
+		return nil, errs.WrapMessage(codes.Internal, "failed to update last login")
+	}
+
 	return accountAPI.updateSession(ctx, accountDB, signInReq.GetGroup())
 }
 
