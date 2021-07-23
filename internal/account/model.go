@@ -122,6 +122,7 @@ func GetAccountPB(accountDB *Account) (*account.Account, error) {
 		IdNumber:        accountDB.IDNumber,
 		ProfileUrl:      accountDB.ProfileURL,
 		LinkedAccounts:  accountDB.LinkedAccounts,
+		CreatedAt:       accountDB.CreatedAt.Format(time.RFC3339),
 		Group:           accountDB.PrimaryGroup,
 		State:           accountState,
 		SecondaryGroups: secondaryGroups,
