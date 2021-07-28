@@ -35,8 +35,8 @@ type Account struct {
 	SecondaryGroups  []byte `gorm:"type:json"`
 	AccountState     string `gorm:"index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
 	LastLogin        time.Time
-	CreatedAt        time.Time `gorm:"autoUpdateTime"`
-	UpdatedAt        time.Time `gorm:"autoCreateTime"`
+	CreatedAt        time.Time `gorm:"autoCreateTime"`
+	UpdatedAt        time.Time `gorm:"autoUpdateTime"`
 	DeletedAt        gorm.DeletedAt
 }
 
