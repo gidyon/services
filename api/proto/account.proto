@@ -466,7 +466,8 @@ message SignInResponse {
     string refresh_token = 4 [(google.api.field_behavior) = REQUIRED];
     string group = 5;
     AccountState state = 6;
-    repeated string secondary_groups = 16;
+    repeated string secondary_groups = 7;
+	Account account = 8;
 }
 
 message CreateAccountRequest {

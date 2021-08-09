@@ -846,7 +846,8 @@ type SignInResponse struct {
 	RefreshToken    string       `protobuf:"bytes,4,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	Group           string       `protobuf:"bytes,5,opt,name=group,proto3" json:"group,omitempty"`
 	State           AccountState `protobuf:"varint,6,opt,name=state,proto3,enum=gidyon.apis.AccountState" json:"state,omitempty"`
-	SecondaryGroups []string     `protobuf:"bytes,16,rep,name=secondary_groups,json=secondaryGroups,proto3" json:"secondary_groups,omitempty"`
+	SecondaryGroups []string     `protobuf:"bytes,7,rep,name=secondary_groups,json=secondaryGroups,proto3" json:"secondary_groups,omitempty"`
+	Account         *Account     `protobuf:"bytes,8,opt,name=account,proto3" json:"account,omitempty"`
 }
 
 func (x *SignInResponse) Reset() {
@@ -926,6 +927,13 @@ func (x *SignInResponse) GetState() AccountState {
 func (x *SignInResponse) GetSecondaryGroups() []string {
 	if x != nil {
 		return x.SecondaryGroups
+	}
+	return nil
+}
+
+func (x *SignInResponse) GetAccount() *Account {
+	if x != nil {
+		return x.Account
 	}
 	return nil
 }
@@ -2790,7 +2798,7 @@ var file_account_proto_rawDesc = []byte{
 	0x66, 0x72, 0x65, 0x73, 0x68, 0x20, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x20, 0x63, 0x72,
 	0x65, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x61, 0x6c, 0xd2, 0x01, 0x0d, 0x72, 0x65, 0x66, 0x72, 0x65,
 	0x73, 0x68, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0xd2, 0x01, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
-	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0xc1, 0x02, 0x0a, 0x0e, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e,
+	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x22, 0xf1, 0x02, 0x0a, 0x0e, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x22, 0x0a, 0x0a, 0x73, 0x65, 0x73, 0x73,
 	0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x03, 0xe0, 0x41,
 	0x02, 0x52, 0x09, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x22, 0x0a, 0x0a,
@@ -2806,8 +2814,11 @@ var file_account_proto_rawDesc = []byte{
 	0x79, 0x6f, 0x6e, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x2e, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74,
 	0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x12, 0x29, 0x0a, 0x10,
 	0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x61, 0x72, 0x79, 0x5f, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x73,
-	0x18, 0x10, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x61, 0x72,
-	0x79, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x3a, 0x30, 0x92, 0x41, 0x2d, 0x0a, 0x2b, 0x2a, 0x0e,
+	0x18, 0x07, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x61, 0x72,
+	0x79, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x12, 0x2e, 0x0a, 0x07, 0x61, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x69, 0x64, 0x79, 0x6f,
+	0x6e, 0x2e, 0x61, 0x70, 0x69, 0x73, 0x2e, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x07,
+	0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x3a, 0x30, 0x92, 0x41, 0x2d, 0x0a, 0x2b, 0x2a, 0x0e,
 	0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x19,
 	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x20, 0x61, 0x66, 0x74, 0x65, 0x72, 0x20, 0x73,
 	0x69, 0x67, 0x6e, 0x69, 0x6e, 0x67, 0x20, 0x69, 0x6e, 0x22, 0xc6, 0x04, 0x0a, 0x14, 0x43, 0x72,
@@ -3649,77 +3660,78 @@ var file_account_proto_depIdxs = []int32{
 	36, // 2: gidyon.apis.RequestSignInOTPRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
 	4,  // 3: gidyon.apis.SignInExternalRequest.account:type_name -> gidyon.apis.Account
 	0,  // 4: gidyon.apis.SignInResponse.state:type_name -> gidyon.apis.AccountState
-	4,  // 5: gidyon.apis.CreateAccountRequest.account:type_name -> gidyon.apis.Account
-	5,  // 6: gidyon.apis.CreateAccountRequest.private_account:type_name -> gidyon.apis.PrivateAccount
-	37, // 7: gidyon.apis.CreateAccountRequest.notification_method:type_name -> gidyon.apis.SendMethod
-	38, // 8: gidyon.apis.CreateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
-	36, // 9: gidyon.apis.CreateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
-	4,  // 10: gidyon.apis.UpdateAccountRequest.account:type_name -> gidyon.apis.Account
-	37, // 11: gidyon.apis.RequestChangePrivateAccountRequest.send_method:type_name -> gidyon.apis.SendMethod
-	38, // 12: gidyon.apis.RequestChangePrivateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
-	36, // 13: gidyon.apis.RequestChangePrivateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
-	5,  // 14: gidyon.apis.UpdatePrivateAccountRequest.private_account:type_name -> gidyon.apis.PrivateAccount
-	5,  // 15: gidyon.apis.UpdatePrivateAccountExternalRequest.private_account:type_name -> gidyon.apis.PrivateAccount
-	1,  // 16: gidyon.apis.GetAccountRequest.view:type_name -> gidyon.apis.AccountView
-	4,  // 17: gidyon.apis.BatchGetAccountsResponse.accounts:type_name -> gidyon.apis.Account
-	4,  // 18: gidyon.apis.GetLinkedAccountsResponse.accounts:type_name -> gidyon.apis.Account
-	4,  // 19: gidyon.apis.Accounts.accounts:type_name -> gidyon.apis.Account
-	2,  // 20: gidyon.apis.AdminUpdateAccountRequest.update_operation:type_name -> gidyon.apis.UpdateOperation
-	37, // 21: gidyon.apis.AdminUpdateAccountRequest.send_method:type_name -> gidyon.apis.SendMethod
-	38, // 22: gidyon.apis.AdminUpdateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
-	36, // 23: gidyon.apis.AdminUpdateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
-	31, // 24: gidyon.apis.ListAccountsRequest.list_criteria:type_name -> gidyon.apis.Criteria
-	1,  // 25: gidyon.apis.ListAccountsRequest.view:type_name -> gidyon.apis.AccountView
-	31, // 26: gidyon.apis.SearchAccountsRequest.search_criteria:type_name -> gidyon.apis.Criteria
-	1,  // 27: gidyon.apis.SearchAccountsRequest.view:type_name -> gidyon.apis.AccountView
-	36, // 28: gidyon.apis.RequestActivateAccountOTPRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
-	7,  // 29: gidyon.apis.AccountAPI.RequestSignInOTP:input_type -> gidyon.apis.RequestSignInOTPRequest
-	8,  // 30: gidyon.apis.AccountAPI.SignInOTP:input_type -> gidyon.apis.SignInOTPRequest
-	6,  // 31: gidyon.apis.AccountAPI.SignIn:input_type -> gidyon.apis.SignInRequest
-	9,  // 32: gidyon.apis.AccountAPI.SignInExternal:input_type -> gidyon.apis.SignInExternalRequest
-	10, // 33: gidyon.apis.AccountAPI.RefreshSession:input_type -> gidyon.apis.RefreshSessionRequest
-	12, // 34: gidyon.apis.AccountAPI.CreateAccount:input_type -> gidyon.apis.CreateAccountRequest
-	14, // 35: gidyon.apis.AccountAPI.ActivateAccount:input_type -> gidyon.apis.ActivateAccountRequest
-	34, // 36: gidyon.apis.AccountAPI.RequestActivateAccountOTP:input_type -> gidyon.apis.RequestActivateAccountOTPRequest
-	35, // 37: gidyon.apis.AccountAPI.ActivateAccountOTP:input_type -> gidyon.apis.ActivateAccountOTPRequest
-	16, // 38: gidyon.apis.AccountAPI.UpdateAccount:input_type -> gidyon.apis.UpdateAccountRequest
-	17, // 39: gidyon.apis.AccountAPI.RequestChangePrivateAccount:input_type -> gidyon.apis.RequestChangePrivateAccountRequest
-	19, // 40: gidyon.apis.AccountAPI.UpdatePrivateAccount:input_type -> gidyon.apis.UpdatePrivateAccountRequest
-	20, // 41: gidyon.apis.AccountAPI.UpdatePrivateAccountExternal:input_type -> gidyon.apis.UpdatePrivateAccountExternalRequest
-	21, // 42: gidyon.apis.AccountAPI.DeleteAccount:input_type -> gidyon.apis.DeleteAccountRequest
-	22, // 43: gidyon.apis.AccountAPI.GetAccount:input_type -> gidyon.apis.GetAccountRequest
-	23, // 44: gidyon.apis.AccountAPI.BatchGetAccounts:input_type -> gidyon.apis.BatchGetAccountsRequest
-	25, // 45: gidyon.apis.AccountAPI.GetLinkedAccounts:input_type -> gidyon.apis.GetLinkedAccountsRequest
-	27, // 46: gidyon.apis.AccountAPI.ExistAccount:input_type -> gidyon.apis.ExistAccountRequest
-	30, // 47: gidyon.apis.AccountAPI.AdminUpdateAccount:input_type -> gidyon.apis.AdminUpdateAccountRequest
-	32, // 48: gidyon.apis.AccountAPI.ListAccounts:input_type -> gidyon.apis.ListAccountsRequest
-	33, // 49: gidyon.apis.AccountAPI.SearchAccounts:input_type -> gidyon.apis.SearchAccountsRequest
-	39, // 50: gidyon.apis.AccountAPI.RequestSignInOTP:output_type -> google.protobuf.Empty
-	11, // 51: gidyon.apis.AccountAPI.SignInOTP:output_type -> gidyon.apis.SignInResponse
-	11, // 52: gidyon.apis.AccountAPI.SignIn:output_type -> gidyon.apis.SignInResponse
-	11, // 53: gidyon.apis.AccountAPI.SignInExternal:output_type -> gidyon.apis.SignInResponse
-	11, // 54: gidyon.apis.AccountAPI.RefreshSession:output_type -> gidyon.apis.SignInResponse
-	13, // 55: gidyon.apis.AccountAPI.CreateAccount:output_type -> gidyon.apis.CreateAccountResponse
-	15, // 56: gidyon.apis.AccountAPI.ActivateAccount:output_type -> gidyon.apis.ActivateAccountResponse
-	39, // 57: gidyon.apis.AccountAPI.RequestActivateAccountOTP:output_type -> google.protobuf.Empty
-	15, // 58: gidyon.apis.AccountAPI.ActivateAccountOTP:output_type -> gidyon.apis.ActivateAccountResponse
-	39, // 59: gidyon.apis.AccountAPI.UpdateAccount:output_type -> google.protobuf.Empty
-	18, // 60: gidyon.apis.AccountAPI.RequestChangePrivateAccount:output_type -> gidyon.apis.RequestChangePrivateAccountResponse
-	39, // 61: gidyon.apis.AccountAPI.UpdatePrivateAccount:output_type -> google.protobuf.Empty
-	39, // 62: gidyon.apis.AccountAPI.UpdatePrivateAccountExternal:output_type -> google.protobuf.Empty
-	39, // 63: gidyon.apis.AccountAPI.DeleteAccount:output_type -> google.protobuf.Empty
-	4,  // 64: gidyon.apis.AccountAPI.GetAccount:output_type -> gidyon.apis.Account
-	24, // 65: gidyon.apis.AccountAPI.BatchGetAccounts:output_type -> gidyon.apis.BatchGetAccountsResponse
-	26, // 66: gidyon.apis.AccountAPI.GetLinkedAccounts:output_type -> gidyon.apis.GetLinkedAccountsResponse
-	28, // 67: gidyon.apis.AccountAPI.ExistAccount:output_type -> gidyon.apis.ExistAccountResponse
-	39, // 68: gidyon.apis.AccountAPI.AdminUpdateAccount:output_type -> google.protobuf.Empty
-	29, // 69: gidyon.apis.AccountAPI.ListAccounts:output_type -> gidyon.apis.Accounts
-	29, // 70: gidyon.apis.AccountAPI.SearchAccounts:output_type -> gidyon.apis.Accounts
-	50, // [50:71] is the sub-list for method output_type
-	29, // [29:50] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	4,  // 5: gidyon.apis.SignInResponse.account:type_name -> gidyon.apis.Account
+	4,  // 6: gidyon.apis.CreateAccountRequest.account:type_name -> gidyon.apis.Account
+	5,  // 7: gidyon.apis.CreateAccountRequest.private_account:type_name -> gidyon.apis.PrivateAccount
+	37, // 8: gidyon.apis.CreateAccountRequest.notification_method:type_name -> gidyon.apis.SendMethod
+	38, // 9: gidyon.apis.CreateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
+	36, // 10: gidyon.apis.CreateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
+	4,  // 11: gidyon.apis.UpdateAccountRequest.account:type_name -> gidyon.apis.Account
+	37, // 12: gidyon.apis.RequestChangePrivateAccountRequest.send_method:type_name -> gidyon.apis.SendMethod
+	38, // 13: gidyon.apis.RequestChangePrivateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
+	36, // 14: gidyon.apis.RequestChangePrivateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
+	5,  // 15: gidyon.apis.UpdatePrivateAccountRequest.private_account:type_name -> gidyon.apis.PrivateAccount
+	5,  // 16: gidyon.apis.UpdatePrivateAccountExternalRequest.private_account:type_name -> gidyon.apis.PrivateAccount
+	1,  // 17: gidyon.apis.GetAccountRequest.view:type_name -> gidyon.apis.AccountView
+	4,  // 18: gidyon.apis.BatchGetAccountsResponse.accounts:type_name -> gidyon.apis.Account
+	4,  // 19: gidyon.apis.GetLinkedAccountsResponse.accounts:type_name -> gidyon.apis.Account
+	4,  // 20: gidyon.apis.Accounts.accounts:type_name -> gidyon.apis.Account
+	2,  // 21: gidyon.apis.AdminUpdateAccountRequest.update_operation:type_name -> gidyon.apis.UpdateOperation
+	37, // 22: gidyon.apis.AdminUpdateAccountRequest.send_method:type_name -> gidyon.apis.SendMethod
+	38, // 23: gidyon.apis.AdminUpdateAccountRequest.sender:type_name -> gidyon.apis.EmailSender
+	36, // 24: gidyon.apis.AdminUpdateAccountRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
+	31, // 25: gidyon.apis.ListAccountsRequest.list_criteria:type_name -> gidyon.apis.Criteria
+	1,  // 26: gidyon.apis.ListAccountsRequest.view:type_name -> gidyon.apis.AccountView
+	31, // 27: gidyon.apis.SearchAccountsRequest.search_criteria:type_name -> gidyon.apis.Criteria
+	1,  // 28: gidyon.apis.SearchAccountsRequest.view:type_name -> gidyon.apis.AccountView
+	36, // 29: gidyon.apis.RequestActivateAccountOTPRequest.sms_auth:type_name -> gidyon.apis.SendSMSRequest.SMSAuth
+	7,  // 30: gidyon.apis.AccountAPI.RequestSignInOTP:input_type -> gidyon.apis.RequestSignInOTPRequest
+	8,  // 31: gidyon.apis.AccountAPI.SignInOTP:input_type -> gidyon.apis.SignInOTPRequest
+	6,  // 32: gidyon.apis.AccountAPI.SignIn:input_type -> gidyon.apis.SignInRequest
+	9,  // 33: gidyon.apis.AccountAPI.SignInExternal:input_type -> gidyon.apis.SignInExternalRequest
+	10, // 34: gidyon.apis.AccountAPI.RefreshSession:input_type -> gidyon.apis.RefreshSessionRequest
+	12, // 35: gidyon.apis.AccountAPI.CreateAccount:input_type -> gidyon.apis.CreateAccountRequest
+	14, // 36: gidyon.apis.AccountAPI.ActivateAccount:input_type -> gidyon.apis.ActivateAccountRequest
+	34, // 37: gidyon.apis.AccountAPI.RequestActivateAccountOTP:input_type -> gidyon.apis.RequestActivateAccountOTPRequest
+	35, // 38: gidyon.apis.AccountAPI.ActivateAccountOTP:input_type -> gidyon.apis.ActivateAccountOTPRequest
+	16, // 39: gidyon.apis.AccountAPI.UpdateAccount:input_type -> gidyon.apis.UpdateAccountRequest
+	17, // 40: gidyon.apis.AccountAPI.RequestChangePrivateAccount:input_type -> gidyon.apis.RequestChangePrivateAccountRequest
+	19, // 41: gidyon.apis.AccountAPI.UpdatePrivateAccount:input_type -> gidyon.apis.UpdatePrivateAccountRequest
+	20, // 42: gidyon.apis.AccountAPI.UpdatePrivateAccountExternal:input_type -> gidyon.apis.UpdatePrivateAccountExternalRequest
+	21, // 43: gidyon.apis.AccountAPI.DeleteAccount:input_type -> gidyon.apis.DeleteAccountRequest
+	22, // 44: gidyon.apis.AccountAPI.GetAccount:input_type -> gidyon.apis.GetAccountRequest
+	23, // 45: gidyon.apis.AccountAPI.BatchGetAccounts:input_type -> gidyon.apis.BatchGetAccountsRequest
+	25, // 46: gidyon.apis.AccountAPI.GetLinkedAccounts:input_type -> gidyon.apis.GetLinkedAccountsRequest
+	27, // 47: gidyon.apis.AccountAPI.ExistAccount:input_type -> gidyon.apis.ExistAccountRequest
+	30, // 48: gidyon.apis.AccountAPI.AdminUpdateAccount:input_type -> gidyon.apis.AdminUpdateAccountRequest
+	32, // 49: gidyon.apis.AccountAPI.ListAccounts:input_type -> gidyon.apis.ListAccountsRequest
+	33, // 50: gidyon.apis.AccountAPI.SearchAccounts:input_type -> gidyon.apis.SearchAccountsRequest
+	39, // 51: gidyon.apis.AccountAPI.RequestSignInOTP:output_type -> google.protobuf.Empty
+	11, // 52: gidyon.apis.AccountAPI.SignInOTP:output_type -> gidyon.apis.SignInResponse
+	11, // 53: gidyon.apis.AccountAPI.SignIn:output_type -> gidyon.apis.SignInResponse
+	11, // 54: gidyon.apis.AccountAPI.SignInExternal:output_type -> gidyon.apis.SignInResponse
+	11, // 55: gidyon.apis.AccountAPI.RefreshSession:output_type -> gidyon.apis.SignInResponse
+	13, // 56: gidyon.apis.AccountAPI.CreateAccount:output_type -> gidyon.apis.CreateAccountResponse
+	15, // 57: gidyon.apis.AccountAPI.ActivateAccount:output_type -> gidyon.apis.ActivateAccountResponse
+	39, // 58: gidyon.apis.AccountAPI.RequestActivateAccountOTP:output_type -> google.protobuf.Empty
+	15, // 59: gidyon.apis.AccountAPI.ActivateAccountOTP:output_type -> gidyon.apis.ActivateAccountResponse
+	39, // 60: gidyon.apis.AccountAPI.UpdateAccount:output_type -> google.protobuf.Empty
+	18, // 61: gidyon.apis.AccountAPI.RequestChangePrivateAccount:output_type -> gidyon.apis.RequestChangePrivateAccountResponse
+	39, // 62: gidyon.apis.AccountAPI.UpdatePrivateAccount:output_type -> google.protobuf.Empty
+	39, // 63: gidyon.apis.AccountAPI.UpdatePrivateAccountExternal:output_type -> google.protobuf.Empty
+	39, // 64: gidyon.apis.AccountAPI.DeleteAccount:output_type -> google.protobuf.Empty
+	4,  // 65: gidyon.apis.AccountAPI.GetAccount:output_type -> gidyon.apis.Account
+	24, // 66: gidyon.apis.AccountAPI.BatchGetAccounts:output_type -> gidyon.apis.BatchGetAccountsResponse
+	26, // 67: gidyon.apis.AccountAPI.GetLinkedAccounts:output_type -> gidyon.apis.GetLinkedAccountsResponse
+	28, // 68: gidyon.apis.AccountAPI.ExistAccount:output_type -> gidyon.apis.ExistAccountResponse
+	39, // 69: gidyon.apis.AccountAPI.AdminUpdateAccount:output_type -> google.protobuf.Empty
+	29, // 70: gidyon.apis.AccountAPI.ListAccounts:output_type -> gidyon.apis.Accounts
+	29, // 71: gidyon.apis.AccountAPI.SearchAccounts:output_type -> gidyon.apis.Accounts
+	51, // [51:72] is the sub-list for method output_type
+	30, // [30:51] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_account_proto_init() }
