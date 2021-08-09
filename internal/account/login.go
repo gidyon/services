@@ -49,7 +49,7 @@ func (accountAPI *accountAPIServer) SignIn(
 	accountDB := &Account{}
 
 	// Query for user with email or phone or huduma id
-	err = accountAPI.SQLDBWrites.Select("account_id,names,email,phone,primary_group,account_state,password,project_id,secondary_groups").First(
+	err = accountAPI.SQLDBWrites.First(
 		accountDB, "(phone=? OR email=?) AND project_id=?", signInReq.Username, signInReq.Username, signInReq.ProjectId,
 	).Error
 	switch {
@@ -173,10 +173,16 @@ func (accountAPI *accountAPIServer) updateSession(
 		}
 	}
 
-	// Set refresh token
+	// Set refresh token ~ Needs cleanup
 	err = accountAPI.RedisDBWrites.SAdd(ctx, refreshTokenSet(), refreshToken, 0).Err()
 	if err != nil {
 		return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to set refresh token")
+	}
+
+	// Get account
+	accountPB, err := GetAccountPB(accountDB)
+	if err != nil {
+		return nil, err
 	}
 
 	// Return token
@@ -187,5 +193,6 @@ func (accountAPI *accountAPIServer) updateSession(
 		State:           account.AccountState(account.AccountState_value[accountDB.AccountState]),
 		Group:           signInGroup,
 		SecondaryGroups: secondaryGroups,
+		Account:         accountPB,
 	}, nil
 }
