@@ -1140,7 +1140,7 @@ func (accountAPI *accountAPIServer) SearchAccounts(
 }
 
 func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
-	if criteria == nil || !criteria.Filter {
+	if criteria == nil {
 		return db
 	}
 
@@ -1185,12 +1185,12 @@ func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
 	}
 
 	// Filter by primary_groups
-	if criteria.FilterAccountGroups {
+	if len(criteria.Groups) != 0 {
 		db = db.Where("primary_group IN (?)", criteria.GetGroups())
 	}
 
 	// Filter by project id
-	if criteria.FilterAccountGroups {
+	if len(criteria.ProjectIds) != 0 {
 		db = db.Where("project_id IN (?)", criteria.GetProjectIds())
 	}
 
