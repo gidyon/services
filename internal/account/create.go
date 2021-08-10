@@ -181,7 +181,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.FailedToCommitTx(err)
 	}
 
-	if !createReq.GetUpdateOnly() && createReq.Notify && accountState != account.AccountState_ACTIVE {
+	if !createReq.GetUpdateOnly() && createReq.Notify {
 		// Generate jwt token with expiration of 6 hours
 		jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,
