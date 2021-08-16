@@ -39,42 +39,58 @@ func NewChannelAPIServer(ctx context.Context, opt *ChannelOptions) (channel.Chan
 	return channel_app.NewChannelAPIServer(ctx, opt)
 }
 
+type LongRunningOptions = longrunning_app.Options
+
 // NewLongRunningAPIServer creates a channel API server
-func NewLongRunningAPIServer(ctx context.Context, opt *longrunning_app.Options) (longrunning.OperationAPIServer, error) {
+func NewLongRunningAPIServer(ctx context.Context, opt *LongRunningOptions) (longrunning.OperationAPIServer, error) {
 	return longrunning_app.NewOperationAPIService(ctx, opt)
 }
 
+type MessagingOptions = messaging_app.Options
+
 // NewMessagingAPIServer creates a messaging API server
-func NewMessagingAPIServer(ctx context.Context, opt *messaging_app.Options) (messaging.MessagingServer, error) {
+func NewMessagingAPIServer(ctx context.Context, opt *MessagingOptions) (messaging.MessagingServer, error) {
 	return messaging_app.NewMessagingServer(ctx, opt)
 }
 
+type CallOptions = call_app.Options
+
 // NewCallAPIServer creates a call API server
-func NewCallAPIServer(ctx context.Context, opt *call_app.Options) (call.CallAPIServer, error) {
+func NewCallAPIServer(ctx context.Context, opt *CallOptions) (call.CallAPIServer, error) {
 	return call_app.NewCallAPIServer(ctx, opt)
 }
 
+type EmailingOptions = emailing_app.Options
+
 // NewEmailingAPIServer creates an emailing API server
-func NewEmailingAPIServer(ctx context.Context, opt *emailing_app.Options) (emailing.EmailingServer, error) {
+func NewEmailingAPIServer(ctx context.Context, opt *EmailingOptions) (emailing.EmailingServer, error) {
 	return emailing_app.NewEmailingAPIServer(ctx, opt)
 }
 
+type PusherOptions = pusher_app.Options
+
 // NewEmailingAPIServer creates FCM pusher API server
-func NewPusherAPIServer(ctx context.Context, opt *pusher_app.Options) (pusher.PushMessagingServer, error) {
+func NewPusherAPIServer(ctx context.Context, opt *PusherOptions) (pusher.PushMessagingServer, error) {
 	return pusher_app.NewPushMessagingServer(ctx, opt)
 }
 
+type SMSOptions = sms_app.Options
+
 // NewSMSAPIServer creates outgoing sms API server
-func NewSMSAPIServer(ctx context.Context, opt *sms_app.Options) (sms.SMSAPIServer, error) {
+func NewSMSAPIServer(ctx context.Context, opt *SMSOptions) (sms.SMSAPIServer, error) {
 	return sms_app.NewSMSAPIServer(ctx, opt)
 }
 
+type SettingsOptions = settings_app.Options
+
 // NewSettingsAPIServer creates a settings API server
-func NewSettingsAPIServer(ctx context.Context, opt *settings_app.Options) (settings.SettingsAPIServer, error) {
+func NewSettingsAPIServer(ctx context.Context, opt *SettingsOptions) (settings.SettingsAPIServer, error) {
 	return settings_app.NewSettingsAPI(ctx, opt)
 }
 
+type SubscriberOptions = subscriber_app.Options
+
 // NewSubscriberAPIServer creates a subscriber API server
-func NewSubscriberAPIServer(ctx context.Context, opt *subscriber_app.Options) (subscriber.SubscriberAPIServer, error) {
+func NewSubscriberAPIServer(ctx context.Context, opt *SubscriberOptions) (subscriber.SubscriberAPIServer, error) {
 	return subscriber_app.NewSubscriberAPIServer(ctx, opt)
 }
