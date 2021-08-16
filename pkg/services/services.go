@@ -25,13 +25,17 @@ import (
 	"github.com/gidyon/services/pkg/api/subscriber"
 )
 
+type AccountOptions = account_app.Options
+
 // NewAccountAPIServer creates account API server
-func NewAccountAPIServer(ctx context.Context, opt *account_app.Options) (account.AccountAPIServer, error) {
+func NewAccountAPIServer(ctx context.Context, opt *AccountOptions) (account.AccountAPIServer, error) {
 	return account_app.NewAccountAPI(ctx, opt)
 }
 
+type ChannelOptions = channel_app.Options
+
 // NewChannelAPIServer creates a channel API server
-func NewChannelAPIServer(ctx context.Context, opt *channel_app.Options) (channel.ChannelAPIServer, error) {
+func NewChannelAPIServer(ctx context.Context, opt *ChannelOptions) (channel.ChannelAPIServer, error) {
 	return channel_app.NewChannelAPIServer(ctx, opt)
 }
 
