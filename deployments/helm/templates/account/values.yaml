@@ -105,6 +105,8 @@ extraEnv:
     value: /app/secrets/firebase/creds
   - name: DB_DEBUG
     value: enabled
+  - name: TOKEN_EXPIRATION_MINUTES
+    value: "5"
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:

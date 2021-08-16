@@ -2174,6 +2174,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "account": {
+          "$ref": "#/definitions/apisAccount"
         }
       },
       "description": "Response after signing in",
