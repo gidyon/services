@@ -60,6 +60,8 @@ type AccountAPIClient interface {
 	ListAccounts(ctx context.Context, in *ListAccountsRequest, opts ...grpc.CallOption) (*Accounts, error)
 	// Searches accounts and linked accounts
 	SearchAccounts(ctx context.Context, in *SearchAccountsRequest, opts ...grpc.CallOption) (*Accounts, error)
+	// Request to get daily users stats
+	DailyRegisteredUsers(ctx context.Context, in *DailyRegisteredUsersRequest, opts ...grpc.CallOption) (*CountStats, error)
 }
 
 type accountAPIClient struct {
@@ -259,6 +261,15 @@ func (c *accountAPIClient) SearchAccounts(ctx context.Context, in *SearchAccount
 	return out, nil
 }
 
+func (c *accountAPIClient) DailyRegisteredUsers(ctx context.Context, in *DailyRegisteredUsersRequest, opts ...grpc.CallOption) (*CountStats, error) {
+	out := new(CountStats)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.AccountAPI/DailyRegisteredUsers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountAPIServer is the server API for AccountAPI service.
 // All implementations must embed UnimplementedAccountAPIServer
 // for forward compatibility
@@ -305,6 +316,8 @@ type AccountAPIServer interface {
 	ListAccounts(context.Context, *ListAccountsRequest) (*Accounts, error)
 	// Searches accounts and linked accounts
 	SearchAccounts(context.Context, *SearchAccountsRequest) (*Accounts, error)
+	// Request to get daily users stats
+	DailyRegisteredUsers(context.Context, *DailyRegisteredUsersRequest) (*CountStats, error)
 	mustEmbedUnimplementedAccountAPIServer()
 }
 
@@ -374,6 +387,9 @@ func (UnimplementedAccountAPIServer) ListAccounts(context.Context, *ListAccounts
 }
 func (UnimplementedAccountAPIServer) SearchAccounts(context.Context, *SearchAccountsRequest) (*Accounts, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchAccounts not implemented")
+}
+func (UnimplementedAccountAPIServer) DailyRegisteredUsers(context.Context, *DailyRegisteredUsersRequest) (*CountStats, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DailyRegisteredUsers not implemented")
 }
 func (UnimplementedAccountAPIServer) mustEmbedUnimplementedAccountAPIServer() {}
 
@@ -766,6 +782,24 @@ func _AccountAPI_SearchAccounts_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountAPI_DailyRegisteredUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DailyRegisteredUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountAPIServer).DailyRegisteredUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.AccountAPI/DailyRegisteredUsers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountAPIServer).DailyRegisteredUsers(ctx, req.(*DailyRegisteredUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "gidyon.apis.AccountAPI",
 	HandlerType: (*AccountAPIServer)(nil),
@@ -853,6 +887,10 @@ var _AccountAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchAccounts",
 			Handler:    _AccountAPI_SearchAccounts_Handler,
+		},
+		{
+			MethodName: "DailyRegisteredUsers",
+			Handler:    _AccountAPI_DailyRegisteredUsers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

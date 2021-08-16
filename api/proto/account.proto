@@ -321,6 +321,54 @@ service AccountAPI {
         };
         option (google.api.method_signature) = "query";
     };
+
+	// Request to get daily users stats
+	rpc DailyRegisteredUsers (DailyRegisteredUsersRequest) returns (CountStats) {
+        option (google.api.http) = {
+            post: "/api/accounts:dailyRegisteredUsers"
+            body: "*"
+        };
+    };
+}
+
+message DailyRegisteredUsersRequest {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		json_schema: {
+			title: "DailyRegisteredUsersRequest"
+			description: "Request to fetch daily registered users stats"
+		}
+    };
+
+    repeated string dates = 1 [(google.api.field_behavior) = REQUIRED];
+    Filter filter = 2;
+	bool date_is_range = 3;
+
+    message Filter {
+        repeated string project_ids = 1;
+    }
+}
+
+message CountStat {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CountStat"
+			description: "Count of something"
+		}
+    };
+
+    int64 count = 1;
+    string date = 2;
+}
+
+message CountStats {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		json_schema: {
+			title: "CountStats"
+			description: "Collection of Count stats"
+		}
+    };
+
+    repeated CountStat stats = 1; 
 }
 
 message Account {
