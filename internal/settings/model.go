@@ -2,6 +2,7 @@ package settings
 
 import (
 	"encoding/json"
+	"os"
 	"time"
 
 	"github.com/gidyon/micro/v2/utils/errs"
@@ -22,6 +23,10 @@ type Model struct {
 
 // TableName is table that stores user settings
 func (*Model) TableName() string {
+	tableName := os.Getenv("SETTINGS_TABLE")
+	if tableName != "" {
+		return tableName
+	}
 	return settingsTable
 }
 

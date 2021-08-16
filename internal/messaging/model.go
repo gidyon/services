@@ -3,6 +3,7 @@ package messaging
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 
 	"google.golang.org/grpc/codes"
@@ -31,6 +32,10 @@ type Message struct {
 
 // TableName returns the name of the table
 func (*Message) TableName() string {
+	tableName := os.Getenv("MESSAGING_TABLE")
+	if tableName != "" {
+		return tableName
+	}
 	return messages
 }
 

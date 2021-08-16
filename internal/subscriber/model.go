@@ -1,6 +1,7 @@
 package subscriber
 
 import (
+	"os"
 	"time"
 
 	"github.com/gidyon/services/pkg/api/account"
@@ -22,6 +23,10 @@ type Subscriber struct {
 
 // TableName returns the name of the table
 func (*Subscriber) TableName() string {
+	tableName := os.Getenv("SUBSCRIBERS_TABLE")
+	if tableName != "" {
+		return tableName
+	}
 	return subscribersTable
 }
 

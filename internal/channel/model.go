@@ -2,6 +2,7 @@ package channel
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gidyon/services/pkg/api/channel"
 	"gorm.io/gorm"
@@ -21,6 +22,10 @@ type Channel struct {
 
 // TableName returns the table name of the channel
 func (*Channel) TableName() string {
+	tableName := os.Getenv("CHANNELS_TABLE")
+	if tableName != "" {
+		return tableName
+	}
 	return channelsTable
 }
 

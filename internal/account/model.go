@@ -3,6 +3,7 @@ package account
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/gidyon/micro/v2/utils/errs"
@@ -42,6 +43,10 @@ type Account struct {
 
 // TableName is the name of the tables
 func (u *Account) TableName() string {
+	tableName := os.Getenv("ACCOUNTS_TABLE")
+	if tableName != "" {
+		return tableName
+	}
 	return accountsTable
 }
 
