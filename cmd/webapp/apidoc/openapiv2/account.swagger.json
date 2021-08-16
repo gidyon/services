@@ -1020,6 +1020,39 @@
         ]
       }
     },
+    "/api/accounts:dailyRegisteredUsers": {
+      "post": {
+        "summary": "Request to get daily users stats",
+        "operationId": "AccountAPI_DailyRegisteredUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisCountStats"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisDailyRegisteredUsersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AccountAPI"
+        ]
+      }
+    },
     "/api/accounts:existAccount": {
       "post": {
         "summary": "Checks if an account exists",
@@ -1468,6 +1501,17 @@
       "default": "GENDER_UNSPECIFIED",
       "title": "Gendern of the account"
     },
+    "DailyRegisteredUsersRequestFilter": {
+      "type": "object",
+      "properties": {
+        "projectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "SendSMSRequestCookie": {
       "type": "object",
       "properties": {
@@ -1739,6 +1783,33 @@
       },
       "title": "BatchGetAccountsResponse"
     },
+    "apisCountStat": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "int64"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "description": "Count of something",
+      "title": "CountStat"
+    },
+    "apisCountStats": {
+      "type": "object",
+      "properties": {
+        "stats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisCountStat"
+          }
+        }
+      },
+      "description": "Collection of Count stats",
+      "title": "CountStats"
+    },
     "apisCreateAccountRequest": {
       "type": "object",
       "properties": {
@@ -1839,6 +1910,25 @@
       },
       "description": "Filtering criteria for fetching collection of accounts",
       "title": "Criteria"
+    },
+    "apisDailyRegisteredUsersRequest": {
+      "type": "object",
+      "properties": {
+        "dates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "filter": {
+          "$ref": "#/definitions/DailyRegisteredUsersRequestFilter"
+        },
+        "dateIsRange": {
+          "type": "boolean"
+        }
+      },
+      "description": "Request to fetch daily registered users stats",
+      "title": "DailyRegisteredUsersRequest"
     },
     "apisEmailSender": {
       "type": "object",

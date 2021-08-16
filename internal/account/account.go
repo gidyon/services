@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc/metadata"
@@ -26,6 +27,7 @@ import (
 	"github.com/gidyon/services/internal/pkg/fauth"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/messaging"
+	"github.com/gidyon/services/pkg/utils/timeutil"
 
 	redis "github.com/go-redis/redis/v8"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -36,7 +38,7 @@ import (
 const templateName = "base"
 
 type accountAPIServer struct {
-	account.UnimplementedAccountAPIServer
+	account.UnsafeAccountAPIServer
 	activationURL string
 	tpl           *template.Template
 	*Options
@@ -1195,4 +1197,75 @@ func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
 	}
 
 	return db
+}
+
+func (accountAPI *accountAPIServer) DailyRegisteredUsers(
+	ctx context.Context, req *account.DailyRegisteredUsersRequest,
+) (*account.CountStats, error) {
+	// Validation
+	switch {
+	case req == nil:
+		return nil, errs.MissingField("request")
+	case len(req.Dates) == 0:
+		return nil, errs.MissingField("dates")
+	}
+
+	var (
+		wg    = &sync.WaitGroup{}
+		mu    = &sync.Mutex{} // guards stats
+		stats = make([]*account.CountStat, 0, len(req.Dates))
+	)
+
+	if req.DateIsRange {
+		dates, err := timeutil.GetDateRanges(req.Dates[0], req.Dates[1])
+		if err != nil {
+			return nil, err
+		}
+
+		req.Dates = dates
+	}
+
+	for _, date := range req.Dates {
+		wg.Add(1)
+
+		go func(date string) {
+			defer wg.Done()
+
+			dateTime, err := timeutil.GetDateFromString(date)
+			if err != nil {
+				accountAPI.Logger.Errorf("FAILED DailyRegisteredUsers: %v", err)
+				return
+			}
+
+			db := accountAPI.SQLDBReads.Model(&Account{}).Where("created_at BETWEEN ? AND ?", dateTime, dateTime.Add(24*time.Hour))
+			if req.Filter != nil {
+				if len(req.Filter.ProjectIds) != 0 {
+					db = db.Where("project_id IN (?)", req.Filter.ProjectIds)
+				}
+			}
+
+			var count int64
+
+			// Get count of new users
+			err = db.Count(&count).Error
+			if err != nil {
+				accountAPI.Logger.Errorf("FAILED Count: %v", err)
+				return
+			}
+
+			mu.Lock()
+			stats = append(stats, &account.CountStat{
+				Date:  date,
+				Count: count,
+			})
+			mu.Unlock()
+		}(date)
+	}
+
+	// Wait for results
+	wg.Wait()
+
+	return &account.CountStats{
+		Stats: stats,
+	}, nil
 }
