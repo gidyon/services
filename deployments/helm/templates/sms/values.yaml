@@ -94,11 +94,6 @@ extraEnv:
       secretKeyRef:
         name: sms-credentials
         key: sms-api-key
-  - name: SMS_AUTH_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-auth-token
   - name: SMS_API_USERNAME
     valueFrom:
       secretKeyRef:
@@ -118,7 +113,7 @@ extraEnv:
     valueFrom:
       secretKeyRef:
         name: sms-credentials
-        key: sms-access-token
+        key: sms-access-key
   - name: SENDER_ID
     valueFrom:
       secretKeyRef:
