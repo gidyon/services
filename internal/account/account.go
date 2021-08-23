@@ -1188,12 +1188,22 @@ func generateWhereCondition(db *gorm.DB, criteria *account.Criteria) *gorm.DB {
 
 	// Filter by primary_groups
 	if len(criteria.Groups) != 0 {
-		db = db.Where("primary_group IN (?)", criteria.GetGroups())
+		db = db.Where("primary_group IN (?)", criteria.Groups)
 	}
 
 	// Filter by project id
 	if len(criteria.ProjectIds) != 0 {
-		db = db.Where("project_id IN (?)", criteria.GetProjectIds())
+		db = db.Where("project_id IN (?)", criteria.ProjectIds)
+	}
+
+	// Filter by phones
+	if len(criteria.Phones) != 0 {
+		db = db.Where("phone IN (?)", criteria.Phones)
+	}
+
+	// Filter by email
+	if len(criteria.Emails) != 0 {
+		db = db.Where("email IN (?)", criteria.Emails)
 	}
 
 	return db

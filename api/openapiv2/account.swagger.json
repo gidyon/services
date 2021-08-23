@@ -140,6 +140,26 @@
             "collectionFormat": "multi"
           },
           {
+            "name": "listCriteria.phones",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "listCriteria.emails",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "name": "view",
             "in": "query",
             "required": false,
@@ -579,6 +599,26 @@
           },
           {
             "name": "searchCriteria.projectIds",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "searchCriteria.phones",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "searchCriteria.emails",
             "in": "query",
             "required": false,
             "type": "array",
@@ -1902,6 +1942,18 @@
           }
         },
         "projectIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "emails": {
           "type": "array",
           "items": {
             "type": "string"

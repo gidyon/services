@@ -821,6 +821,8 @@ message Criteria {
     bool filter_account_groups = 10;
     repeated string groups = 11;
 	repeated string project_ids = 12;
+	repeated string phones = 13;
+	repeated string emails = 14;
 }
 
 message ListAccountsRequest {
