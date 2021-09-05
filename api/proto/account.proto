@@ -777,6 +777,7 @@ enum UpdateOperation {
     CHANGE_GROUP = 5;
     ADMIN_ACTIVATE = 6;
     PASSWORD_RESET = 7;
+	CHANGE_PRIMARY_GROUP = 8;
 }
 
 message AdminUpdateAccountRequest {

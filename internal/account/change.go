@@ -209,6 +209,28 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 			"Hello %s, your account has been added to the following groups %s", fullName, updateReq.Payload,
 		)
 
+	case account.UpdateOperation_CHANGE_PRIMARY_GROUP:
+		// The state must be active in order to change group it
+		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
+			tx.Rollback()
+			return nil, errs.WrapMessage(codes.FailedPrecondition, "account to change group is not active")
+		}
+		if len(updateReq.Payload) == 0 {
+			return nil, errs.WrapMessage(codes.InvalidArgument, "missing group")
+		}
+		group := updateReq.Payload[0]
+		// Update the model
+		err = tx.Update("primary_group", group).Error
+		if err != nil {
+			tx.Rollback()
+			return nil, errs.WrapErrorWithMsg(err, "failed to update primary group")
+		}
+		messageType = messaging.MessageType_INFO
+		title = fmt.Sprintf("Your Group Has Been Changed To %s", group)
+		data = fmt.Sprintf(
+			"Hello %s, your account group has been updated to %s", fullName, group,
+		)
+
 	case account.UpdateOperation_ADMIN_ACTIVATE:
 		err = tx.Update("account_state", account.AccountState_ACTIVE.String()).Error
 		if err != nil {

@@ -2347,7 +2347,8 @@
         "BLOCK",
         "CHANGE_GROUP",
         "ADMIN_ACTIVATE",
-        "PASSWORD_RESET"
+        "PASSWORD_RESET",
+        "CHANGE_PRIMARY_GROUP"
       ],
       "default": "UPDATE_OPERATION_INSPECIFIED",
       "title": "UpdateOperation"
