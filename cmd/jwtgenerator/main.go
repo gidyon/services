@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	jwtKey = flag.String("jwt-key", "", "Key to use for signing JWT")
+	jwtKey        = flag.String("jwt-key", "", "Key to use for signing JWT")
+	expireSeconds = flag.Int("expire-sec", (60 * 60 * 24 * 365 * 5), "Time in seconds when jwt should expire")
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 		PhoneNumber:  "xxxxxx",
 		EmailAddress: "xxxxxx",
 		Group:        auth.DefaultAdminGroup(),
-	}, time.Now().Add(100*24*time.Hour))
+	}, time.Now().Add(time.Second*time.Duration(*expireSeconds)))
 	errs.Panic(err)
 
 	fmt.Println(token)
