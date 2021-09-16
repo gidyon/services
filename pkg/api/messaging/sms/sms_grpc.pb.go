@@ -20,6 +20,10 @@ const _ = grpc.SupportPackageIsVersion7
 type SMSAPIClient interface {
 	// Send an sms to its destination(s)
 	SendSMS(ctx context.Context, in *SendSMSRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Create a sender id credential
+	CreateSenderCredential(ctx context.Context, in *CreateSenderCredentialsRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// Get a sender id credential
+	GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredetial, error)
 }
 
 type sMSAPIClient struct {
@@ -39,12 +43,34 @@ func (c *sMSAPIClient) SendSMS(ctx context.Context, in *SendSMSRequest, opts ...
 	return out, nil
 }
 
+func (c *sMSAPIClient) CreateSenderCredential(ctx context.Context, in *CreateSenderCredentialsRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.SMSAPI/CreateSenderCredential", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sMSAPIClient) GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredetial, error) {
+	out := new(SenderCredetial)
+	err := c.cc.Invoke(ctx, "/gidyon.apis.SMSAPI/GetSenderCredential", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SMSAPIServer is the server API for SMSAPI service.
 // All implementations must embed UnimplementedSMSAPIServer
 // for forward compatibility
 type SMSAPIServer interface {
 	// Send an sms to its destination(s)
 	SendSMS(context.Context, *SendSMSRequest) (*empty.Empty, error)
+	// Create a sender id credential
+	CreateSenderCredential(context.Context, *CreateSenderCredentialsRequest) (*empty.Empty, error)
+	// Get a sender id credential
+	GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredetial, error)
 	mustEmbedUnimplementedSMSAPIServer()
 }
 
@@ -54,6 +80,12 @@ type UnimplementedSMSAPIServer struct {
 
 func (UnimplementedSMSAPIServer) SendSMS(context.Context, *SendSMSRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendSMS not implemented")
+}
+func (UnimplementedSMSAPIServer) CreateSenderCredential(context.Context, *CreateSenderCredentialsRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSenderCredential not implemented")
+}
+func (UnimplementedSMSAPIServer) GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredetial, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSenderCredential not implemented")
 }
 func (UnimplementedSMSAPIServer) mustEmbedUnimplementedSMSAPIServer() {}
 
@@ -86,6 +118,42 @@ func _SMSAPI_SendSMS_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SMSAPI_CreateSenderCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSenderCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SMSAPIServer).CreateSenderCredential(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.SMSAPI/CreateSenderCredential",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SMSAPIServer).CreateSenderCredential(ctx, req.(*CreateSenderCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SMSAPI_GetSenderCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSenderCredentialRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SMSAPIServer).GetSenderCredential(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gidyon.apis.SMSAPI/GetSenderCredential",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SMSAPIServer).GetSenderCredential(ctx, req.(*GetSenderCredentialRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SMSAPI_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "gidyon.apis.SMSAPI",
 	HandlerType: (*SMSAPIServer)(nil),
@@ -93,6 +161,14 @@ var _SMSAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendSMS",
 			Handler:    _SMSAPI_SendSMS_Handler,
+		},
+		{
+			MethodName: "CreateSenderCredential",
+			Handler:    _SMSAPI_CreateSenderCredential_Handler,
+		},
+		{
+			MethodName: "GetSenderCredential",
+			Handler:    _SMSAPI_GetSenderCredential_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

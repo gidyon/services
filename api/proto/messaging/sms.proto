@@ -9,6 +9,30 @@ import "google/api/field_behaviour.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+// Sends SMS to destination phone(s)
+service SMSAPI {
+    // Send an sms to its destination(s)
+    rpc SendSMS (SendSMSRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            get: "/api/sms:sendSMS"
+        };
+    };
+
+	// Create a sender id credential
+	rpc CreateSenderCredential (CreateSenderCredentialsRequest) returns (google.protobuf.Empty) {
+		option (google.api.http) = {
+            post: "/api/sms/credentials"
+        };
+	};
+
+	// Get a sender id credential
+	rpc GetSenderCredential (GetSenderCredentialRequest) returns (SenderCredetial)  {
+		option (google.api.http) = {
+            get: "/api/sms/credentials/{credential_id}"
+        };
+	};
+}
+
 enum SmsProvider {
 	ONFON = 0;
 }
@@ -27,6 +51,23 @@ message SMS {
     string message = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+message Cookie {
+	string name = 1;
+	string value = 2;
+}
+
+message SMSAuth {
+	// [sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]
+	string api_url = 1;
+	string sender_id = 2;
+	string api_key = 3;
+	string client_id = 4;
+	string auth_token = 5;
+	string access_key = 6;
+	repeated Cookie cookies = 7;
+	string app_name = 8 [(google.api.field_behavior) = OPTIONAL];
+}
+
 message SendSMSRequest {
 	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
 		json_schema: {
@@ -37,36 +78,24 @@ message SendSMSRequest {
 	};
 	
 	SMS sms = 1;
-	
-	message Cookie {
-		string name = 1;
-		string value = 2;
-	}
-
-	message SMSAuth {
-		// [sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]
-		string api_url = 1;
-		string sender_id = 2;
-		string api_key = 3;
-		string client_id = 4;
-		string auth_token = 5;
-		string access_key = 6;
-		repeated Cookie cookies = 7;
-		string app_name = 8 [(google.api.field_behavior) = OPTIONAL];
-	}
-
 	SMSAuth auth = 2;
 	SmsProvider provider = 3;
+	string project_id = 4;
+	bool fetch_sender = 5;
 }
 
-// Sends SMS to destination phone(s)
-service SMSAPI {
-    // Send an sms to its destination(s)
-    rpc SendSMS (SendSMSRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            get: "/api/sms:sendSMS"
-        };
-    };
+message SenderCredetial {
+	string credential_id = 1;
+	string project_id = 2;
+	SMSAuth auth = 3;
+}
+
+message CreateSenderCredentialsRequest {
+	SenderCredetial credential = 1;
+}
+
+message GetSenderCredentialRequest {
+	string credential_id = 1;
 }
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
