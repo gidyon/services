@@ -23,6 +23,7 @@ import (
 	"github.com/gidyon/micro/v2/utils/encryption"
 
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
+	"github.com/gidyon/services/internal/pkg/fauth"
 
 	account_app "github.com/gidyon/services/internal/account"
 
@@ -161,14 +162,19 @@ func main() {
 		messagingCC, err := app.ExternalServiceConn("messaging")
 		errs.Panic(err)
 
-		// Firebase app
-		opt := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
-		firebaseApp, err := firebase.NewApp(ctx, nil, opt)
-		errs.Panic(err)
+		var firebaseAuth fauth.FirebaseAuthClient
 
-		// Firebase auth
-		firebaseAuth, err := firebaseApp.Auth(ctx)
-		errs.Panic(err)
+		// Firebase app
+		credFile := os.Getenv("FIREBASE_CREDENTIALS_FILE")
+		if credFile != "" {
+			opt := option.WithCredentialsFile(os.Getenv("FIREBASE_CREDENTIALS_FILE"))
+			firebaseApp, err := firebase.NewApp(ctx, nil, opt)
+			errs.Panic(err)
+
+			// Firebase auth
+			firebaseAuth, err = firebaseApp.Auth(ctx)
+			errs.Panic(err)
+		}
 
 		// Pagination hasher
 		paginationHasher, err := encryption.NewHasher(string(jwtKey))
