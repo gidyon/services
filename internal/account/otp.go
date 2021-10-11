@@ -92,7 +92,9 @@ func (accountAPI *accountAPIServer) RequestSignInOTP(
 			Type:        messaging.MessageType_INFO,
 			SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2},
 		},
-		SmsAuth: req.GetSmsAuth(),
+		SmsAuth:         req.GetSmsAuth(),
+		SmsCredentialId: req.SmsCredentialId,
+		FetchSmsAuth:    req.FetchSmsAuth,
 	})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to send otp to phone")
@@ -266,7 +268,9 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 			Type:        messaging.MessageType_INFO,
 			SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2},
 		},
-		SmsAuth: req.GetSmsAuth(),
+		SmsAuth:         req.GetSmsAuth(),
+		SmsCredentialId: req.SmsCredentialId,
+		FetchSmsAuth:    req.FetchSmsAuth,
 	})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to send otp to phone")

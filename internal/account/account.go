@@ -75,10 +75,10 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		err = errs.MissingField("app name")
 	case opt.EmailDisplayName == "":
 		err = errs.MissingField("email display name")
-	case opt.TemplatesDir == "":
-		err = errs.MissingField("templates directory")
-	case opt.ActivationURL == "":
-		err = errs.MissingField("activation url")
+	// case opt.TemplatesDir == "":
+	// 	err = errs.MissingField("templates directory")
+	// case opt.ActivationURL == "":
+	// 	err = errs.MissingField("activation url")
 	case opt.PaginationHasher == nil:
 		err = errs.MissingField("pagination PaginationHasher")
 	case opt.AuthAPI == nil:
@@ -95,8 +95,8 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		err = errs.NilObject("Logger")
 	case opt.MessagingClient == nil:
 		err = errs.NilObject("messaging client")
-	case opt.FirebaseAuth == nil:
-		err = errs.NilObject("firebase auth")
+		// case opt.FirebaseAuth == nil:
+		// 	err = errs.NilObject("firebase auth")
 	}
 	if err != nil {
 		return nil, err
@@ -108,16 +108,18 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 		Options:       opt,
 	}
 
-	// Read template files from directory
-	tFiles, err := templateutil.ReadFiles(opt.TemplatesDir)
-	if err != nil {
-		return nil, errs.WrapErrorWithMsg(err, "failed to read template files in directory")
-	}
+	if opt.TemplatesDir != "" {
+		// Read template files from directory
+		tFiles, err := templateutil.ReadFiles(opt.TemplatesDir)
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to read template files in directory")
+		}
 
-	// Parse template
-	accountAPI.tpl, err = templateutil.ParseTemplate(tFiles...)
-	if err != nil {
-		return nil, errs.WrapErrorWithMsg(err, "failed to parse template")
+		// Parse template
+		accountAPI.tpl, err = templateutil.ParseTemplate(tFiles...)
+		if err != nil {
+			return nil, errs.WrapErrorWithMsg(err, "failed to parse template")
+		}
 	}
 
 	// Perform auto migration
@@ -142,6 +144,10 @@ func NewAccountAPI(ctx context.Context, opt *Options) (account.AccountAPIServer,
 func (accountAPI *accountAPIServer) SignInExternal(
 	ctx context.Context, signInReq *account.SignInExternalRequest,
 ) (*account.SignInResponse, error) {
+	if accountAPI.FirebaseAuth == nil {
+		return nil, errs.WrapMessage(codes.Unavailable, "firebase auth not available")
+	}
+
 	// Validation
 	var err error
 	switch {
@@ -509,8 +515,10 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 			Type:        messaging.MessageType_ALERT,
 			SendMethods: []messaging.SendMethod{req.SendMethod},
 		},
-		Sender:  req.GetSender(),
-		SmsAuth: req.GetSmsAuth(),
+		Sender:          req.GetSender(),
+		SmsAuth:         req.GetSmsAuth(),
+		SmsCredentialId: req.SmsCredentialId,
+		FetchSmsAuth:    req.FetchSmsAuth,
 	})
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to send message")

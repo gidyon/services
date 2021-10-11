@@ -96,10 +96,10 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 }
 
 func (accountAPI *accountAPIServer) AdminUpdateAccount(
-	ctx context.Context, updateReq *account.AdminUpdateAccountRequest,
+	ctx context.Context, req *account.AdminUpdateAccountRequest,
 ) (*empty.Empty, error) {
 	// Validate the request, super admin credentials and account owner
-	accountDB, err := accountAPI.validateAdminUpdateAccountRequest(ctx, updateReq)
+	accountDB, err := accountAPI.validateAdminUpdateAccountRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -125,9 +125,9 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	}
 
 	// Update the model
-	tx = tx.Unscoped().Model(&Account{}).Where("account_id=?", updateReq.AccountId)
+	tx = tx.Unscoped().Model(&Account{}).Where("account_id=?", req.AccountId)
 
-	switch updateReq.UpdateOperation {
+	switch req.UpdateOperation {
 	case account.UpdateOperation_UNDELETE:
 		err = tx.Update("deleted_at", nil).Error
 		if err != nil {
@@ -193,7 +193,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account to change group is not active")
 		}
 		// Update the model
-		bs, err := json.Marshal(updateReq.Payload)
+		bs, err := json.Marshal(req.Payload)
 		if err != nil {
 			tx.Rollback()
 			return nil, errs.WrapErrorWithMsg(err, "failed to json unmarshal")
@@ -206,7 +206,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		messageType = messaging.MessageType_INFO
 		title = "Your Account Has Group Has Been Changed"
 		data = fmt.Sprintf(
-			"Hello %s, your account has been added to the following groups %s", fullName, updateReq.Payload,
+			"Hello %s, your account has been added to the following groups %s", fullName, req.Payload,
 		)
 
 	case account.UpdateOperation_CHANGE_PRIMARY_GROUP:
@@ -215,10 +215,10 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account to change group is not active")
 		}
-		if len(updateReq.Payload) == 0 {
+		if len(req.Payload) == 0 {
 			return nil, errs.WrapMessage(codes.InvalidArgument, "missing group")
 		}
-		group := updateReq.Payload[0]
+		group := req.Payload[0]
 		// Update the model
 		err = tx.Update("primary_group", group).Error
 		if err != nil {
@@ -244,7 +244,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		)
 
 	case account.UpdateOperation_PASSWORD_RESET:
-		newPass, err := genHash(strings.Join(updateReq.Payload, ""))
+		newPass, err := genHash(strings.Join(req.Payload, ""))
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate hash password")
 		}
@@ -256,25 +256,31 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		messageType = messaging.MessageType_INFO
 		title = "Your Account Pasword Has Been Updated"
 		data = fmt.Sprintf(
-			"Hello %s. Your account password has been updated by the administrator. <br>New password is: %s", fullName, strings.Join(updateReq.Payload, ""),
+			"Hello %s. Your account password has been updated by the administrator. <br>New password is: %s", fullName, strings.Join(req.Payload, ""),
 		)
 	}
 
-	if updateReq.Notify {
+	if req.Notify {
 		// Email template
 		emailContent := templateutil.EmailData{
 			Names:        accountDB.Names,
-			AccountID:    updateReq.AccountId,
-			AppName:      firstVal(updateReq.GetSender().GetAppName(), accountAPI.AppName),
-			Reason:       updateReq.Reason,
+			AccountID:    req.AccountId,
+			AppName:      firstVal(req.GetSender().GetAppName(), accountAPI.AppName),
+			Reason:       req.Reason,
 			TemplateName: templateName,
 		}
 
-		content := bytes.NewBuffer(make([]byte, 0, 64))
-		err = accountAPI.tpl.ExecuteTemplate(content, templateName, emailContent)
-		if err != nil {
-			tx.Rollback()
-			return nil, errs.WrapErrorWithMsg(err, "failed to exucute template")
+		var emailData string
+		if accountAPI.tpl != nil {
+			content := bytes.NewBuffer(make([]byte, 0, 64))
+			err = accountAPI.tpl.ExecuteTemplate(content, templateName, emailContent)
+			if err != nil {
+				tx.Rollback()
+				return nil, errs.WrapErrorWithMsg(err, "failed to exucute template")
+			}
+			emailData = content.String()
+		} else {
+			emailData = data
 		}
 
 		ctx, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 5*time.Second)
@@ -283,16 +289,19 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 		// Send message to inform necessary audience
 		_, err = accountAPI.MessagingClient.SendMessage(ctx, &messaging.SendMessageRequest{
 			Message: &messaging.Message{
-				UserId:      updateReq.AccountId,
+				UserId:      req.AccountId,
 				Title:       title,
 				Data:        data,
+				EmailData:   emailData,
 				Link:        link,
 				Save:        true,
 				Type:        messageType,
 				SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2, messaging.SendMethod_EMAIL},
 			},
-			Sender:  updateReq.GetSender(),
-			SmsAuth: updateReq.GetSmsAuth(),
+			Sender:          req.GetSender(),
+			SmsAuth:         req.GetSmsAuth(),
+			SmsCredentialId: req.SmsCredentialId,
+			FetchSmsAuth:    req.FetchSmsAuth,
 		}, grpc.WaitForReady(true))
 		if err != nil {
 			accountAPI.Logger.Errorf("error while sending account changed message: %v", err)
