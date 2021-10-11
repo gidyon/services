@@ -241,7 +241,7 @@ func (api *messagingServer) sendBroadCastMessage(
 							DisplayName:     displayName,
 							From:            sender,
 							Subject:         msg.Title,
-							Body:            msg.Data,
+							Body:            msg.EmailData,
 							BodyContentType: "text/html",
 						},
 					})
@@ -255,7 +255,9 @@ func (api *messagingServer) sendBroadCastMessage(
 							Keyword:           msg.Title,
 							Message:           msg.Data,
 						},
-						Auth: req.GetSmsAuth(),
+						Auth:        req.GetSmsAuth(),
+						ProjectId:   req.SmsCredentialId,
+						FetchSender: req.FetchSmsAuth,
 					})
 					if err != nil {
 						api.Logger.Errorf("failed to send sms message to destinations: %v", err)
@@ -297,7 +299,7 @@ func firstVal(vals ...string) string {
 }
 
 func (api *messagingServer) SendMessage(
-	ctx context.Context, sendReq *messaging.SendMessageRequest,
+	ctx context.Context, req *messaging.SendMessageRequest,
 ) (*messaging.SendMessageResponse, error) {
 	// Authenticate request
 	err := api.AuthAPI.AuthenticateRequest(ctx)
@@ -307,18 +309,18 @@ func (api *messagingServer) SendMessage(
 
 	// Validation
 	switch {
-	case sendReq == nil:
+	case req == nil:
 		return nil, errs.NilObject("send request")
-	case sendReq.Message == nil:
+	case req.Message == nil:
 		return nil, errs.NilObject("message")
 	default:
-		err = validateMessage(sendReq.GetMessage())
+		err = validateMessage(req.GetMessage())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	msg := sendReq.Message
+	msg := req.Message
 
 	ctxGet, cancel := context.WithTimeout(mdutil.AddFromCtx(ctx), 10*time.Second)
 	defer cancel()
@@ -350,8 +352,8 @@ func (api *messagingServer) SendMessage(
 		switch sendMethod {
 		case messaging.SendMethod_SEND_METHOD_UNSPECIFIED:
 		case messaging.SendMethod_EMAIL:
-			sender := firstVal(sendReq.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
-			displayName := firstVal(sendReq.GetSender().GetDisplayName(), msg.Details["display_name"])
+			sender := firstVal(req.GetSender().GetEmailSender(), msg.Details["sender"], api.EmailSender)
+			displayName := firstVal(req.GetSender().GetDisplayName(), msg.Details["display_name"])
 
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.SendEmailRequest{
 				Email: &emailing.Email{
@@ -359,7 +361,7 @@ func (api *messagingServer) SendMessage(
 					DisplayName:     displayName,
 					From:            sender,
 					Subject:         msg.Title,
-					Body:            msg.Data,
+					Body:            msg.EmailData,
 					BodyContentType: "text/html",
 				},
 			}, grpc.WaitForReady(true))
@@ -373,7 +375,9 @@ func (api *messagingServer) SendMessage(
 					Keyword:           msg.Title,
 					Message:           msg.Data,
 				},
-				Auth: sendReq.GetSmsAuth(),
+				Auth:        req.GetSmsAuth(),
+				ProjectId:   req.SmsCredentialId,
+				FetchSender: req.FetchSmsAuth,
 			}, grpc.WaitForReady(true))
 			if err != nil {
 				return nil, errs.WrapErrorWithMsg(err, "failed to send sms")
@@ -410,10 +414,10 @@ const (
 )
 
 func (api *messagingServer) ListMessages(
-	ctx context.Context, listReq *messaging.ListMessagesRequest,
+	ctx context.Context, req *messaging.ListMessagesRequest,
 ) (*messaging.Messages, error) {
 	// Authorize request
-	_, err := api.AuthAPI.AuthorizeActorOrGroup(ctx, listReq.GetFilter().GetUserId(), api.AuthAPI.AdminGroups()...)
+	_, err := api.AuthAPI.AuthorizeActorOrGroup(ctx, req.GetFilter().GetUserId(), api.AuthAPI.AdminGroups()...)
 	if err != nil {
 		return nil, err
 	}
@@ -421,24 +425,24 @@ func (api *messagingServer) ListMessages(
 	// Validation
 	var ID int
 	switch {
-	case listReq == nil:
+	case req == nil:
 		return nil, errs.NilObject("ListMessagesRequest")
-	case listReq.GetFilter().GetUserId() != "":
-		ID, err = strconv.Atoi(listReq.GetFilter().GetUserId())
+	case req.GetFilter().GetUserId() != "":
+		ID, err = strconv.Atoi(req.GetFilter().GetUserId())
 		if err != nil {
 			return nil, errs.IncorrectVal("user id")
 		}
 	}
 
-	pageSize := listReq.GetPageSize()
+	pageSize := req.GetPageSize()
 	if pageSize <= 0 || pageSize > defaultPageSize {
 		pageSize = defaultPageSize
 	}
 
 	var id uint
-	pageToken := listReq.GetPageToken()
+	pageToken := req.GetPageToken()
 	if pageToken != "" {
-		ids, err := api.PaginationHasher.DecodeInt64WithError(listReq.GetPageToken())
+		ids, err := api.PaginationHasher.DecodeInt64WithError(req.GetPageToken())
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
@@ -451,11 +455,11 @@ func (api *messagingServer) ListMessages(
 	}
 
 	// Apply filters
-	if listReq.Filter != nil {
-		if len(listReq.GetFilter().GetTypeFilters()) > 0 {
+	if req.Filter != nil {
+		if len(req.GetFilter().GetTypeFilters()) > 0 {
 			types := make([]int8, 0)
 			filter := true
-			for _, msgType := range listReq.GetFilter().GetTypeFilters() {
+			for _, msgType := range req.GetFilter().GetTypeFilters() {
 				types = append(types, int8(msgType))
 				if msgType == messaging.MessageType_ALL {
 					filter = false
@@ -466,7 +470,7 @@ func (api *messagingServer) ListMessages(
 				db = db.Where("type IN(?)", types)
 			}
 		}
-		if listReq.Filter.GetUserId() != "" {
+		if req.Filter.GetUserId() != "" {
 			db = db.Where("user_id=?", ID)
 		}
 	}
@@ -481,17 +485,17 @@ func (api *messagingServer) ListMessages(
 		}
 	}
 
-	messagesDB := make([]*Message, 0, pageSize+1)
+	dbs := make([]*Message, 0, pageSize+1)
 
-	err = db.Find(&messagesDB).Error
+	err = db.Find(&dbs).Error
 	if err != nil {
 		return nil, errs.WrapErrorWithMsg(err, "failed to fetch messages")
 	}
 
-	messagesPB := make([]*messaging.Message, 0, len(messagesDB))
+	pbs := make([]*messaging.Message, 0, len(dbs))
 
-	for index, messageDB := range messagesDB {
-		messagePB, err := GetMessagePB(messageDB)
+	for index, db := range dbs {
+		pb, err := GetMessagePB(db)
 		if err != nil {
 			return nil, err
 		}
@@ -500,12 +504,12 @@ func (api *messagingServer) ListMessages(
 			break
 		}
 
-		messagesPB = append(messagesPB, messagePB)
-		id = messageDB.ID
+		pbs = append(pbs, pb)
+		id = db.ID
 	}
 
 	var token string
-	if len(messagesDB) > int(pageSize) {
+	if len(dbs) > int(pageSize) {
 		// Next page token
 		token, err = api.PaginationHasher.EncodeInt64([]int64{int64(id)})
 		if err != nil {
@@ -514,7 +518,7 @@ func (api *messagingServer) ListMessages(
 	}
 
 	return &messaging.Messages{
-		Messages:        messagesPB,
+		Messages:        pbs,
 		NextPageToken:   token,
 		CollectionCount: collectionCount,
 	}, nil
