@@ -19,9 +19,9 @@ import (
 
 	sms_app "github.com/gidyon/services/internal/messaging/sms"
 
-	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
+	"github.com/gidyon/services/pkg/mocks"
 
 	"github.com/gidyon/micro/v2/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
@@ -60,18 +60,14 @@ func main() {
 		errs.Panic(errors.New("missing jwt key"))
 	}
 
-	authAPI, err := auth.NewAPI(&auth.Options{
-		SigningKey: jwtKey,
-		Issuer:     "SMS API",
-		Audience:   "accounts",
-	})
-	errs.Panic(err)
+	// authAPI, err := auth.NewAPI(&auth.Options{
+	// 	SigningKey: jwtKey,
+	// 	Issuer:     "SMS API",
+	// 	Audience:   "accounts",
+	// })
+	authAPI := mocks.AuthAPI
 
-	// Generate jwt token
-	token, err := authAPI.GenToken(context.Background(), &auth.Payload{}, time.Now().Add(time.Hour*24))
-	if err == nil {
-		app.Logger().Infof("test jwt is [%s]", token)
-	}
+	errs.Panic(err)
 
 	app.AddGRPCUnaryServerInterceptors(grpc_auth.UnaryServerInterceptor(authAPI.AuthorizeFunc))
 	app.AddGRPCStreamServerInterceptors(grpc_auth.StreamServerInterceptor(authAPI.AuthorizeFunc))
@@ -115,6 +111,7 @@ func main() {
 			Logger:     app.Logger(),
 			AuthAPI:    authAPI,
 			HTTPClient: httpClient,
+			SQLDB:      app.GormDB(),
 		})
 		errs.Panic(err)
 
