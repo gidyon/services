@@ -23,7 +23,7 @@ type SMSAPIClient interface {
 	// Create a sender id credential
 	CreateSenderCredential(ctx context.Context, in *CreateSenderCredentialsRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Get a sender id credential
-	GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredetial, error)
+	GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredential, error)
 }
 
 type sMSAPIClient struct {
@@ -52,8 +52,8 @@ func (c *sMSAPIClient) CreateSenderCredential(ctx context.Context, in *CreateSen
 	return out, nil
 }
 
-func (c *sMSAPIClient) GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredetial, error) {
-	out := new(SenderCredetial)
+func (c *sMSAPIClient) GetSenderCredential(ctx context.Context, in *GetSenderCredentialRequest, opts ...grpc.CallOption) (*SenderCredential, error) {
+	out := new(SenderCredential)
 	err := c.cc.Invoke(ctx, "/gidyon.apis.SMSAPI/GetSenderCredential", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ type SMSAPIServer interface {
 	// Create a sender id credential
 	CreateSenderCredential(context.Context, *CreateSenderCredentialsRequest) (*empty.Empty, error)
 	// Get a sender id credential
-	GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredetial, error)
+	GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredential, error)
 	mustEmbedUnimplementedSMSAPIServer()
 }
 
@@ -84,7 +84,7 @@ func (UnimplementedSMSAPIServer) SendSMS(context.Context, *SendSMSRequest) (*emp
 func (UnimplementedSMSAPIServer) CreateSenderCredential(context.Context, *CreateSenderCredentialsRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSenderCredential not implemented")
 }
-func (UnimplementedSMSAPIServer) GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredetial, error) {
+func (UnimplementedSMSAPIServer) GetSenderCredential(context.Context, *GetSenderCredentialRequest) (*SenderCredential, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSenderCredential not implemented")
 }
 func (UnimplementedSMSAPIServer) mustEmbedUnimplementedSMSAPIServer() {}

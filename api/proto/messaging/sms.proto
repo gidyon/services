@@ -14,7 +14,8 @@ service SMSAPI {
     // Send an sms to its destination(s)
     rpc SendSMS (SendSMSRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            get: "/api/sms:sendSMS"
+            post: "/api/sms:sendSMS"
+			body: "*"
         };
     };
 
@@ -22,11 +23,12 @@ service SMSAPI {
 	rpc CreateSenderCredential (CreateSenderCredentialsRequest) returns (google.protobuf.Empty) {
 		option (google.api.http) = {
             post: "/api/sms/credentials"
+			body: "*"
         };
 	};
 
 	// Get a sender id credential
-	rpc GetSenderCredential (GetSenderCredentialRequest) returns (SenderCredetial)  {
+	rpc GetSenderCredential (GetSenderCredentialRequest) returns (SenderCredential)  {
 		option (google.api.http) = {
             get: "/api/sms/credentials/{credential_id}"
         };
@@ -84,18 +86,19 @@ message SendSMSRequest {
 	bool fetch_sender = 5;
 }
 
-message SenderCredetial {
+message SenderCredential {
 	string credential_id = 1;
 	string project_id = 2;
 	SMSAuth auth = 3;
 }
 
 message CreateSenderCredentialsRequest {
-	SenderCredetial credential = 1;
+	SenderCredential credential = 1;
 }
 
 message GetSenderCredentialRequest {
 	string credential_id = 1;
+	bool use_project_id = 2;
 }
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {

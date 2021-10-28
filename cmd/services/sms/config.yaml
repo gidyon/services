@@ -6,3 +6,15 @@ security:
   tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
   tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
   serverName: localhost
+
+databases:
+  - required: true
+    type: sqlDatabase
+    address: localhost:3306
+    user: root
+    password: hakty11
+    schema: services
+    metadata:
+      name: mysql
+      dialect: mysql
+      orm: gorm

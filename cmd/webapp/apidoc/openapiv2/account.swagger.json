@@ -440,6 +440,20 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "fetchSmsAuth",
+            "description": "Will fetch the sms auth from backend no need to pass it in request.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "smsCredentialId",
+            "description": "This is the id of the sms auth which is also the project id.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1552,50 +1566,6 @@
         }
       }
     },
-    "SendSMSRequestCookie": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "SendSMSRequestSMSAuth": {
-      "type": "object",
-      "properties": {
-        "apiUrl": {
-          "type": "string",
-          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
-        },
-        "senderId": {
-          "type": "string"
-        },
-        "apiKey": {
-          "type": "string"
-        },
-        "clientId": {
-          "type": "string"
-        },
-        "authToken": {
-          "type": "string"
-        },
-        "accessKey": {
-          "type": "string"
-        },
-        "cookies": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SendSMSRequestCookie"
-          }
-        },
-        "appName": {
-          "type": "string"
-        }
-      }
-    },
     "apisAccount": {
       "type": "object",
       "example": {
@@ -1784,7 +1754,13 @@
           "$ref": "#/definitions/apisEmailSender"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean"
+        },
+        "smsCredentialId": {
+          "type": "string"
         }
       },
       "description": "Request to update an account data by admininstrator",
@@ -1822,6 +1798,17 @@
         }
       },
       "title": "BatchGetAccountsResponse"
+    },
+    "apisCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
     },
     "apisCountStat": {
       "type": "object",
@@ -1881,7 +1868,15 @@
           "$ref": "#/definitions/apisEmailSender"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean",
+          "title": "Will fetch the sms auth from backend no need to pass it in request"
+        },
+        "smsCredentialId": {
+          "type": "string",
+          "title": "This is the id of the sms auth which is also the project id"
         }
       },
       "description": "Request to create an account",
@@ -2127,7 +2122,15 @@
           "type": "string"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean",
+          "title": "Will fetch the sms auth from backend no need to pass it in request"
+        },
+        "smsCredentialId": {
+          "type": "string",
+          "title": "This is the id of the sms auth which is also the project id"
         }
       },
       "description": "Request to send OTP for activating an account",
@@ -2152,7 +2155,15 @@
           "$ref": "#/definitions/apisEmailSender"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean",
+          "title": "Will fetch the sms auth from backend no need to pass it in request"
+        },
+        "smsCredentialId": {
+          "type": "string",
+          "title": "This is the id of the sms auth which is also the project id"
         }
       },
       "description": "Request to change private account information",
@@ -2187,11 +2198,52 @@
           "type": "string"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean",
+          "title": "Will fetch the sms auth from backend no need to pass it in request"
+        },
+        "smsCredentialId": {
+          "type": "string",
+          "title": "This is the id of the sms auth which is also the project id"
         }
       },
       "description": "Request request to sign in",
       "title": "RequestSignInOTPRequest"
+    },
+    "apisSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisCookie"
+          }
+        },
+        "appName": {
+          "type": "string"
+        }
+      }
     },
     "apisSearchAccountsRequest": {
       "type": "object",

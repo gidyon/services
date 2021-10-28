@@ -11,6 +11,7 @@ import (
 
 	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/healthcheck"
+	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/messaging/sms"
-	"github.com/gidyon/services/pkg/mocks"
 
 	"github.com/gidyon/micro/v2/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
@@ -60,12 +60,12 @@ func main() {
 		errs.Panic(errors.New("missing jwt key"))
 	}
 
-	// authAPI, err := auth.NewAPI(&auth.Options{
-	// 	SigningKey: jwtKey,
-	// 	Issuer:     "SMS API",
-	// 	Audience:   "accounts",
-	// })
-	authAPI := mocks.AuthAPI
+	authAPI, err := auth.NewAPI(&auth.Options{
+		SigningKey: jwtKey,
+		Issuer:     "SMS API",
+		Audience:   "accounts",
+	})
+	// authAPI := mocks.AuthAPI
 
 	errs.Panic(err)
 

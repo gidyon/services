@@ -250,50 +250,6 @@
     }
   },
   "definitions": {
-    "SendSMSRequestCookie": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "SendSMSRequestSMSAuth": {
-      "type": "object",
-      "properties": {
-        "apiUrl": {
-          "type": "string",
-          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
-        },
-        "senderId": {
-          "type": "string"
-        },
-        "apiKey": {
-          "type": "string"
-        },
-        "clientId": {
-          "type": "string"
-        },
-        "authToken": {
-          "type": "string"
-        },
-        "accessKey": {
-          "type": "string"
-        },
-        "cookies": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SendSMSRequestCookie"
-          }
-        },
-        "appName": {
-          "type": "string"
-        }
-      }
-    },
     "apisBroadCastMessageRequest": {
       "type": "object",
       "properties": {
@@ -307,10 +263,16 @@
           "$ref": "#/definitions/apisMessage"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
         },
         "sender": {
           "$ref": "#/definitions/apisEmailSender"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean"
+        },
+        "smsCredentialId": {
+          "type": "string"
         }
       },
       "description": "Request to broadcast message to clients",
@@ -319,6 +281,17 @@
         "channels",
         "message"
       ]
+    },
+    "apisCookie": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
     },
     "apisEmailSender": {
       "type": "object",
@@ -382,6 +355,9 @@
           "type": "string"
         },
         "data": {
+          "type": "string"
+        },
+        "emailData": {
           "type": "string"
         },
         "link": {
@@ -460,6 +436,39 @@
       "description": "Contains count of new messages",
       "title": "NewMessagesCount"
     },
+    "apisSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisCookie"
+          }
+        },
+        "appName": {
+          "type": "string"
+        }
+      }
+    },
     "apisSendMessageRequest": {
       "type": "object",
       "properties": {
@@ -467,10 +476,16 @@
           "$ref": "#/definitions/apisMessage"
         },
         "smsAuth": {
-          "$ref": "#/definitions/SendSMSRequestSMSAuth"
+          "$ref": "#/definitions/apisSMSAuth"
         },
         "sender": {
           "$ref": "#/definitions/apisEmailSender"
+        },
+        "fetchSmsAuth": {
+          "type": "boolean"
+        },
+        "smsCredentialId": {
+          "type": "string"
         }
       },
       "description": "Request to send a message to clients",

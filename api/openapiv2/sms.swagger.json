@@ -43,6 +43,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisCreateSenderCredentialsRequest"
+            }
+          }
+        ],
         "tags": [
           "SMSAPI"
         ]
@@ -56,7 +66,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/apisSenderCredetial"
+              "$ref": "#/definitions/apisSenderCredential"
             }
           },
           "default": {
@@ -72,6 +82,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "useProjectId",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -80,7 +96,7 @@
       }
     },
     "/api/sms:sendSMS": {
-      "get": {
+      "post": {
         "summary": "Send an sms to its destination(s)",
         "operationId": "SMSAPI_SendSMS",
         "responses": {
@@ -99,91 +115,12 @@
         },
         "parameters": [
           {
-            "name": "sms.destinationPhones",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "sms.keyword",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "sms.message",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.apiUrl",
-            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.senderId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.apiKey",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.clientId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.authToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.accessKey",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.appName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "provider",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "ONFON"
-            ],
-            "default": "ONFON"
-          },
-          {
-            "name": "projectId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "fetchSender",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSendSMSRequest"
+            }
           }
         ],
         "tags": [
@@ -201,6 +138,14 @@
         },
         "value": {
           "type": "string"
+        }
+      }
+    },
+    "apisCreateSenderCredentialsRequest": {
+      "type": "object",
+      "properties": {
+        "credential": {
+          "$ref": "#/definitions/apisSenderCredential"
         }
       }
     },
@@ -260,7 +205,32 @@
         }
       }
     },
-    "apisSenderCredetial": {
+    "apisSendSMSRequest": {
+      "type": "object",
+      "properties": {
+        "sms": {
+          "$ref": "#/definitions/apisSMS"
+        },
+        "auth": {
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "provider": {
+          "$ref": "#/definitions/apisSmsProvider"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "fetchSender": {
+          "type": "boolean"
+        }
+      },
+      "description": "Request to send sms to clients",
+      "title": "SendSMSRequest",
+      "required": [
+        "sms"
+      ]
+    },
+    "apisSenderCredential": {
       "type": "object",
       "properties": {
         "credentialId": {

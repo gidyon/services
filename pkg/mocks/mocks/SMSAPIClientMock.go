@@ -18,6 +18,66 @@ type SMSAPIClientMock struct {
 	mock.Mock
 }
 
+// CreateSenderCredential provides a mock function with given fields: ctx, in, opts
+func (_m *SMSAPIClientMock) CreateSenderCredential(ctx context.Context, in *sms.CreateSenderCredentialsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *emptypb.Empty
+	if rf, ok := ret.Get(0).(func(context.Context, *sms.CreateSenderCredentialsRequest, ...grpc.CallOption) *emptypb.Empty); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*emptypb.Empty)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *sms.CreateSenderCredentialsRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSenderCredential provides a mock function with given fields: ctx, in, opts
+func (_m *SMSAPIClientMock) GetSenderCredential(ctx context.Context, in *sms.GetSenderCredentialRequest, opts ...grpc.CallOption) (*sms.SenderCredential, error) {
+	_va := make([]interface{}, len(opts))
+	for _i := range opts {
+		_va[_i] = opts[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, in)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *sms.SenderCredential
+	if rf, ok := ret.Get(0).(func(context.Context, *sms.GetSenderCredentialRequest, ...grpc.CallOption) *sms.SenderCredential); ok {
+		r0 = rf(ctx, in, opts...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sms.SenderCredential)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, *sms.GetSenderCredentialRequest, ...grpc.CallOption) error); ok {
+		r1 = rf(ctx, in, opts...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SendSMS provides a mock function with given fields: ctx, in, opts
 func (_m *SMSAPIClientMock) SendSMS(ctx context.Context, in *sms.SendSMSRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	_va := make([]interface{}, len(opts))

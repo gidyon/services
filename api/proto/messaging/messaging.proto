@@ -42,9 +42,10 @@ message Message {
     string user_id = 2;
     string title = 3;
     string data = 4;
-    string link = 5;
-    int64 create_time_seconds = 6;
-    bool seen = 7;
+    string email_data = 5;
+    string link = 6;
+    int64 create_time_seconds = 7;
+    bool seen = 8;
     bool save = 9;
     MessageType type = 10;
     repeated SendMethod send_methods = 11;
@@ -62,8 +63,10 @@ message BroadCastMessageRequest {
 
     repeated string channels = 1 [(google.api.field_behavior) = REQUIRED];
     Message message = 2 [(google.api.field_behavior) = REQUIRED];
-    gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 3;
+    gidyon.apis.SMSAuth sms_auth = 3;
     gidyon.apis.EmailSender sender = 4;
+	bool fetch_sms_auth = 5;
+	string sms_credential_id = 6;
 }
 
 message SendMessageRequest {
@@ -76,8 +79,10 @@ message SendMessageRequest {
     };
 
     Message message = 1 [(google.api.field_behavior) = REQUIRED];
-    gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2;
+    gidyon.apis.SMSAuth sms_auth = 2;
     gidyon.apis.EmailSender sender = 3;
+	bool fetch_sms_auth = 5;
+	string sms_credential_id = 6;
 }
 
 message SendMessageResponse {

@@ -15,29 +15,29 @@ spec:
         app: redis
     spec:
       containers:
-      - name: redis
-        image: redis
-        ports:
-        - containerPort: 6379
-          name: redis
-          protocol: TCP
-        readinessProbe:
-          tcpSocket:
-            port: 6379
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        livenessProbe:
-          tcpSocket:
-            port: 6379
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        resources:
-          requests:
-            cpu: 50m
-            memory: 50Mi
-          limits:
-            cpu: 1000m
-            memory: 1Gi
+        - name: redis
+          image: redis
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 50Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
 
 ---
 apiVersion: v1
@@ -48,9 +48,39 @@ metadata:
     app: redis
 spec:
   ports:
-  - port: 6379
-    name: redis
-    targetPort: redis
-    protocol: TCP
+    - port: 6379
+      name: redis
+      targetPort: redis
+      protocol: TCP
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  ports:
+    - port: 6379
+      name: redis
+      targetPort: redis-master
+      protocol: TCP
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  ports:
+    - port: 6379
+      name: redis
+      targetPort: redis-slave
+      protocol: TCP
   selector:
     app: redis

@@ -101,12 +101,12 @@ extraEnv:
     value: /app/templates/
   - name: ACTIVATION_URL
     value: https://ldaddress/activate
-  - name: FIREBASE_CREDENTIALS_FILE
-    value: /app/secrets/firebase/creds
+  # - name: FIREBASE_CREDENTIALS_FILE
+  #   value: /app/secrets/firebase/creds
   - name: DB_DEBUG
     value: enabled
   - name: TOKEN_EXPIRATION_MINUTES
-    value: "5"
+    value: "30"
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
@@ -119,9 +119,9 @@ extraVolume:
   - name: templates
     mountPath: /app/templates/
     readOnly: true
-  - name: firebase-credentials
-    mountPath: /app/secrets/firebase
-    readOnly: true
+  # - name: firebase-credentials
+  #   mountPath: /app/secrets/firebase
+  #   readOnly: true
 
 # extraVolumeMount specifies volume mounts for extraVolume
 extraVolumeMount:

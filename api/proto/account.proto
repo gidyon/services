@@ -456,7 +456,11 @@ message RequestSignInOTPRequest {
 
 	string username = 1 [(google.api.field_behavior) = REQUIRED];
 	string project = 2;
-	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 3;
+	gidyon.apis.SMSAuth sms_auth = 3;
+	// Will fetch the sms auth from backend no need to pass it in request
+	bool fetch_sms_auth = 11;
+	// This is the id of the sms auth which is also the project id
+	string sms_credential_id = 12;
 }
 
 message SignInOTPRequest {
@@ -537,8 +541,12 @@ message CreateAccountRequest {
     gidyon.apis.SendMethod notification_method = 8 [(google.api.field_behavior) = REQUIRED];
 	oneof notification_channel {
 		gidyon.apis.EmailSender sender = 9;
-		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 10;
+		gidyon.apis.SMSAuth sms_auth = 10;
 	}
+	// Will fetch the sms auth from backend no need to pass it in request
+	bool fetch_sms_auth = 11;
+	// This is the id of the sms auth which is also the project id
+	string sms_credential_id = 12;
 }
 
 message CreateAccountResponse {
@@ -602,8 +610,12 @@ message RequestChangePrivateAccountRequest {
     gidyon.apis.SendMethod send_method = 4 [(google.api.field_behavior) = REQUIRED];
 	oneof notification_channel {
 		gidyon.apis.EmailSender sender = 5;
-		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 6;
+		gidyon.apis.SMSAuth sms_auth = 6;
 	}
+	// Will fetch the sms auth from backend no need to pass it in request
+	bool fetch_sms_auth = 7;
+	// This is the id of the sms auth which is also the project id
+	string sms_credential_id = 8;
 }
 
 message RequestChangePrivateAccountResponse {
@@ -798,8 +810,10 @@ message AdminUpdateAccountRequest {
 	gidyon.apis.SendMethod send_method = 7 [(google.api.field_behavior) = REQUIRED];
 	oneof notification_channel {
 		gidyon.apis.EmailSender sender = 8;
-		gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 9;
+		gidyon.apis.SMSAuth sms_auth = 9;
 	}
+	bool fetch_sms_auth = 10;
+	string sms_credential_id = 11;
 }
 
 message Criteria {
@@ -867,7 +881,11 @@ message RequestActivateAccountOTPRequest {
     };
 
 	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-	gidyon.apis.SendSMSRequest.SMSAuth sms_auth = 2 [(google.api.field_behavior) = REQUIRED];
+	gidyon.apis.SMSAuth sms_auth = 2 [(google.api.field_behavior) = REQUIRED];
+	// Will fetch the sms auth from backend no need to pass it in request
+	bool fetch_sms_auth = 3;
+	// This is the id of the sms auth which is also the project id
+	string sms_credential_id = 4;
 }
 
 message ActivateAccountOTPRequest {

@@ -25,8 +25,78 @@
     "application/json"
   ],
   "paths": {
-    "/api/sms:sendSMS": {
+    "/api/sms/credentials": {
+      "post": {
+        "summary": "Create a sender id credential",
+        "operationId": "SMSAPI_CreateSenderCredential",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisCreateSenderCredentialsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SMSAPI"
+        ]
+      }
+    },
+    "/api/sms/credentials/{credentialId}": {
       "get": {
+        "summary": "Get a sender id credential",
+        "operationId": "SMSAPI_GetSenderCredential",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apisSenderCredential"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "credentialId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "useProjectId",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "SMSAPI"
+        ]
+      }
+    },
+    "/api/sms:sendSMS": {
+      "post": {
         "summary": "Send an sms to its destination(s)",
         "operationId": "SMSAPI_SendSMS",
         "responses": {
@@ -45,79 +115,12 @@
         },
         "parameters": [
           {
-            "name": "sms.destinationPhones",
-            "in": "query",
-            "required": false,
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi"
-          },
-          {
-            "name": "sms.keyword",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "sms.message",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.apiUrl",
-            "description": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies].",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.senderId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.apiKey",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.clientId",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.authToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.accessKey",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auth.appName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "provider",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "enum": [
-              "ONFON"
-            ],
-            "default": "ONFON"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apisSendSMSRequest"
+            }
           }
         ],
         "tags": [
@@ -127,7 +130,7 @@
     }
   },
   "definitions": {
-    "SendSMSRequestCookie": {
+    "apisCookie": {
       "type": "object",
       "properties": {
         "name": {
@@ -138,36 +141,11 @@
         }
       }
     },
-    "SendSMSRequestSMSAuth": {
+    "apisCreateSenderCredentialsRequest": {
       "type": "object",
       "properties": {
-        "apiUrl": {
-          "type": "string",
-          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
-        },
-        "senderId": {
-          "type": "string"
-        },
-        "apiKey": {
-          "type": "string"
-        },
-        "clientId": {
-          "type": "string"
-        },
-        "authToken": {
-          "type": "string"
-        },
-        "accessKey": {
-          "type": "string"
-        },
-        "cookies": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/SendSMSRequestCookie"
-          }
-        },
-        "appName": {
-          "type": "string"
+        "credential": {
+          "$ref": "#/definitions/apisSenderCredential"
         }
       }
     },
@@ -193,6 +171,78 @@
         "destination_phones",
         "message"
       ]
+    },
+    "apisSMSAuth": {
+      "type": "object",
+      "properties": {
+        "apiUrl": {
+          "type": "string",
+          "title": "[sms_url, sender_id, api_key, client_id, auth_token, access_key, cookies]"
+        },
+        "senderId": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "authToken": {
+          "type": "string"
+        },
+        "accessKey": {
+          "type": "string"
+        },
+        "cookies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apisCookie"
+          }
+        },
+        "appName": {
+          "type": "string"
+        }
+      }
+    },
+    "apisSendSMSRequest": {
+      "type": "object",
+      "properties": {
+        "sms": {
+          "$ref": "#/definitions/apisSMS"
+        },
+        "auth": {
+          "$ref": "#/definitions/apisSMSAuth"
+        },
+        "provider": {
+          "$ref": "#/definitions/apisSmsProvider"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "fetchSender": {
+          "type": "boolean"
+        }
+      },
+      "description": "Request to send sms to clients",
+      "title": "SendSMSRequest",
+      "required": [
+        "sms"
+      ]
+    },
+    "apisSenderCredential": {
+      "type": "object",
+      "properties": {
+        "credentialId": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "auth": {
+          "$ref": "#/definitions/apisSMSAuth"
+        }
+      }
     },
     "apisSmsProvider": {
       "type": "string",

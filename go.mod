@@ -11,7 +11,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
-	github.com/gidyon/micro/v2 v2.4.2
+	github.com/gidyon/micro/v2 v2.4.6
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3

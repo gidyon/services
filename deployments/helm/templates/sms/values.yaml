@@ -88,43 +88,49 @@ existingSecrets:
   symmetricKeysCredentials: "symmetric-keys"
 
 # extraEnv contains additional environment variables suppliws by the user
-extraEnv:
-  - name: SMS_API_KEY
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-api-key
-  - name: SMS_API_USERNAME
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-api-username
-  - name: SMS_API_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-api-password
-  - name: SMS_API_URL
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-api-url
-  - name: SMS_ACCESS_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-access-key
-  - name: SENDER_ID
-    valueFrom:
-      secretKeyRef:
-        name: sms-credentials
-        key: sms-sender-id
+# extraEnv:
+#   - name: SMS_API_KEY
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-api-key
+#   - name: SMS_API_USERNAME
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-api-username
+#   - name: SMS_API_PASSWORD
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-api-password
+#   - name: SMS_API_URL
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-api-url
+#   - name: SMS_ACCESS_TOKEN
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-access-key
+#   - name: SENDER_ID
+#     valueFrom:
+#       secretKeyRef:
+#         name: sms-credentials
+#         key: sms-sender-id
 
 # extraVolume contains additional volumes supplied by user
 extraVolume:
+  - name: mysql-credentials
+    mountPath: /app/secrets/mysql/
+    readOnly: true
 
 # extraVolumeMount specifies volume mounts for extraVolume
 extraVolumeMount:
+  - name: mysql-credentials
+    secret:
+      secretName: mysql-credentials
 
 # config contains values for the service configuration
 config:
@@ -135,3 +141,14 @@ config:
   logLevel: -1
   security:
     insecure: true
+  databases:
+    - required: true
+      type: sqlDatabase
+      address: mysql:3306
+      userFile: /app/secrets/mysql/mysql-default-user
+      schemaFile: /app/secrets/mysql/mysql-default-schema
+      passwordFile: /app/secrets/mysql/mysql-password
+      metadata:
+        name: mysql
+        dialect: mysql
+        orm: gorm
