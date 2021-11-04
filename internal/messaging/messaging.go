@@ -132,16 +132,17 @@ func (api *messagingServer) BroadCastMessage(
 	case len(req.Channels) == 0:
 		return nil, errs.MissingField("topics")
 	default:
+		userId := req.Message.UserId
+		if userId == "" {
+			userId = "TEMPORARY"
+		}
 		err = validateMessage(req.GetMessage())
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	// Authenticate the request
-	err = api.AuthAPI.AuthenticateRequest(ctx)
-	if err != nil {
-		return nil, err
+		if userId == "TEMPORARY" {
+			req.Message.UserId = ""
+		}
 	}
 
 	// Send broadcast
@@ -207,6 +208,7 @@ func (api *messagingServer) sendBroadCastMessage(
 			phones := make([]string, 0, len(subscribers))
 			deviceTokens := make([]string, 0, len(subscribers))
 			emails := make([]string, 0, len(subscribers))
+			msgDBs := make([]*Message, 0, 5)
 
 			for _, subscriberPB := range subscribers {
 				emails = append(emails, subscriberPB.GetEmail())
@@ -218,12 +220,9 @@ func (api *messagingServer) sendBroadCastMessage(
 					msg.UserId = subscriberPB.SubscriberId
 					msgDB, err := GetMessageDB(msg)
 					if err != nil {
-						return
-					}
-					err = api.SQLDBWrites.Create(msgDB).Error
-					if err != nil {
-						api.Logger.Errorf("failed to save message model: %v", err)
-						return
+						api.Logger.Errorf("failed to get message model: %v", err)
+					} else {
+						msgDBs = append(msgDBs, msgDB)
 					}
 				}
 			}
@@ -282,6 +281,15 @@ func (api *messagingServer) sendBroadCastMessage(
 						api.Logger.Errorf("failed to send pusher message to recipients: %v", err)
 					}
 				}
+			}
+
+			// Save to database
+			if len(msgDBs) != 0 {
+				err = api.SQLDBWrites.CreateInBatches(&msgDBs, int(pageSize)).Error
+				if err != nil {
+					api.Logger.Errorf("failed to save batch messages: %v", err)
+				}
+				msgDBs = msgDBs[0:0]
 			}
 		}(subscribersRes.GetSubscribers(), msg)
 	}
