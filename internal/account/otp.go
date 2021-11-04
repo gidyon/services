@@ -206,8 +206,8 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 		return nil, errs.NilObject("RequestChangePrivateAccountRequest")
 	case req.AccountId == "":
 		return nil, errs.MissingField("account id")
-	case req.SmsAuth == nil:
-		return nil, errs.MissingField("sms auth")
+		// case req.SmsAuth == nil:
+		// 	return nil, errs.MissingField("sms auth")
 	}
 
 	// Retrieve token claims

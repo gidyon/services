@@ -510,6 +510,7 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 			UserId:      accountID,
 			Title:       "Reset Account Password",
 			Data:        data,
+			EmailData:   data,
 			Link:        link,
 			Save:        true,
 			Type:        messaging.MessageType_ALERT,
