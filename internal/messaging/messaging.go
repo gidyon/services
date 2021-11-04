@@ -135,6 +135,7 @@ func (api *messagingServer) BroadCastMessage(
 		userId := req.Message.UserId
 		if userId == "" {
 			userId = "TEMPORARY"
+			req.Message.UserId = userId
 		}
 		err = validateMessage(req.GetMessage())
 		if err != nil {
