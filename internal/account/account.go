@@ -1227,6 +1227,21 @@ func (accountAPI *accountAPIServer) DailyRegisteredUsers(
 		return nil, errs.MissingField("request")
 	case len(req.Dates) == 0:
 		return nil, errs.MissingField("dates")
+	case req.DateIsRange && len(req.Dates) == 1:
+		return nil, errs.WrapMessage(codes.InvalidArgument, "please provide start and end date for date ranges")
+	}
+
+	actor, err := accountAPI.AuthAPI.GetJwtPayload(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.Filter == nil {
+		req.Filter = &account.DailyRegisteredUsersRequest_Filter{
+			ProjectIds: []string{actor.ProjectID},
+		}
+	} else {
+		req.Filter.ProjectIds = []string{actor.ProjectID}
 	}
 
 	var (
@@ -1256,7 +1271,7 @@ func (accountAPI *accountAPIServer) DailyRegisteredUsers(
 				return
 			}
 
-			db := accountAPI.SQLDBReads.Model(&Account{}).Where("created_at BETWEEN ? AND ?", dateTime, dateTime.Add(24*time.Hour))
+			db := accountAPI.SQLDBReads.Model(&Account{}).Where("created_at BETWEEN ? AND ?", dateTime, dateTime.Add(24*time.Hour)).Debug()
 			if req.Filter != nil {
 				if len(req.Filter.ProjectIds) != 0 {
 					db = db.Where("project_id IN (?)", req.Filter.ProjectIds)
