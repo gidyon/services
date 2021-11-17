@@ -3,8 +3,10 @@ package project
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gidyon/micro/v2/utils/errs"
@@ -12,6 +14,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"gorm.io/gorm"
 )
 
 func ValidateProjectMember(pb *project.ProjectMember) error {
@@ -55,6 +58,38 @@ func (projectAPI *projectAPIServer) CreateProjectMember(
 	return ProjectMemberProto(db)
 }
 
+func (projectAPI *projectAPIServer) UpdateProjectMember(
+	ctx context.Context, req *project.UpdateProjectMemberRequest,
+) (*project.ProjectMember, error) {
+	var err error
+
+	switch {
+	case req == nil:
+		return nil, errs.NilObject("request")
+	case req.ProjectMember == nil:
+		return nil, errs.MissingField("project resource")
+	case req.ProjectMember.Name == "":
+		return nil, errs.MissingField("resource name")
+	}
+
+	vals := strings.Split(req.ProjectMember.Name, "/")
+
+	memberId := vals[len(vals)-1]
+
+	db, err := ProjectMemberModel(req.ProjectMember)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create in the database
+	err = projectAPI.SqlDb.Where("id=?", memberId).Omit("id").Updates(db).Error
+	if err == nil {
+		return nil, errs.FailedToSave("project", err)
+	}
+
+	return ProjectMemberProto(db)
+}
+
 func (projectAPI *projectAPIServer) DeleteProjectMember(
 	ctx context.Context, req *project.DeleteProjectMemberRequest,
 ) (*empty.Empty, error) {
@@ -63,11 +98,15 @@ func (projectAPI *projectAPIServer) DeleteProjectMember(
 	switch {
 	case req == nil:
 		return nil, errs.MissingField("request")
-	case req.MemberId == "":
-		return nil, errs.MissingField("member id")
+	case req.Name == "":
+		return nil, errs.MissingField("resource name")
 	}
 
-	err = projectAPI.SqlDb.Delete("id=?", req.MemberId).Error
+	vals := strings.Split(req.Name, "/")
+
+	memberId := vals[len(vals)-1]
+
+	err = projectAPI.SqlDb.Delete("id=?", memberId).Error
 	if err != nil {
 		return nil, errs.FailedToDelete("project", err)
 	}
@@ -82,6 +121,8 @@ func (projectAPI *projectAPIServer) ListProjectMembers(
 	switch {
 	case req == nil:
 		return nil, errs.NilObject("list request")
+	case req.Parent == "":
+		return nil, errs.MissingField("parent")
 	}
 
 	// Get payload
@@ -90,15 +131,27 @@ func (projectAPI *projectAPIServer) ListProjectMembers(
 		return nil, err
 	}
 
-	// Authorization
+	vals := strings.Split(req.Parent, "/")
+	if len(vals) != 3 {
+		return nil, errs.IncorrectVal("parent")
+	}
+	projectId := vals[1]
+
+	// Get project
+	prDB := &Project{}
+
+	err = projectAPI.SqlDb.First(prDB, "id=?", projectId).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.DoesNotExist("project", projectId)
+	default:
+		return nil, errs.FailedToFind("project", err)
+	}
+
 	if !projectAPI.AuthAPI.IsAdmin(actor.Group) {
-		if req.Filter == nil {
-			req.Filter = &project.ListProjectsMemberFilter{}
-		} else {
-			req.Filter.OwnerIds = make([]string, 0, 1)
-		}
-		if actor.ID != "" {
-			req.Filter.OwnerIds = append(req.Filter.OwnerIds, actor.ID)
+		if fmt.Sprint(prDB.ID) != actor.ID {
+			return nil, errs.WrapMessage(codes.PermissionDenied, "not allowed to view project members")
 		}
 	}
 
@@ -126,19 +179,13 @@ func (projectAPI *projectAPIServer) ListProjectMembers(
 		ID = uint(v)
 	}
 
-	db := projectAPI.SqlDb.Unscoped().Model(&ProjectMember{}).Limit(int(pageSize + 1)).Order("id DESC")
+	db := projectAPI.SqlDb.Unscoped().Model(&ProjectMember{}).Limit(int(pageSize+1)).Order("id DESC").Where("project_id = ?", projectId)
 	if ID != 0 {
 		db = db.Where("id<?", ID)
 	}
 
-	// Apply tv filters
+	// Apply status filters
 	if req.Filter != nil {
-		if len(req.Filter.OwnerIds) != 0 {
-			db = db.Where("owner_id IN (?)", req.Filter.OwnerIds)
-		}
-		if len(req.Filter.OwnerIds) != 0 {
-			db = db.Where("owner_id IN (?)", req.Filter.OwnerIds)
-		}
 		if len(req.Filter.Statuses) != 0 {
 			db = db.Where("status IN (?)", req.Filter.Statuses)
 		}
