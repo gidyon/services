@@ -73,6 +73,10 @@ func ProjectModel(pb *project.Project) (*Project, error) {
 	return db, nil
 }
 
+const defaultProjectMemberTable = "projects_members"
+
+var projectMembersTable = ""
+
 type ProjectMember struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement"`
 	UserId    string    `gorm:"index;type:varchar(50);not null"`
@@ -82,6 +86,13 @@ type ProjectMember struct {
 	CreatedAt time.Time `gorm:"autoCreateTime;->;<-:create;not null;type:datetime(6)"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime;<-;type:datetime(6)"`
 	DeletedAt gorm.DeletedAt
+}
+
+func (*ProjectMember) TableName() string {
+	if projectMembersTable != "" {
+		return projectMembersTable
+	}
+	return defaultProjectMemberTable
 }
 
 func ProjectMemberModel(pb *project.ProjectMember) (*ProjectMember, error) {
