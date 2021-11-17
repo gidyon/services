@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
@@ -131,9 +132,13 @@ func (projectAPI *projectAPIServer) UpdateProject(
 		return nil, errs.NilObject("request")
 	case req.Project == nil:
 		return nil, errs.MissingField("project resource")
-	case req.Project.ProjectId == "":
-		return nil, errs.MissingField("project id")
+	case req.Project.Name == "":
+		return nil, errs.MissingField("resource name")
 	}
+
+	vals := strings.Split(req.Project.Name, "/")
+
+	projectId := vals[len(vals)-1]
 
 	db, err := ProjectModel(req.Project)
 	if err != nil {
@@ -141,7 +146,7 @@ func (projectAPI *projectAPIServer) UpdateProject(
 	}
 
 	// Create in the database
-	err = projectAPI.SqlDb.Where("id=?", req.Project.ProjectId).Updates(db).Error
+	err = projectAPI.SqlDb.Where("id=?", projectId).Omit("id").Updates(db).Error
 	if err == nil {
 		return nil, errs.FailedToSave("project", err)
 	}
@@ -154,18 +159,37 @@ func (projectAPI *projectAPIServer) GetProject(
 ) (*project.Project, error) {
 	var err error
 
+	actor, err := projectAPI.AuthAPI.GetJwtPayload(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	switch {
 	case req == nil:
 		return nil, errs.MissingField("request")
-	case req.ProjectId == "":
-		return nil, errs.MissingField("project id")
+	case req.Name == "":
+		return nil, errs.MissingField("resource name")
 	}
+
+	vals := strings.Split(req.Name, "/")
+
+	projectId := vals[len(vals)-1]
 
 	db := &Project{}
 
-	err = projectAPI.SqlDb.First(db, "id=?", req.ProjectId).Error
-	if err != nil {
+	err = projectAPI.SqlDb.First(db, "id=?", projectId).Error
+	switch {
+	case err == nil:
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, errs.DoesNotExist("project", projectId)
+	default:
 		return nil, errs.FailedToFind("project", err)
+	}
+
+	if !projectAPI.AuthAPI.IsAdmin(actor.Group) {
+		if fmt.Sprint(db.ID) != actor.ID {
+			return nil, errs.WrapMessage(codes.PermissionDenied, "not allowed to view project")
+		}
 	}
 
 	return ProjectProto(db)
@@ -179,11 +203,15 @@ func (projectAPI *projectAPIServer) DeleteProject(
 	switch {
 	case req == nil:
 		return nil, errs.MissingField("request")
-	case req.ProjectId == "":
-		return nil, errs.MissingField("project id")
+	case req.Name == "":
+		return nil, errs.MissingField("resource name")
 	}
 
-	err = projectAPI.SqlDb.Delete("id=?", req.ProjectId).Error
+	vals := strings.Split(req.Name, "/")
+
+	projectId := vals[len(vals)-1]
+
+	err = projectAPI.SqlDb.Delete("id=?", projectId).Error
 	if err != nil {
 		return nil, errs.FailedToDelete("project", err)
 	}
@@ -204,6 +232,8 @@ func (projectAPI *projectAPIServer) ListProjects(
 	switch {
 	case req == nil:
 		return nil, errs.NilObject("list request")
+	case req.Parent == "":
+		return nil, errs.MissingField("parent")
 	}
 
 	// Get payload
@@ -215,7 +245,9 @@ func (projectAPI *projectAPIServer) ListProjects(
 	// Authorization
 	if !projectAPI.AuthAPI.IsAdmin(actor.Group) {
 		if req.Filter == nil {
-			req.Filter = &project.ListProjectsFilter{}
+			req.Filter = &project.ListProjectsFilter{
+				OwnerIds: make([]string, 0, 1),
+			}
 		} else {
 			req.Filter.OwnerIds = make([]string, 0, 1)
 		}
@@ -302,6 +334,7 @@ func (projectAPI *projectAPIServer) ListProjects(
 	}
 
 	pbs := make([]*project.Project, 0, len(dbs))
+
 	for i, db := range dbs {
 		if i == int(pageSize) {
 			break
