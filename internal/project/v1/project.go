@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -58,11 +59,21 @@ func NewProjectAPI(ctx context.Context, opt *Options) (_ project.ProjectAPIServe
 		Options: opt,
 	}
 
+	// Update from env
+	projectMembersTable = os.Getenv("PROJECT_MEMBERS_TABLE")
+	projectsTable = os.Getenv("PROJECTS_TABLE")
+
 	// Do automigration
 	if !projectAPI.SqlDb.Migrator().HasTable((&Project{}).TableName()) {
 		err = projectAPI.SqlDb.AutoMigrate(&Project{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to automigrate %s table: %v", (&Project{}).TableName(), err)
+		}
+	}
+	if !projectAPI.SqlDb.Migrator().HasTable((&ProjectMember{}).TableName()) {
+		err = projectAPI.SqlDb.AutoMigrate(&ProjectMember{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to automigrate %s table: %v", (&ProjectMember{}).TableName(), err)
 		}
 	}
 
