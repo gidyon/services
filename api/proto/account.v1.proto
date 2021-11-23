@@ -28,8 +28,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 			url: "https://github.com/gidyon/services/blob/master/LICENSE";
 		};
     };
-	schemes: HTTP;
 	schemes: HTTPS;
+	schemes: HTTP;
 	consumes: "application/json";
 	produces: "application/json";
 	security_definitions: {

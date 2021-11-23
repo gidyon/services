@@ -1,0 +1,48 @@
+serviceName: account
+httpPort: 9003
+# grpcPort: 9003
+# httpOptions:
+#   corsEnabled: true
+logLevel: 0
+security:
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  tlsKey: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/key.pem
+  serverName: localhost
+  # insecure: true
+databases:
+- required: true
+  type: sqlDatabase
+  address: localhost:3306
+  user: root
+  password: hakty11
+  schema: services
+  metadata:
+    name: sqlWrites
+    dialect: mysql
+    orm: gorm
+- required: true
+  type: sqlDatabase
+  address: localhost:3306
+  user: root
+  password: hakty11
+  schema: services
+  metadata:
+    name: sqlReads
+    dialect: mysql
+    orm: gorm
+- required: true
+  type: redisDatabase
+  address: localhost:6379
+  metadata:
+    name: redisWrites
+- required: true
+  type: redisDatabase
+  address: localhost:6379
+  metadata:
+    name: redisReads
+externalServices:
+- name: messaging
+  required: true
+  address: localhost:9013
+  tlsCert: /home/gideon/go/src/github.com/gidyon/services/certs/localhost/cert.pem
+  serverName: localhost
