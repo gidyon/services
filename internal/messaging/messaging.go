@@ -193,7 +193,7 @@ func (api *messagingServer) sendBroadCastMessage(
 			api.Logger.Warningln("no subscribers to send message")
 			continue
 		} else {
-			api.Logger.Warningf("sending message to %d subsribers", len(subscribersRes.Subscribers))
+			api.Logger.Infof("sending message to %d subsribers", len(subscribersRes.Subscribers))
 		}
 
 		// Send using anonymous goroutine
@@ -211,14 +211,20 @@ func (api *messagingServer) sendBroadCastMessage(
 			emails := make([]string, 0, len(subscribers))
 			msgDBs := make([]*Message, 0, 5)
 
-			for _, subscriberPB := range subscribers {
-				emails = append(emails, subscriberPB.GetEmail())
-				deviceTokens = append(deviceTokens, subscriberPB.GetDeviceToken())
-				phones = append(phones, subscriberPB.GetPhone())
+			for _, pb := range subscribers {
+				if pb.Email != "" {
+					emails = append(emails, pb.Email)
+				}
+				if pb.DeviceToken != "" {
+					deviceTokens = append(deviceTokens, pb.DeviceToken)
+				}
+				if pb.Phone != "" {
+					phones = append(phones, pb.Phone)
+				}
 
 				// Save message
 				if msg.GetSave() {
-					msg.UserId = subscriberPB.SubscriberId
+					msg.UserId = pb.SubscriberId
 					msgDB, err := GetMessageDB(msg)
 					if err != nil {
 						api.Logger.Errorf("failed to get message model: %v", err)
@@ -335,7 +341,7 @@ func (api *messagingServer) SendMessage(
 	defer cancel()
 
 	// Get subscriber
-	subscriberPB, err := api.SubscriberClient.GetSubscriber(ctxGet, &subscriber.GetSubscriberRequest{
+	pb, err := api.SubscriberClient.GetSubscriber(ctxGet, &subscriber.GetSubscriberRequest{
 		SubscriberId: msg.UserId,
 	}, grpc.WaitForReady(true))
 	if err != nil {
@@ -366,7 +372,7 @@ func (api *messagingServer) SendMessage(
 
 			_, err = api.EmailClient.SendEmail(ctxGet, &emailing.SendEmailRequest{
 				Email: &emailing.Email{
-					Destinations:    []string{subscriberPB.GetEmail()},
+					Destinations:    []string{pb.GetEmail()},
 					DisplayName:     displayName,
 					From:            sender,
 					Subject:         msg.Title,
@@ -380,7 +386,7 @@ func (api *messagingServer) SendMessage(
 		case messaging.SendMethod_SMSV2:
 			_, err = api.SMSClient.SendSMS(ctxGet, &sms.SendSMSRequest{
 				Sms: &sms.SMS{
-					DestinationPhones: []string{subscriberPB.GetPhone()},
+					DestinationPhones: []string{pb.GetPhone()},
 					Keyword:           msg.Title,
 					Message:           msg.Data,
 				},
@@ -393,7 +399,7 @@ func (api *messagingServer) SendMessage(
 			}
 		case messaging.SendMethod_CALL:
 			_, err = api.CallClient.Call(ctxGet, &call.CallPayload{
-				DestinationPhones: []string{subscriberPB.GetPhone()},
+				DestinationPhones: []string{pb.GetPhone()},
 				Keyword:           msg.Title,
 				Message:           msg.Data,
 			}, grpc.WaitForReady(true))
@@ -402,7 +408,7 @@ func (api *messagingServer) SendMessage(
 			}
 		case messaging.SendMethod_PUSH:
 			_, err = api.PushClient.SendPushMessage(ctxGet, &pusher.PushMessage{
-				DeviceTokens: []string{subscriberPB.GetDeviceToken()},
+				DeviceTokens: []string{pb.GetDeviceToken()},
 				Title:        msg.Title,
 				Message:      msg.Data,
 				Details:      msg.Details,
