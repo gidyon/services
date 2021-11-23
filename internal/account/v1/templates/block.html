@@ -1,0 +1,17 @@
+{{define "block"}}
+<main>
+    <h1>Your Account Was Blocked</h1>
+    <div style="font-size: 14px;" class="fluid">
+        <p>
+            Hello <span class="fw-600">{{.Names}}</span>. Your account <span class="fw-600">{{.AppName}}</span> account was blocked. Contact our administrators or help for further assistance.
+            <br>
+            Click the button below in order to activate your account.
+        </p>
+    </div>
+    <div>
+        <div class="reason">Reason</div>
+        <div>{{.Reason}}</div>
+    </div>
+    <br>
+</main>
+{{end}}
