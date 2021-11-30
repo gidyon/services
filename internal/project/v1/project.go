@@ -115,7 +115,7 @@ func (projectAPI *projectAPIServer) CreateProject(
 
 	// Create in the database
 	err = projectAPI.SqlDb.Create(db).Error
-	if err == nil {
+	if err != nil {
 		return nil, errs.FailedToSave("project", err)
 	}
 
@@ -147,7 +147,7 @@ func (projectAPI *projectAPIServer) UpdateProject(
 
 	// Create in the database
 	err = projectAPI.SqlDb.Where("id=?", projectId).Omit("id").Updates(db).Error
-	if err == nil {
+	if err != nil {
 		return nil, errs.FailedToSave("project", err)
 	}
 
@@ -211,7 +211,7 @@ func (projectAPI *projectAPIServer) DeleteProject(
 
 	projectId := vals[len(vals)-1]
 
-	err = projectAPI.SqlDb.Delete("id=?", projectId).Error
+	err = projectAPI.SqlDb.Model(&Project{}).Delete("id=?", projectId).Error
 	if err != nil {
 		return nil, errs.FailedToDelete("project", err)
 	}

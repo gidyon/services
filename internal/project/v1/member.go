@@ -106,7 +106,7 @@ func (projectAPI *projectAPIServer) DeleteProjectMember(
 
 	memberId := vals[len(vals)-1]
 
-	err = projectAPI.SqlDb.Delete("id=?", memberId).Error
+	err = projectAPI.SqlDb.Model(&ProjectMember{}).Delete("id=?", memberId).Error
 	if err != nil {
 		return nil, errs.FailedToDelete("project", err)
 	}
