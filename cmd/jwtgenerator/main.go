@@ -12,6 +12,11 @@ import (
 
 var (
 	jwtKey        = flag.String("jwt-key", "", "Key to use for signing JWT")
+	projectId     = flag.String("project-id", "xxxx", "Project id")
+	audience      = flag.String("audience", "accounts", "JWT Issuer audience")
+	actorId       = flag.String("actor-id", "xxxx", "Actor id")
+	names         = flag.String("names", "xxxx", "JWT names")
+	iss           = flag.String("iss", "xxxx", "JWT names")
 	expireSeconds = flag.Int("expire-sec", (60 * 60 * 24 * 365 * 5), "Time in seconds when jwt should expire")
 )
 
@@ -23,16 +28,16 @@ func main() {
 	// Authentication API
 	authAPI, err := auth.NewAPI(&auth.Options{
 		SigningKey: jwtKey2,
-		Issuer:     "Accounts API",
-		Audience:   "accounts",
+		Issuer:     *iss,
+		Audience:   *audience,
 	})
 	errs.Panic(err)
 
 	// Generate jwt token
 	token, err := authAPI.GenToken(context.Background(), &auth.Payload{
-		ID:           "xxxxxx",
-		ProjectID:    "xxxxxx",
-		Names:        "xxxxxx",
+		ID:           *actorId,
+		ProjectID:    *projectId,
+		Names:        *names,
 		PhoneNumber:  "xxxxxx",
 		EmailAddress: "xxxxxx",
 		Group:        auth.DefaultAdminGroup(),
