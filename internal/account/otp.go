@@ -37,9 +37,9 @@ func (accountAPI *accountAPIServer) RequestSignInOTP(
 	}
 
 	// GetAccount the user from database
-	accountDB := &Account{}
+	db := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ?", req.Username).Error
+		First(db, "account_id = ?", req.Username).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -48,7 +48,7 @@ func (accountAPI *accountAPIServer) RequestSignInOTP(
 		return nil, errs.FailedToFind("account", err)
 	}
 
-	accountID := fmt.Sprint(accountDB.AccountID)
+	accountID := fmt.Sprint(db.AccountID)
 
 	uniqueNumber := randomdata.Number(100000, 999999)
 
@@ -63,11 +63,11 @@ func (accountAPI *accountAPIServer) RequestSignInOTP(
 	// Generate token
 	jwt, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 		ID:           accountID,
-		ProjectID:    accountDB.ProjectID,
-		Names:        accountDB.Names,
-		EmailAddress: accountDB.Email,
-		PhoneNumber:  accountDB.Phone,
-		Group:        accountDB.PrimaryGroup,
+		ProjectID:    db.ProjectID,
+		Names:        db.Names,
+		EmailAddress: db.Email,
+		PhoneNumber:  db.Phone,
+		Group:        db.PrimaryGroup,
 	}, time.Now().Add(10*time.Minute))
 	if err != nil {
 		return nil, err
@@ -125,9 +125,9 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	}
 
 	// Get the user from database
-	accountDB := &Account{}
+	db := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ?", req.Username).Error
+		First(db, "account_id = ?", req.Username).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -136,11 +136,11 @@ func (accountAPI *accountAPIServer) SignInOTP(
 		return nil, errs.FailedToFind("account", err)
 	}
 
-	if accountDB.AccountState == blockedState {
+	if db.AccountState == blockedState {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
-	trialsKey := fmt.Sprintf("accounts:otptrials:%d", accountDB.AccountID)
+	trialsKey := fmt.Sprintf("accounts:otptrials:%d", db.AccountID)
 
 	// Increment trials by 1
 	trials, err := accountAPI.RedisDBWrites.Incr(ctx, trialsKey).Result()
@@ -154,7 +154,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 	// Check if exceed trials
 	if trials > maxTrials {
 		// Block the account
-		err = accountAPI.SQLDBWrites.Model(accountDB).Update("account_state", account.AccountState_BLOCKED.String()).Error
+		err = accountAPI.SQLDBWrites.Model(db).Update("account_state", account.AccountState_BLOCKED.String()).Error
 		if err != nil {
 			accountAPI.Logger.Errorln(err)
 			return nil, errs.WrapMessage(codes.Internal, "failed to block account")
@@ -169,7 +169,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked due to too many attempts.")
 	}
 
-	accountID := fmt.Sprint(accountDB.AccountID)
+	accountID := fmt.Sprint(db.AccountID)
 
 	// Get otp
 	otp, err := accountAPI.RedisDBWrites.Get(ctx, otpKey(accountID)).Result()
@@ -192,7 +192,7 @@ func (accountAPI *accountAPIServer) SignInOTP(
 		return nil, errs.RedisCmdFailed(err, "DEL")
 	}
 
-	return accountAPI.updateSession(ctx, accountDB, req.Group)
+	return accountAPI.updateSession(ctx, db, req.Group)
 }
 
 func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
@@ -217,9 +217,9 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 	}
 
 	// GetAccount the user from database
-	accountDB := &Account{}
+	db := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ?", req.AccountId).Error
+		First(db, "account_id = ?", req.AccountId).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -228,7 +228,7 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 		return nil, errs.FailedToFind("account", err)
 	}
 
-	accountID := fmt.Sprint(accountDB.AccountID)
+	accountID := fmt.Sprint(db.AccountID)
 
 	uniqueNumber := randomdata.Number(100000, 999999)
 
@@ -243,11 +243,11 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 	// Generate token
 	jwt, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 		ID:           accountID,
-		ProjectID:    accountDB.ProjectID,
-		Names:        accountDB.Names,
-		EmailAddress: accountDB.Email,
-		PhoneNumber:  accountDB.Phone,
-		Group:        accountDB.PrimaryGroup,
+		ProjectID:    db.ProjectID,
+		Names:        db.Names,
+		EmailAddress: db.Email,
+		PhoneNumber:  db.Phone,
+		Group:        db.PrimaryGroup,
 	}, time.Now().Add(10*time.Minute))
 	if err != nil {
 		return nil, err
@@ -256,7 +256,7 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 	// Outgoing context
 	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
 
-	data := fmt.Sprintf("Account verification OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", accountDB.ProjectID, uniqueNumber)
+	data := fmt.Sprintf("Account verification OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", db.ProjectID, uniqueNumber)
 
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
@@ -300,9 +300,9 @@ func (accountAPI *accountAPIServer) ActivateAccountOTP(
 	}
 
 	// Get the user from database
-	accountDB := &Account{}
+	db := &Account{}
 	err = accountAPI.SQLDBWrites.
-		First(accountDB, "account_id = ?", req.AccountId).Error
+		First(db, "account_id = ?", req.AccountId).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -311,7 +311,7 @@ func (accountAPI *accountAPIServer) ActivateAccountOTP(
 		return nil, errs.FailedToFind("account", err)
 	}
 
-	if accountDB.AccountState == blockedState {
+	if db.AccountState == blockedState {
 		return nil, errs.WrapMessage(codes.PermissionDenied, "account is blocked")
 	}
 
@@ -331,7 +331,7 @@ func (accountAPI *accountAPIServer) ActivateAccountOTP(
 	}
 
 	// Update the model of the user to activate their account
-	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id=?", accountDB.AccountID).
+	err = accountAPI.SQLDBWrites.Table(accountsTable).Where("account_id=?", db.AccountID).
 		Update("account_state", account.AccountState_ACTIVE.String()).Error
 	if err != nil {
 		return nil, errs.FailedToUpdate("account", err)

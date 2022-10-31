@@ -1,0 +1,635 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 4.2.1
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2016 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Wed Jul 27 16:00:18 2022
+
+# Variables
+
+# 'override' directive
+GNUMAKEFLAGS := 
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+PAPERSIZE = letter
+# environment
+AWS_SECRET_ACCESS_KEY = 
+# environment
+DESKTOP_SESSION = ubuntu
+# default
+.SHELLFLAGS := -c
+# environment
+XDG_SESSION_CLASS = user
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+IM_CONFIG_PHASE = 1
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+XAUTHORITY = /run/user/1000/gdm/Xauthority
+# environment
+GDMSESSION = ubuntu
+# environment
+XMODIFIERS = @im=ibus
+# makefile
+CURDIR := /home/gideon/go/src/github.com/gidyon/services
+# makefile
+SHELL = /bin/sh
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# environment
+_ = /usr/share/code/code
+# environment
+JOURNAL_STREAM = 8:51678
+# environment
+XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+JAVA_HOME = /usr/lib/jvm/java-8-openjdk-amd64
+# automatic
+@F = $(notdir $@)
+# makefile (from 'Makefile', line 23)
+API_HASH_KEY := 73H/I3+27Qp3ZETqMzbYa/EGT826Zxx2821cmHUl7fTX/DmkIWPJatczkxN3p8RHbdOGWT/HDRAf7gqhZcZOow
+# environment
+GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
+# environment
+USERNAME = gideon
+# environment
+MAKELEVEL := 0
+# environment
+XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# makefile (from 'Makefile', line 2)
+API_OUT_PATH := pkg/api
+# environment
+MANAGERPID = 1889
+# environment
+LC_NAME = en_CA.UTF-8
+# environment
+VSCODE_CWD = /home/gideon
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# environment
+PATH = /home/gideon/.cargo/bin:/home/gideon/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/home/gideon/go/bin:/home/gideon/istio-1.11.2/bin:/home/gideon/.pub-cache/bin:/home/gideon/Downloads/node-v18.6.0-linux-x64/bin:/usr/local/go/bin
+# environment
+GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
+# environment
+GJS_DEBUG_OUTPUT = stderr
+# environment
+LSCOLORS = Gxfxcxdxbxegedabagacad
+# environment
+SESSION_MANAGER = local/gideon-HP-Pavilion-Laptop-15-cs3xxx:@/tmp/.ICE-unix/2102,unix/gideon-HP-Pavilion-Laptop-15-cs3xxx:/tmp/.ICE-unix/2102
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+LC_ALL = C
+# environment
+GOPATH = /home/gideon/go
+# environment
+XDG_MENU_PREFIX = gnome-
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+INVOCATION_ID = 2b3d6abebfdb46c89543d5a2dbefccf0
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
+# environment
+LS_COLORS = 
+# environment
+XDG_SESSION_DESKTOP = ubuntu
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# environment
+GIO_LAUNCHED_DESKTOP_FILE_PID = 69173
+# automatic
+%F = $(notdir $%)
+# environment
+DISPLAY = :0
+# makefile (from 'Makefile', line 25)
+CONFIGS_DIR := /Users/jessegitaka/go/src/github.com/gidyon/services/configs
+# environment
+PWD = /home/gideon/go/src/github.com/gidyon/services
+# default
+.LOADED := 
+# environment
+SSH_AGENT_PID = 2064
+# makefile (from 'Makefile', line 24)
+FIREBASE_CREDENTIALS_FILE := /Users/jessegitaka/go/src/github.com/gidyon/antibug/service-accout.json
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
+# environment
+GTK_MODULES = gail:atk-bridge
+# environment
+GOMODCACHE = /home/gideon/go/pkg/mod
+# environment
+HOME = /home/gideon
+# environment
+VSCODE_CODE_CACHE_PATH = /home/gideon/.config/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
+# environment
+LOGNAME = gideon
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# automatic
++F = $(notdir $+)
+# environment
+ZSH = /home/gideon/.oh-my-zsh
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# environment
+GNOME_DESKTOP_SESSION_ID = this-is-deprecated
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# makefile (from 'Makefile', line 21)
+JWT_KEY := hDI0eBv11TbuboZ01qpnOuYRYLh6gQUOQhC9Mfagzv9l3gJso7CalTt7wGzJCVwbeDIfOX6fwS79pnisW7udhQ
+# environment
+LC_TIME = en_CA.UTF-8
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+QT_IM_MODULE = ibus
+# environment
+SHLVL = 0
+# environment
+GNOME_SHELL_SESSION_MODE = ubuntu
+# default
+MAKE_VERSION := 4.2.1
+# environment
+USER = gideon
+# environment
+LC_MONETARY = en_CA.UTF-8
+# makefile
+.DEFAULT_GOAL := setup_dev
+# environment
+XDG_CURRENT_DESKTOP = Unity
+# environment
+LESS = -R
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+LC_TELEPHONE = en_CA.UTF-8
+# default
+MAKE_COMMAND := make
+# makefile (from 'Makefile', line 27)
+ACTIVATION_URL := https://google.com
+# environment
+OLDPWD = /home/gideon
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-4168a9a5-1.69.2-main.sock
+# makefile
+MAKEFLAGS = pqrR
+# environment
+MFLAGS = -pqrR
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+GDK_BACKEND = x11
+# environment
+LC_PAPER = en_CA.UTF-8
+# environment
+QT_ACCESSIBILITY = 1
+# default
+MAKEFILES := 
+# environment
+LC_NUMERIC = en_CA.UTF-8
+# automatic
+<F = $(notdir $<)
+# environment
+LC_MEASUREMENT = en_CA.UTF-8
+# environment
+EDITOR = nano
+# environment
+PAGER = less
+# environment
+AWS_ACCESS_KEY_ID = 
+# makefile (from 'Makefile', line 3)
+OPEN_APIV2_OUT_PATH := api/openapiv2
+# makefile (from 'Makefile', line 26)
+TEMPLATES_DIR := /Users/jessegitaka/go/src/github.com/gidyon/services/templates/account
+# environment
+GJS_DEBUG_TOPICS = JS ERROR;JS LOG
+# automatic
+^F = $(notdir $^)
+# makefile (from 'Makefile', line 1)
+API_IN_PATH := api/proto
+# default
+SUFFIXES := 
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+WINDOWPATH = 2
+# environment
+KOPS_STATE_STORE = s3://gidyon-onfon
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# environment
+LC_IDENTIFICATION = en_CA.UTF-8
+# default
+.RECIPEPREFIX := 
+# environment
+LC_ADDRESS = en_CA.UTF-8
+# environment
+LANG = C
+# environment
+VSCODE_PID = 69173
+# makefile (from 'Makefile', line 4)
+PROJECT_ROOT := /Users/jessegitaka/go/src/github.com/gidyon/services
+# makefile (from 'Makefile', line 22)
+API_BLOCK_KEY := 9AI8o4ta02gdqWsVhYe0r276z7my6yDwY78rCsrcofT7pCNq4WwnRoW93hn8WFJM0HheZHDYPc4tD+tUXVNEGw
+# variable set hash-table stats:
+# Load=124/1024=12%, Rehash=0, Collisions=23/149=15%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 66306, inode 213337): 23 files, no impossibilities.
+
+# 23 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+run_sms_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 124):
+ 
+make: *** No rule to make target 'all'.  Stop.
+
+	cd cmd/services/sms && make run
+
+redis_console:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 19):
+	@docker run --rm -it --network bridge-rupa-backend redis redis-cli -h redis
+
+build_messaging:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 136):
+	cd cmd/services/messaging && sudo make build_service
+
+protoc_pusher:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 55):
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/pusher --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/pusher pusher.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/pusher pusher.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) pusher.proto
+
+protoc_account:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 35):
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/account --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account account.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account account.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) account.proto
+
+build_subscriber:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 142):
+	cd cmd/services/subscriber && sudo make build_service
+
+protoc_call:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 65):
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/call --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/call call.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/call call.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) call.proto
+
+protoc_account.v1:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 40):
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/account/v1 --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account/v1 account.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account/v1 account.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) account.v1.proto
+
+# Not a target:
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+
+run_email_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 118):
+	cd cmd/services/emailing && make run
+
+run_messaging_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 106):
+	cd cmd/services/messaging && make run
+
+run_subscriber_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 112):
+	cd ./cmd/services/subscriber && make run
+
+build_account:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 130):
+	cd cmd/services/account && sudo make build_service
+
+protoc_channel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 70):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/channel --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/channel channel.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/channel channel.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) channel.proto
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2021-11-23 11:48:25.597764865
+#  File has been updated.
+#  Successfully updated.
+
+protoc_all: protoc_account protoc_messaging protoc_emailing protoc_pusher protoc_sms protoc_call protoc_channel protoc_subscriber protoc_settings protoc_longrunning protoc_account.v1 protoc_project.v1 copy_apidoc
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 96):
+	
+
+run_account_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 100):
+	cd cmd/services/account && make run
+
+setup_redis:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 11):
+	@cd deployments/compose/dev &&\
+	docker-compose up -d redis
+
+run_call_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 115):
+	cd cmd/services/messaging/cmd/call && make run
+
+protoc_project.v1:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 85):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/project/v1 --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/project/v1 project.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/project/v1 project.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) project.v1.proto
+
+protoc_error:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 90):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/usererror --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/usererror error.proto
+
+protoc_settings:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 80):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/settings --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/settings settings.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/settings settings.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) settings.proto
+
+help:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 159):
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+build_channel:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 133):
+	cd cmd/services/channel && sudo make build_service
+
+build_all: build_account build_messaging_call build_messaging_email build_longrunning build_messaging build_messaging_pusher build_messaging_sms build_subscriber build_channel
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+cp_doc:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+run_channel_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 103):
+	cd cmd/services/channel && make run
+
+protoc_emailing:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 50):
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/emailing --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/emailing emailing.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/emailing emailing.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) emailing.proto
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+protoc_longrunning:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 30):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/longrunning --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/longrunning longrunning.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/longrunning longrunning.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) longrunning.proto
+
+build_messaging_sms:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 148):
+	cd cmd/services/sms && sudo make build_service
+
+run_push_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 121):
+	cd cmd/services/pusher && make run
+
+build_messaging_email:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 145):
+	cd cmd/services/emailing && sudo make build_service
+
+protoc_sms:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 60):
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging/sms --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging/sms sms.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging/sms sms.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) sms.proto
+
+build_longrunning:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 139):
+	cd cmd/services/longrunning && sudo make build_service
+
+protoc_messaging:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 45):
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging messaging.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging messaging.proto
+	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) messaging.proto
+	
+
+run_all: run_account_service run_call_service run_channel_service run_email_service run_longrunning_service run_messaging_service run_push_service run_sms_service run_subscriber_service
+#  Implicit rule search has not been done.
+ 
+#  Modification time never checked.
+#  File has not been updated.
+
+protoc_subscriber:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 75):
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/subscriber --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/subscriber subscriber.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/subscriber subscriber.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) subscriber.proto
+
+teardown_dev:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 15):
+	@cd deployments/compose/dev &&\
+	docker-compose down
+
+run_longrunning_service:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 109):
+	cd ./cmd/services/longrunning && make run
+
+gen_api_doc: protoc_all cp_doc
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+setup_dev:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 7):
+	@cd deployments/compose/dev &&\
+	docker-compose up -d
+
+build_messaging_pusher:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 151):
+	cd cmd/services/pusher && sudo make build_service
+
+build_messaging_call:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 154):
+	cd cmd/services/call && sudo make build_service
+
+copy_apidoc:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 93):
+	@cp -r $(OPEN_APIV2_OUT_PATH)/ cmd/webapp/apidoc
+
+# files hash-table stats:
+# Load=46/1024=4%, Rehash=0, Collisions=0/89=0%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 70 / storage = 882 B / avg = 12 B
+# current buf: size = 8162 B / used = 882 B / count = 70 / avg = 12 B
+
+# strcache performance: lookups = 147 / hit rate = 52%
+# hash-table stats:
+# Load=70/8192=1%, Rehash=0, Collisions=1/147=1%
+# Finished Make data base on Wed Jul 27 16:00:18 2022
+
+ 

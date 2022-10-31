@@ -16,7 +16,6 @@ import (
 
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/auth"
 	"github.com/gidyon/micro/v2/pkg/middleware/grpc/zaplogger"
-	"github.com/gidyon/micro/v2/utils/encryption"
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/services/pkg/api/account"
 	"github.com/gidyon/services/pkg/api/channel"
@@ -96,10 +95,6 @@ func main() {
 
 	// Start service
 	app.Start(ctx, func() error {
-		// Pagination hasher
-		paginationHasher, err := encryption.NewHasher(string(jwtKey))
-		errs.Panic(err)
-
 		// Connect to account service
 		accountCC, err := app.ExternalServiceConn("account")
 		errs.Panic(err)
@@ -117,12 +112,11 @@ func main() {
 
 		// Create subscriber API
 		subscriberAPI, err := subscriber_app.NewSubscriberAPIServer(ctx, &subscriber_app.Options{
-			SQLDB:            db,
-			Logger:           app.Logger(),
-			ChannelClient:    channel.NewChannelAPIClient(channelCC),
-			AccountClient:    account.NewAccountAPIClient(accountCC),
-			AuthAPI:          authAPI,
-			PaginationHasher: paginationHasher,
+			SQLDB:         db,
+			Logger:        app.Logger(),
+			ChannelClient: channel.NewChannelAPIClient(channelCC),
+			AccountClient: account.NewAccountAPIClient(accountCC),
+			AuthAPI:       authAPI,
 		})
 		errs.Panic(err)
 

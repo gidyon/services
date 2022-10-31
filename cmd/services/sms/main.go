@@ -54,6 +54,11 @@ func main() {
 	app.AddGRPCUnaryServerInterceptors(logginUIs...)
 	app.AddGRPCStreamServerInterceptors(loggingSIs...)
 
+	// Payload interceptor
+	// alwaysLoggingDeciderServer := func(ctx context.Context, fullMethodName string, servingObject interface{}) bool { return true }
+	// app.AddGRPCUnaryServerInterceptors(grpc_zap.PayloadUnaryServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
+	// app.AddGRPCStreamServerInterceptors(grpc_zap.PayloadStreamServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
+
 	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
 
 	if len(jwtKey) == 0 {

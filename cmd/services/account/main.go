@@ -10,6 +10,8 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/Pallinder/go-randomdata"
+	"github.com/gorilla/securecookie"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/resolver"
@@ -34,8 +36,10 @@ import (
 
 	"github.com/gidyon/micro/v2/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
+	http_middleware "github.com/gidyon/micro/v2/pkg/middleware/http"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 )
 
 func main() {
@@ -65,6 +69,11 @@ func main() {
 	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
 	app.AddGRPCUnaryServerInterceptors(logginUIs...)
 	app.AddGRPCStreamServerInterceptors(loggingSIs...)
+
+	// Payload interceptor
+	alwaysLoggingDeciderServer := func(ctx context.Context, fullMethodName string, servingObject interface{}) bool { return true }
+	app.AddGRPCUnaryServerInterceptors(grpc_zap.PayloadUnaryServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
+	app.AddGRPCStreamServerInterceptors(grpc_zap.PayloadStreamServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
 
 	jwtKey := []byte(os.Getenv("JWT_SIGNING_KEY"))
 
@@ -156,6 +165,49 @@ func main() {
 		},
 	}))
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:       []string{"*"},
+		AllowedMethods:       []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:       []string{"Accept", "Access-Control-Allow-Origin", "Authorization", "Cache-Control", "Content-Type", "DNT", "If-Modified-Since", "Keep-Alive", "Origin", "User-Agent", "X-Requested-With"},
+		ExposedHeaders:       []string{"Authorization"},
+		MaxAge:               1728,
+		AllowCredentials:     true,
+		OptionsPassthrough:   false,
+		OptionsSuccessStatus: 0,
+		Debug:                true,
+	})
+
+	app.AddHTTPMiddlewares(func(h http.Handler) http.Handler {
+		return c.Handler(h)
+	})
+
+	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
+	errs.Panic(err)
+
+	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
+	errs.Panic(err)
+
+	sc := securecookie.New(apiHashKey, apiBlockKey)
+
+	app.AddHTTPMiddlewares(http_middleware.CookieToJWTMiddleware(&http_middleware.CookieJWTOptions{
+		SecureCookie: sc,
+		AuthHeader:   auth.Header(),
+		AuthScheme:   auth.Scheme(),
+		CookieName:   auth.JWTCookie(),
+	}))
+
+	// Grpc Gateway options
+	app.AddServeMuxOptions(
+		runtime.WithOutgoingHeaderMatcher(func(key string) (string, bool) {
+			switch key {
+			case "set-cookie", "access-control-expose-headers":
+				return key, true
+			default:
+				return runtime.DefaultHeaderMatcher(key)
+			}
+		}),
+	)
+
 	// 5. Bootstrapping service
 	app.Start(ctx, func() error {
 		// Connect to messaging service
@@ -187,8 +239,8 @@ func main() {
 			DefaultEmailSender: os.Getenv("DEFAULT_EMAIL_SENDER"),
 			TemplatesDir:       os.Getenv("TEMPLATES_DIR"),
 			ActivationURL:      os.Getenv("ACTIVATION_URL"),
-			AuthAPI:            authAPI,
 			PaginationHasher:   paginationHasher,
+			AuthAPI:            authAPI,
 			SQLDBWrites: func() *gorm.DB {
 				if os.Getenv("DB_DEBUG") != "" {
 					return app.GormDBByName("sqlWrites").Debug()
@@ -203,6 +255,7 @@ func main() {
 			}(),
 			RedisDBWrites:   app.RedisClientByName("redisWrites"),
 			RedisDBReads:    app.RedisClientByName("redisReads"),
+			SecureCookie:    sc,
 			Logger:          app.Logger(),
 			MessagingClient: messaging.NewMessagingClient(messagingCC),
 			FirebaseAuth:    firebaseAuth,

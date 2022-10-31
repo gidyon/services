@@ -29,6 +29,13 @@ func FetchMinMaxDates(date1, date2 string) ([]*time.Time, error) {
 }
 
 func GetDateRanges(date1, date2 string) ([]string, error) {
+	if date1 == date2 {
+		t1, err := GetDateFromString(date1)
+		if err != nil {
+			return nil, err
+		}
+		return []string{t1.String()[:10]}, nil
+	}
 	t1, err := GetDateFromString(date1)
 	if err != nil {
 		return nil, err

@@ -280,7 +280,7 @@ func (projectAPI *projectAPIServer) ListProjects(
 		ID = uint(v)
 	}
 
-	db := projectAPI.SqlDb.Unscoped().Model(&Project{}).Limit(int(pageSize + 1)).Order("id DESC")
+	db := projectAPI.SqlDb.Model(&Project{}).Limit(int(pageSize + 1)).Order("id DESC")
 	if ID != 0 {
 		db = db.Where("id<?", ID)
 	}

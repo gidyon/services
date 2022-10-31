@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/gideon/go/src/github.com/gidyon/services'
+cd deployments/compose/dev &&\
+docker-compose up -d
+make: Leaving directory '/home/gideon/go/src/github.com/gidyon/services'
+ 

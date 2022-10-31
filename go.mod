@@ -11,17 +11,22 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
-	github.com/gidyon/micro/v2 v2.4.6
+	github.com/gidyon/micro v1.12.0
+	github.com/gidyon/micro/v2 v2.4.8
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/securecookie v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.1.0
 	github.com/jszwec/csvutil v1.5.0
 	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/onsi/ginkgo v1.15.0
 	github.com/onsi/gomega v1.10.5
+	github.com/pjebs/optimus-go v1.0.0
+	github.com/rs/cors v1.8.2
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stretchr/testify v1.7.0
 	go.opencensus.io v0.22.6 // indirect

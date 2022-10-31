@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gidyon.apis;
 
-option go_package="github.com/gidyon/services/pkg/api/account/v1";
+option go_package = "github.com/gidyon/services/pkg/api/account/v1";
 
 import "google/protobuf/empty.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -12,846 +12,886 @@ import "google/api/client.proto";
 import "messaging.proto";
 import "emailing.proto";
 import "sms.proto";
- 
-option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-	info: {
-        title: "Accounts/Customer/Auth Service";
-        description: "API for managing user/customers accounts and managing authentication"
-		version: "v1";
-		contact: {
-			name: "Github <Gideon Kamau>";
-			url: "https://github.com/gidyon/services/blob/master/api/proto/account.proto";
-			email: "gideonhacer@gmail.com";
-        };
-        license: {
-			name: "MIT License";
-			url: "https://github.com/gidyon/services/blob/master/LICENSE";
-		};
-    };
-	schemes: HTTPS;
-	schemes: HTTP;
-	consumes: "application/json";
-	produces: "application/json";
-	security_definitions: {
-		security: {
-		  key: "bearer"
-		  value: {
-			type: TYPE_API_KEY
-			in: IN_HEADER
-			name: "Authorization"
-			description: "Authentication token, prefixed by Bearer: Bearer <token>"
-		  }
-		}
-	}
-	security: {
-		security_requirement: {
-		  key: "bearer"
-		}
-	}
-};
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info : {title : "Accounts/Customer/Auth Service";
+description : "API for managing user/customers accounts and managing "
+              "authentication" version : "v1";
+contact : {
+name:
+  "Github <Gideon Kamau>";
+url:
+  "https://github.com/gidyon/services/blob/master/api/proto/account.proto";
+email:
+  "gideonhacer@gmail.com";
+};
+license : {
+name:
+  "MIT License";
+url:
+  "https://github.com/gidyon/services/blob/master/LICENSE";
+};
+}
+;
+schemes : HTTPS;
+schemes : HTTP;
+consumes : "application/json";
+produces : "application/json";
+security_definitions : {
+security : {
+key:
+  "bearer" value : {
+  type:
+    TYPE_API_KEY
+  in:
+    IN_HEADER
+  name:
+    "Authorization"
+    description : "Authentication token, prefixed by Bearer: Bearer <token>"
+  }
+}
+}
+security : {
+security_requirement : {
+key:
+  "bearer"
+}
+}
+}
+;
 
 // Manages user accounts and activities associated with user accounts
 service AccountAPI {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
-		description: "User/Auth API -- Managing user accounts and auth sessions!"
-		external_docs: {
-			// url: "https://github.com/gidyon/services/blob/master";
-			description: "Find more about accounts service";
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+    description : "User/Auth API -- Managing user accounts and auth sessions!"
+    external_docs : {// url: "https://github.com/gidyon/services/blob/master";
+                     description : "Find more about accounts service";
+}
+}
+;
 
-	// Request to sign in using OTP
-	rpc RequestSignInOTP (RequestSignInOTPRequest) returns (google.protobuf.Empty) {
-		option (google.api.http) = {
-            post: "/api/accounts:requestSignIn"
-			body: "*"
-        };
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Request sign in using mobile OTP code (Mostly implemented as 2FA)";
-			description: "Will send OTP to the account associated phone number, they will use the OTP to sign.";
-		};
-	};
+// Request to sign in using OTP
+rpc RequestSignInOTP(RequestSignInOTPRequest) returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    post : "/api/accounts:requestSignIn"
+    body : "*"
+  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Request sign in using mobile OTP code (Mostly implemented as "
+              "2FA)";
+description:
+  "Will send OTP to the account associated phone number, they will use the OTP "
+  "to sign.";
+};
+}
+;
 
-	// Sign in using provided OTPs
-	rpc SignInOTP (SignInOTPRequest) returns (SignInResponse) {
-		option (google.api.http) = {
-            post: "/v1/accounts:signInOTP"
-			body: "*"
-        };
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Sign in using the OTP provided";
-			description: "Pass the OTP acquired during RequestSignInOTP to sign in to the account";
-		};
-	};
+// Sign in using provided OTPs
+rpc SignInOTP(SignInOTPRequest) returns (SignInResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:signInOTP"
+    body : "*"
+  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Sign in using the OTP provided";
+description:
+  "Pass the OTP acquired during RequestSignInOTP to sign in to the account";
+};
+}
+;
 
-    // Signs in a user into their account
-    rpc SignIn (SignInRequest) returns (SignInResponse) {
-        option (google.api.http) = {
-            post: "/v1/accounts:signIn"
-			body: "*"
-        };
-        option (google.api.method_signature) = "username,group,password";
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Sign in using username and password";
-			description: "Sign in user using username, password and project_id they belong to";
-		};
-    };
+// Signs in a user into their account
+rpc SignIn(SignInRequest) returns (SignInResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:signIn"
+    body : "*"
+  };
+  option (google.api.method_signature) = "username,group,password";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Sign in using username and password";
+description:
+  "Sign in user using username, password and project_id they belong to";
+};
+}
+;
 
-    // Fetch new JWT using refresh token and updates session
-    rpc RefreshSession (RefreshSessionRequest) returns (SignInResponse) {
-        option (google.api.http) = {
-			post: "/v1/accounts:refreshSession"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account_id,token";
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Refresh jwt";
-			description: "Refreshes jwt that has expiered. Pass the refresh token, account id and account group to retrieve the new jwt";
-		};
-    };
+// Fetch new JWT using refresh token and updates session
+rpc RefreshSession(RefreshSessionRequest) returns (SignInResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:refreshSession"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id,token";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Refresh jwt";
+description:
+  "Refreshes jwt that has expiered. Pass the refresh token, account id and "
+  "account group to retrieve the new jwt";
+};
+}
+;
 
-    // Creates an account for a new user
-    rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
-        option (google.api.http) = {
-            post: "/v1/accounts"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account,project_id";
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Creates an account for a user";
-			description: "Required information is names, project_id, account.email or account.phone. If users will need to use password during signin, pass it in private_account.password and private_account.password";
-		};
-    };
+// Creates an account for a new user
+rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account,project_id";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Creates an account for a user";
+description:
+  "Required information is names, project_id, account.email or account.phone. "
+  "If users will need to use password during signin, pass it in "
+  "private_account.password and private_account.password";
+};
+}
+;
 
-    // Activates an account to being active
-    rpc ActivateAccount (ActivateAccountRequest) returns (ActivateAccountResponse) {
-        option (google.api.http) = {
-            post: "/v1/accounts:activateAccount"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account_id,token";
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Activate the account";
-			description: "Changes the status of the account to ACTIVE, only done by administrators";
-		};
-    };
+// Activates an account to being active
+rpc ActivateAccount(ActivateAccountRequest) returns (ActivateAccountResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:activateAccount"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id,token";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Activate the account";
+description:
+  "Changes the status of the account to ACTIVE, only done by administrators";
+};
+}
+;
 
-	// Requests for an OTP to activate an account, usually happens after login and the account is not ACTIVE
-	rpc RequestActivateAccountOTP (RequestActivateAccountOTPRequest) returns (google.protobuf.Empty) {
-		option (google.api.http) = {
-			post: "/v1/accounts:requestActivateAccountOTP"
-			body: "*"
-        };
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Request for OTP to activate an account";
-			description: "Request OTP to verify and activate their account, this happens after user has created an account and it is inactive. They will use the OTP to activate their account";
-		};
-	};
+// Requests for an OTP to activate an account, usually happens after login and
+// the account is not ACTIVE
+rpc RequestActivateAccountOTP(RequestActivateAccountOTPRequest)
+    returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    post : "/v1/accounts:requestActivateAccountOTP"
+    body : "*"
+  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Request for OTP to activate an account";
+description:
+  "Request OTP to verify and activate their account, this happens after user "
+  "has created an account and it is inactive. They will use the OTP to "
+  "activate their account";
+};
+}
+;
 
-	// Activates the account by passing along the OTP code sent and token
-	rpc ActivateAccountOTP (ActivateAccountOTPRequest) returns (ActivateAccountResponse) {
-		option (google.api.http) = {
-			post: "/v1/accounts:activateAccountOTP"
-			body: "*"
-        };
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Activate/Verify the account";
-			description: "Verifies/Activates user account using OTP gotten from RequestActivateAccountOTP call";
-		};
-	};
+// Activates the account by passing along the OTP code sent and token
+rpc ActivateAccountOTP(ActivateAccountOTPRequest)
+    returns (ActivateAccountResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:activateAccountOTP"
+    body : "*"
+  };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Activate/Verify the account";
+description:
+  "Verifies/Activates user account using OTP gotten from "
+  "RequestActivateAccountOTP call";
+};
+}
+;
 
-    // Updates a user account
-    rpc UpdateAccount (UpdateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            patch: "/v1/accounts/{account.account_id}"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account_id,account";
-    };
+// Updates a user account
+rpc UpdateAccount(UpdateAccountRequest) returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    patch : "/v1/accounts/{account.account_id}"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id,account";
+};
 
-    // Request to change private account information i.e password
-    rpc RequestChangePrivateAccount (RequestChangePrivateAccountRequest) returns (RequestChangePrivateAccountResponse) {
-        option (google.api.http) = {
-            post: "/v1/accounts:requestChangePrivateAccount"
-            body: "*"
-        };
-        option (google.api.method_signature) = "payload,fallback_url";
-		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-			summary: "Request token to update password";
-			description: "Calling this operation will send a reset link to the email address provided or OTP if phone number was used. The jwt that is returned after this call should be passed inside request body when updating the private info for the account (passwords or security data). Default bearer token should be passed in authorization header";
-		};
-    };
+// Request to change private account information i.e password
+rpc RequestChangePrivateAccount(RequestChangePrivateAccountRequest)
+    returns (RequestChangePrivateAccountResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:requestChangePrivateAccount"
+    body : "*"
+  };
+  option (google.api.method_signature) = "payload,fallback_url";
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    summary : "Request token to update password";
+description:
+  "Calling this operation will send a reset link to the email address provided "
+  "or OTP if phone number was used. The jwt that is returned after this call "
+  "should be passed inside request body when updating the private info for the "
+  "account (passwords or security data). Default bearer token should be passed "
+  "in authorization header";
+};
+}
+;
 
-    // Updates a user private account information
-    rpc UpdatePrivateAccount (UpdatePrivateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/v1/accounts:updatePrivateAccount"
-            body: "*"
-        };
-        option (google.api.method_signature) = "account_id,private_account";
-    };
-  
-    // Updates a user private account information while not logged in to the account
-    rpc UpdatePrivateAccountExternal (UpdatePrivateAccountExternalRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/v1/accounts:updatePrivateAccountExternal"
-            body: "*"
-        };
-        option (google.api.method_signature) = "jwt,private_account";
-    };
+// Updates a user private account information
+rpc UpdatePrivateAccount(UpdatePrivateAccountRequest)
+    returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    post : "/v1/accounts:updatePrivateAccount"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id,private_account";
+};
 
-    // Deletes a user account
-    rpc DeleteAccount (DeleteAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/v1/accounts/{account_id}"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
+// Updates a user private account information while not logged in to the account
+rpc UpdatePrivateAccountExternal(UpdatePrivateAccountExternalRequest)
+    returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    post : "/v1/accounts:updatePrivateAccountExternal"
+    body : "*"
+  };
+  option (google.api.method_signature) = "jwt,private_account";
+};
 
-    // Retrieves a user account
-    rpc GetAccount (GetAccountRequest) returns (Account) {
-        option (google.api.http) = {
-            get: "/v1/accounts/{account_id}"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
+// Deletes a user account
+rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    delete : "/v1/accounts/{account_id}"
+  };
+  option (google.api.method_signature) = "account_id";
+};
 
-    //  Retrieves multiple user accounts
-    rpc BatchGetAccounts (BatchGetAccountsRequest) returns (BatchGetAccountsResponse) {
-        option (google.api.http) = {
-			post: "/v1/accounts:batchGetAccounts"
-			body: "*"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
+// Retrieves a user account
+rpc GetAccount(GetAccountRequest) returns (Account) {
+  option (google.api.http) = {
+    get : "/v1/accounts/{account_id}"
+  };
+  option (google.api.method_signature) = "account_id";
+};
 
-    //  Retrieves deeply linked accounts
-    rpc GetLinkedAccounts (GetLinkedAccountsRequest) returns (GetLinkedAccountsResponse) {
-        option (google.api.http) = {
-			post: "/v1/accounts:getLinkedAccounts"
-			body: "*"
-        };
-        option (google.api.method_signature) = "account_id";
-    };
+//  Retrieves multiple user accounts
+rpc BatchGetAccounts(BatchGetAccountsRequest)
+    returns (BatchGetAccountsResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:batchGetAccounts"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id";
+};
 
-    // Checks if an account exists
-    rpc ExistAccount (ExistAccountRequest) returns (ExistAccountResponse) {
-        option (google.api.http) = {
-			post: "/v1/accounts:existAccount"
-			body: "*"
-        };
-        option (google.api.method_signature) = "email,phone,huduma_id";
-    };
+//  Retrieves deeply linked accounts
+rpc GetLinkedAccounts(GetLinkedAccountsRequest)
+    returns (GetLinkedAccountsResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:getLinkedAccounts"
+    body : "*"
+  };
+  option (google.api.method_signature) = "account_id";
+};
 
-    // Updates account. Performed only by administrators
-    rpc AdminUpdateAccount (AdminUpdateAccountRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-			post: "/v1/accounts:adminUpdateAccount"
-			body: "*"
-        };
-        option (google.api.method_signature) = "admin_id,account_id";
-    };
+// Checks if an account exists
+rpc ExistAccount(ExistAccountRequest) returns (ExistAccountResponse) {
+  option (google.api.http) = {
+    post : "/v1/accounts:existAccount"
+    body : "*"
+  };
+  option (google.api.method_signature) = "email,phone,huduma_id";
+};
 
-    // Fetches collection of accounts
-    rpc ListAccounts (ListAccountsRequest) returns (Accounts) {
-        option (google.api.http) = {
-			get: "/v1/accounts"
-			additional_bindings {
-				post: "/v1/accounts:listAccounts"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "parent";
-    };
+// Updates account. Performed only by administrators
+rpc AdminUpdateAccount(AdminUpdateAccountRequest)
+    returns (google.protobuf.Empty) {
+  option (google.api.http) = {
+    post : "/v1/accounts:adminUpdateAccount"
+    body : "*"
+  };
+  option (google.api.method_signature) = "admin_id,account_id";
+};
 
-    // Searches accounts and linked accounts
-    rpc SearchAccounts (SearchAccountsRequest) returns (Accounts) {
-        option (google.api.http) = {
-			get: "/v1/accounts/search"
-			additional_bindings {
-				post: "/v1/accounts:searchAccounts"
-				body: "*"
-			}
-        };
-        option (google.api.method_signature) = "query";
-    };
+// Fetches collection of accounts
+rpc ListAccounts(ListAccountsRequest) returns (Accounts) {
+  option (google.api.http) = {
+    get : "/v1/accounts"
+    additional_bindings {post : "/v1/accounts:listAccounts" body : "*"}
+  };
+  option (google.api.method_signature) = "parent";
+};
 
-	// Request to get daily users stats
-	rpc DailyRegisteredUsers (DailyRegisteredUsersRequest) returns (CountStats) {
-        option (google.api.http) = {
-            post: "/v1/accounts:dailyRegisteredUsers"
-            body: "*"
-        };
-    };
+// Searches accounts and linked accounts
+rpc SearchAccounts(SearchAccountsRequest) returns (Accounts) {
+  option (google.api.http) = {
+    get : "/v1/accounts/search"
+    additional_bindings {post : "/v1/accounts:searchAccounts" body : "*"}
+  };
+  option (google.api.method_signature) = "query";
+};
+
+// Request to get daily users stats
+rpc DailyRegisteredUsers(DailyRegisteredUsersRequest) returns (CountStats) {
+  option (google.api.http) = {
+    post : "/v1/accounts:dailyRegisteredUsers"
+    body : "*"
+  };
+};
 }
 
 message DailyRegisteredUsersRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "DailyRegisteredUsersRequest"
-			description: "Request to fetch daily registered users stats"
-		}
-    };
-
-    repeated string dates = 1 [(google.api.field_behavior) = REQUIRED];
-    Filter filter = 2;
-	bool date_is_range = 3;
-
-    message Filter {
-        repeated string project_ids = 1;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "DailyRegisteredUsersRequest"
+      description : "Request to fetch daily registered users stats"
     }
+  };
+
+  repeated string dates = 1 [ (google.api.field_behavior) = REQUIRED ];
+  Filter filter = 2;
+  bool date_is_range = 3;
+
+  message Filter { repeated string project_ids = 1; }
 }
 
 message CountStat {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "CountStat"
-			description: "Count of something"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {title : "CountStat" description : "Count of something"}
+  };
 
-    int64 count = 1;
-    string date = 2;
+  int64 count = 1;
+  string date = 2;
 }
 
 message CountStats {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "CountStats"
-			description: "Collection of Count stats"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "CountStats"
+      description : "Collection of Count stats"
+    }
+  };
 
-    repeated CountStat stats = 1; 
+  repeated CountStat stats = 1;
 }
 
 message Account {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "Account"
-			description: "Account profile information"
-		}
-		example: "{ \"email\": \"gkamai@onfonmedia.com\", \"phone\": \"xxxx\",\"names\": \"Full Names\", \"birth_date\": \"Feb 03 1990\", \"gender\": \"MALE\", \"nationality\": \"Kenyan\",\"group\": \"SUPER_ADMIN\"}"
-    };
-    
-    // Gendern of the account
-    enum Gender {
-        GENDER_UNSPECIFIED = 0;
-        MALE = 1;
-        FEMALE = 2;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "Account"
+      description : "Account profile information"
     }
+    example : "{ \"email\": \"gkamai@onfonmedia.com\", \"phone\": "
+              "\"xxxx\",\"names\": \"Full Names\", \"birth_date\": \"Feb 03 "
+              "1990\", \"gender\": \"MALE\", \"nationality\": "
+              "\"Kenyan\",\"group\": \"SUPER_ADMIN\"}"
+  };
 
-    string account_id = 1;
-    string project_id = 2;
-    string email = 3;
-    string phone = 4;
-    string device_token = 5;
-    string names = 6;
-    string birth_date = 7;
-    Gender gender = 8;
-    string nationality = 9;
-    string id_number = 10;
-    string profession = 11;
-    string residence = 12;
-    string profile_url = 13;
-    string group = 14;
-    string linked_accounts = 15;
-	string last_login = 16;
-	string created_at = 17;
-    AccountState state = 18;
-    repeated string secondary_groups = 19;
-    string parent_id = 20;
+  // Gendern of the account
+  enum Gender {
+    GENDER_UNSPECIFIED = 0;
+    MALE = 1;
+    FEMALE = 2;
+  }
+
+  string account_id = 1;
+  string project_id = 2;
+  string email = 3;
+  string phone = 4;
+  string device_token = 5;
+  string names = 6;
+  string birth_date = 7;
+  Gender gender = 8;
+  string nationality = 9;
+  string id_number = 10;
+  string profession = 11;
+  string residence = 12;
+  string profile_url = 13;
+  string group = 14;
+  string linked_accounts = 15;
+  string last_login = 16;
+  string created_at = 17;
+  AccountState state = 18;
+  repeated string secondary_groups = 19;
+  string parent_id = 20;
 }
 
 message PrivateAccount {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "PrivateAccount"
-			description: "Contains account sensitive information such as password and security QA"
-		}
-    };
-    
-    string password = 1; 
-    string confirm_password = 2;
-    string security_question = 3;
-    string security_answer = 4;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "PrivateAccount"
+      description : "Contains account sensitive information such as password "
+                    "and security QA"
+    }
+  };
+
+  string password = 1;
+  string confirm_password = 2;
+  string old_password = 3;
+  string security_question = 4;
+  string security_answer = 5;
 }
 
-// AccountState 
+// AccountState
 enum AccountState {
-    ACCOUNT_STATE_UNSPECIFIED = 0;
-    BLOCKED = 1;
-    ACTIVE = 2;
-    INACTIVE = 3;
-    DELETED = 4;
+  ACCOUNT_STATE_UNSPECIFIED = 0;
+  BLOCKED = 1;
+  ACTIVE = 2;
+  INACTIVE = 3;
+  DELETED = 4;
 }
 
 message SignInRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "SignInRequest"
-			description: "Request to sign in to an account"
-			required: ["username", "password"]
-		}
-    };
-    
-    string username = 1 [(google.api.field_behavior) = REQUIRED];
-    string password = 2 [(google.api.field_behavior) = REQUIRED];
-    string group = 3;
-    string project_id = 4;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "SignInRequest"
+      description : "Request to sign in to an account"
+      required : [ "username", "password" ]
+    }
+  };
+
+  string username = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string password = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string group = 3;
+  string project_id = 4;
 }
 
 message RequestSignInOTPRequest {
-	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "RequestSignInOTPRequest"
-			description: "Request request to sign in"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "RequestSignInOTPRequest"
+      description : "Request request to sign in"
+    }
+  };
 
-	string username = 1 [(google.api.field_behavior) = REQUIRED];
-	string project = 2;
-	gidyon.apis.SMSAuth sms_auth = 3;
-	// Will fetch the sms auth from backend no need to pass it in request
-	bool fetch_sms_auth = 11;
-	// This is the id of the sms auth which is also the project id
-	string sms_credential_id = 12;
+  string username = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string project = 2;
+  gidyon.apis.SMSAuth sms_auth = 3;
+  // Will fetch the sms auth from backend no need to pass it in request
+  bool fetch_sms_auth = 11;
+  // This is the id of the sms auth which is also the project id
+  string sms_credential_id = 12;
 }
 
 message SignInOTPRequest {
-	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "SignInOTPRequest"
-			description: "Request to sign in using OTP"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "SignInOTPRequest"
+      description : "Request to sign in using OTP"
+    }
+  };
 
-	string username = 1 [(google.api.field_behavior) = REQUIRED];
-	string otp = 2 [(google.api.field_behavior) = REQUIRED];
-	string group = 3;
+  string username = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string otp = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string group = 3;
 }
 
 message SignInExternalRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "SignInExternalRequest"
-			description: "Request to sign in using an external provider like Google, Facebook or Github"
-			required: ["account", "auth_token"]
-		}
-    };
-    
-    Account account = 1 [(google.api.field_behavior) = REQUIRED];
-    string auth_token = 2 [(google.api.field_behavior) = REQUIRED];
-    string project_id = 3;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "SignInExternalRequest"
+      description : "Request to sign in using an external provider like "
+                    "Google, Facebook or Github"
+      required : [ "account", "auth_token" ]
+    }
+  };
+
+  Account account = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string auth_token = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string project_id = 3;
 }
 
 message RefreshSessionRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "RefreshSessionRequest"
-			description: "Request to refresh session credential"
-			required: ["refresh_token", "account_id"]
-		}
-    };
-    
-    string refresh_token = 1 [(google.api.field_behavior) = REQUIRED];
-    string account_id = 2 [(google.api.field_behavior) = REQUIRED];
-    string account_group = 3;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "RefreshSessionRequest"
+      description : "Request to refresh session credential"
+      required : [ "refresh_token", "account_id" ]
+    }
+  };
+
+  string refresh_token = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string account_id = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string account_group = 3;
 }
 
 message SignInResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-            title: "SignInResponse"
-			description: "Response after signing in"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "SignInResponse"
+      description : "Response after signing in"
+    }
+  };
 
-    string session_id = 1 [(google.api.field_behavior) = REQUIRED];
-    string account_id = 2 [(google.api.field_behavior) = REQUIRED];
-    string token = 3 [(google.api.field_behavior) = REQUIRED];
-    string refresh_token = 4 [(google.api.field_behavior) = REQUIRED];
-    string group = 5;
-    AccountState state = 6;
-    repeated string secondary_groups = 7;
-	Account account = 8;
+  string session_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string account_id = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string token = 3 [ (google.api.field_behavior) = REQUIRED ];
+  string refresh_token = 4 [ (google.api.field_behavior) = REQUIRED ];
+  string group = 5;
+  AccountState state = 6;
+  repeated string secondary_groups = 7;
+  Account account = 8;
 }
 
 message CreateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "CreateAccountRequest"
-			description: "Request to create an account"
-			required: ["account"]
-		}
-    };
-    
-    Account account = 1 [(google.api.field_behavior) = REQUIRED];
-    PrivateAccount private_account = 2 [(google.api.field_behavior) = OPTIONAL];
-    bool notify = 3;
-    bool update_only = 4;
-    bool by_admin = 5;
-    string admin_id = 6;
-	string project_id = 7;
-    gidyon.apis.SendMethod notification_method = 8 [(google.api.field_behavior) = REQUIRED];
-	oneof notification_channel {
-		gidyon.apis.EmailSender sender = 9;
-		gidyon.apis.SMSAuth sms_auth = 10;
-	}
-	// Will fetch the sms auth from backend no need to pass it in request
-	bool fetch_sms_auth = 11;
-	// This is the id of the sms auth which is also the project id
-	string sms_credential_id = 12;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "CreateAccountRequest"
+      description : "Request to create an account"
+      required : [ "account" ]
+    }
+  };
+
+  Account account = 1 [ (google.api.field_behavior) = REQUIRED ];
+  PrivateAccount private_account = 2 [ (google.api.field_behavior) = OPTIONAL ];
+  bool notify = 3;
+  bool update_only = 4;
+  bool by_admin = 5;
+  string admin_id = 6;
+  string project_id = 7;
+  gidyon.apis.SendMethod notification_method = 8
+      [ (google.api.field_behavior) = REQUIRED ];
+  oneof notification_channel {
+    gidyon.apis.EmailSender sender = 9;
+    gidyon.apis.SMSAuth sms_auth = 10;
+  }
+  // Will fetch the sms auth from backend no need to pass it in request
+  bool fetch_sms_auth = 11;
+  // This is the id of the sms auth which is also the project id
+  string sms_credential_id = 12;
 }
 
 message CreateAccountResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-            title: "CreateAccountResponse"
-			description: "Response after creating an account"
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "CreateAccountResponse"
+      description : "Response after creating an account"
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message ActivateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "ActivateAccountRequest"
-			description: "Request to activate an account that was inactive"
-			required: ["account_id", "token"]
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-    string token = 2 [(google.api.field_behavior) = OPTIONAL];
-	string otp = 3 [(google.api.field_behavior) = OPTIONAL];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ActivateAccountRequest"
+      description : "Request to activate an account that was inactive"
+      required : [ "account_id", "token" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string token = 2 [ (google.api.field_behavior) = OPTIONAL ];
+  string otp = 3 [ (google.api.field_behavior) = OPTIONAL ];
 }
 
 message ActivateAccountResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-            title: "ActivateAccountResponse"
-			description: "Response after activating an account"
-		}
-	};
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ActivateAccountResponse"
+      description : "Response after activating an account"
+    }
+  };
 }
 
 message UpdateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "UpdateAccountRequest"
-			description: "Request to update an account"
-			required: ["account"]
-		}
-    };
-    
-    Account account = 1 [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "UpdateAccountRequest"
+      description : "Request to update an account"
+      required : [ "account" ]
+    }
+  };
+
+  Account account = 1 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message RequestChangePrivateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "RequestChangePrivateAccountRequest"
-			description: "Request to change private account information"
-			required: ["payload", "fallback_url", "project", "send_method"]
-		}
-    };
-    
-    string payload = 1 [(google.api.field_behavior) = REQUIRED];
-    string fallback_url = 2 [(google.api.field_behavior) = REQUIRED];
-	string project = 3 [(google.api.field_behavior) = REQUIRED];
-    gidyon.apis.SendMethod send_method = 4 [(google.api.field_behavior) = REQUIRED];
-	oneof notification_channel {
-		gidyon.apis.EmailSender sender = 5;
-		gidyon.apis.SMSAuth sms_auth = 6;
-	}
-	// Will fetch the sms auth from backend no need to pass it in request
-	bool fetch_sms_auth = 7;
-	// This is the id of the sms auth which is also the project id
-	string sms_credential_id = 8;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "RequestChangePrivateAccountRequest"
+      description : "Request to change private account information"
+      required : [ "payload", "fallback_url", "project", "send_method" ]
+    }
+  };
+
+  string payload = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string fallback_url = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string project = 3 [ (google.api.field_behavior) = REQUIRED ];
+  gidyon.apis.SendMethod send_method = 4
+      [ (google.api.field_behavior) = REQUIRED ];
+  oneof notification_channel {
+    gidyon.apis.EmailSender sender = 5;
+    gidyon.apis.SMSAuth sms_auth = 6;
+  }
+  // Will fetch the sms auth from backend no need to pass it in request
+  bool fetch_sms_auth = 7;
+  // This is the id of the sms auth which is also the project id
+  string sms_credential_id = 8;
 }
 
 message RequestChangePrivateAccountResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-            title: "RequestChangePrivateAccountResponse"
-			description: "Response after requesting for the change"
-		}
-    };
-    
-    string response_message = 1;
-    string jwt = 2;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "RequestChangePrivateAccountResponse"
+      description : "Response after requesting for the change"
+    }
+  };
+
+  string response_message = 1;
+  string jwt = 2;
 }
 
 message UpdatePrivateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "UpdatePrivateAccountRequest"
-			description: "Request to update account private information"
-			required: ["account_id", "private_account", "change_token"]
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-    PrivateAccount private_account = 2 [(google.api.field_behavior) = REQUIRED];
-    string change_token = 3 [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "UpdatePrivateAccountRequest"
+      description : "Request to update account private information"
+      required : [ "account_id", "private_account", "change_token" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  PrivateAccount private_account = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string change_token = 3 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message UpdatePrivateAccountExternalRequest {
   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "UpdatePrivateAccountExternalRequest"
-			description: "Request to update account private information from external source"
-			required: ["account_id", "private_account", "change_token"]
-		}
-    };
-    
-	string jwt = 1 [(google.api.field_behavior) = REQUIRED];
-	string username = 2 [(google.api.field_behavior) = REQUIRED];
-	string project_id = 3 [(google.api.field_behavior) = REQUIRED];
-    PrivateAccount private_account = 4 [(google.api.field_behavior) = REQUIRED];
-    string change_token = 5 [(google.api.field_behavior) = REQUIRED];
+    json_schema : {
+      title : "UpdatePrivateAccountExternalRequest"
+      description : "Request to update account private information from "
+                    "external source"
+      required : [ "account_id", "private_account", "change_token" ]
+    }
+  };
+
+  string jwt = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string username = 2 [ (google.api.field_behavior) = REQUIRED ];
+  string project_id = 3 [ (google.api.field_behavior) = REQUIRED ];
+  PrivateAccount private_account = 4 [ (google.api.field_behavior) = REQUIRED ];
+  string change_token = 5 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message DeleteAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "DeleteAccountRequest"
-			description: "Request to delete an account"
-			required: ["account_id"]
-		}
-    };
-    
-    string account_id = 1  [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "DeleteAccountRequest"
+      description : "Request to delete an account"
+      required : [ "account_id" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 // AccountView
 enum AccountView {
-    FULL_VIEW = 0;
-    LIST_VIEW = 1; // account_id, email, first name and last name
-    SEARCH_VIEW = 2; // account_id, email, first name and last name
-    BASIC_VIEW = 3; // account_id, email, first name and last name
+  FULL_VIEW = 0;
+  LIST_VIEW = 1;   // account_id, email, first name and last name
+  SEARCH_VIEW = 2; // account_id, email, first name and last name
+  BASIC_VIEW = 3;  // account_id, email, first name and last name
 }
 
 message GetAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "GetAccountRequest"
-			description: "Request to retrieve an account"
-			required: ["account_id"]
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-    AccountView view = 2 [(google.api.field_behavior) = OPTIONAL];
-    bool priviledge = 3;
-	bool use_phone = 4;
-	bool use_email = 5;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "GetAccountRequest"
+      description : "Request to retrieve an account"
+      required : [ "account_id" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  AccountView view = 2 [ (google.api.field_behavior) = OPTIONAL ];
+  bool priviledge = 3;
+  bool use_phone = 4;
+  bool use_email = 5;
 }
 
 message BatchGetAccountsRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "BatchGetAccountsRequest"
-			description: "Request to get multiple accounts"
-			required: ["account_ids"]
-		}
-    };
-    
-    repeated string account_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "BatchGetAccountsRequest"
+      description : "Request to get multiple accounts"
+      required : [ "account_ids" ]
+    }
+  };
+
+  repeated string account_ids = 1 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message BatchGetAccountsResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "BatchGetAccountsResponse"
-		}
-    };
-    
-    repeated Account accounts = 1;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {title : "BatchGetAccountsResponse"}
+  };
+
+  repeated Account accounts = 1;
 }
 
 message GetLinkedAccountsRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "GetLinkedAccountsRequest"
-			description: "Request to retrive linked accounts for an account"
-			required: ["account_id"]
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "GetLinkedAccountsRequest"
+      description : "Request to retrive linked accounts for an account"
+      required : [ "account_id" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
 }
 
 message GetLinkedAccountsResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-            title: "GetLinkedAccountsResponse"
-            description: "Response containing linked accounts"
-		}
-    };
-    
-    repeated Account accounts = 1;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "GetLinkedAccountsResponse"
+      description : "Response containing linked accounts"
+    }
+  };
+
+  repeated Account accounts = 1;
 }
 
 message ExistAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "ExistAccountRequest"
-			description: "Request to check if an account exists"
-		}
-    };
-    
-    string email = 1 [(google.api.field_behavior) = OPTIONAL];
-    string phone = 2 [(google.api.field_behavior) = OPTIONAL];
-    string project_id = 3 [(google.api.field_behavior) = OPTIONAL];
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ExistAccountRequest"
+      description : "Request to check if an account exists"
+    }
+  };
+
+  string email = 1 [ (google.api.field_behavior) = OPTIONAL ];
+  string phone = 2 [ (google.api.field_behavior) = OPTIONAL ];
+  string project_id = 3 [ (google.api.field_behavior) = OPTIONAL ];
 }
 
 message ExistAccountResponse {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "ExistAccountResponse"
-		}
-    };
-    
-    bool exists = 1;
-    string account_id = 2;
-    repeated string existing_fields = 3;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {title : "ExistAccountResponse"}
+  };
+
+  bool exists = 1;
+  string account_id = 2;
+  repeated string existing_fields = 3;
 }
 
 message Accounts {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "Accounts"
-			description: "Collection of accounts"
-		}
-    };
-    
-    string next_page_token = 1 [(google.api.field_behavior) = OPTIONAL];
-    repeated Account accounts = 2;
-    int64 collection_count = 3;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {title : "Accounts" description : "Collection of accounts"}
+  };
+
+  string next_page_token = 1 [ (google.api.field_behavior) = OPTIONAL ];
+  repeated Account accounts = 2;
+  int64 collection_count = 3;
 }
 
 // UpdateOperation
 enum UpdateOperation {
-    UPDATE_OPERATION_INSPECIFIED = 0;
-    UNDELETE = 1;
-    DELETE = 2;
-    UNBLOCK = 3;
-    BLOCK = 4;
-    CHANGE_GROUP = 5;
-    ADMIN_ACTIVATE = 6;
-    PASSWORD_RESET = 7;
-	CHANGE_PRIMARY_GROUP = 8;
+  UPDATE_OPERATION_INSPECIFIED = 0;
+  UNDELETE = 1;
+  DELETE = 2;
+  UNBLOCK = 3;
+  BLOCK = 4;
+  CHANGE_GROUP = 5;
+  ADMIN_ACTIVATE = 6;
+  PASSWORD_RESET = 7;
+  CHANGE_PRIMARY_GROUP = 8;
 }
 
 message AdminUpdateAccountRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "AdminUpdateAccountRequest"
-			description: "Request to update an account data by admininstrator"
-			required: ["account_id", "admin_id", "update_operation"]
-		}
-    };
-    
-    string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-    string admin_id = 2 [(google.api.field_behavior) = REQUIRED];
-    UpdateOperation update_operation = 3 [(google.api.field_behavior) = REQUIRED];
-    string reason = 4 [(google.api.field_behavior) = OPTIONAL];
-    repeated string payload = 5 [(google.api.field_behavior) = OPTIONAL];
-	bool notify = 6;
-	gidyon.apis.SendMethod send_method = 7 [(google.api.field_behavior) = REQUIRED];
-	oneof notification_channel {
-		gidyon.apis.EmailSender sender = 8;
-		gidyon.apis.SMSAuth sms_auth = 9;
-	}
-	bool fetch_sms_auth = 10;
-	string sms_credential_id = 11;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "AdminUpdateAccountRequest"
+      description : "Request to update an account data by admininstrator"
+      required : [ "account_id", "admin_id", "update_operation" ]
+    }
+  };
+
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string admin_id = 2 [ (google.api.field_behavior) = REQUIRED ];
+  UpdateOperation update_operation = 3
+      [ (google.api.field_behavior) = REQUIRED ];
+  string reason = 4 [ (google.api.field_behavior) = OPTIONAL ];
+  repeated string payload = 5 [ (google.api.field_behavior) = OPTIONAL ];
+  bool notify = 6;
+  gidyon.apis.SendMethod send_method = 7
+      [ (google.api.field_behavior) = REQUIRED ];
+  oneof notification_channel {
+    gidyon.apis.EmailSender sender = 8;
+    gidyon.apis.SMSAuth sms_auth = 9;
+  }
+  bool fetch_sms_auth = 10;
+  string sms_credential_id = 11;
 }
 
 message Criteria {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "Criteria"
-			description: "Filtering criteria for fetching collection of accounts"
-		}
-    };
-    
-    bool filter = 1;
-    bool show_active_accounts = 2;
-    bool show_inactive_accounts = 3;
-    bool show_blocked_accounts = 4;
-    bool show_males = 5;
-    bool show_females = 6;
-    bool filter_creation_date = 7;
-    int64 created_from = 8;
-    int64 created_until = 9;
-    bool filter_account_groups = 10;
-    repeated string groups = 11;
-	repeated string project_ids = 12;
-	repeated string phones = 13;
-	repeated string emails = 14;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "Criteria"
+      description : "Filtering criteria for fetching collection of accounts"
+    }
+  };
+
+  bool filter = 1;
+  bool show_active_accounts = 2;
+  bool show_inactive_accounts = 3;
+  bool show_blocked_accounts = 4;
+  bool show_males = 5;
+  bool show_females = 6;
+  bool filter_creation_date = 7;
+  int64 created_from = 8;
+  int64 created_until = 9;
+  bool filter_account_groups = 10;
+  repeated string groups = 11;
+  repeated string project_ids = 12;
+  repeated string phones = 13;
+  repeated string emails = 14;
 }
 
 message ListAccountsRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "ListAccountsRequest"
-			description: "Request to retrieve collection of accounts"
-		}
-    };
-    
-    string page_token = 1;
-    int32 page_size = 2;
-    Criteria list_criteria = 3;
-    AccountView view = 4;
-    bool priviledge = 5;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ListAccountsRequest"
+      description : "Request to retrieve collection of accounts"
+    }
+  };
+
+  string page_token = 1;
+  int32 page_size = 2;
+  Criteria list_criteria = 3;
+  AccountView view = 4;
+  bool priviledge = 5;
 }
 
 message SearchAccountsRequest {
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "SearchAccountsRequest"
-			description: "Request to search for accounts"
-		}
-    };
-    
-    string query = 1;
-    string page_token = 2;
-    int32 page_size = 3;
-    bool search_linked_accounts = 4;
-    Criteria search_criteria = 5;
-    AccountView view = 6;
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "SearchAccountsRequest"
+      description : "Request to search for accounts"
+    }
+  };
+
+  string query = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+  bool search_linked_accounts = 4;
+  Criteria search_criteria = 5;
+  AccountView view = 6;
 }
 
-
 message RequestActivateAccountOTPRequest {
-	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "RequestActivateAccountOTPRequest"
-			description: "Request to send OTP for activating an account"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "RequestActivateAccountOTPRequest"
+      description : "Request to send OTP for activating an account"
+    }
+  };
 
-	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-	gidyon.apis.SMSAuth sms_auth = 2 [(google.api.field_behavior) = REQUIRED];
-	// Will fetch the sms auth from backend no need to pass it in request
-	bool fetch_sms_auth = 3;
-	// This is the id of the sms auth which is also the project id
-	string sms_credential_id = 4;
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  gidyon.apis.SMSAuth sms_auth = 2 [ (google.api.field_behavior) = REQUIRED ];
+  // Will fetch the sms auth from backend no need to pass it in request
+  bool fetch_sms_auth = 3;
+  // This is the id of the sms auth which is also the project id
+  string sms_credential_id = 4;
 }
 
 message ActivateAccountOTPRequest {
-	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-		json_schema: {
-			title: "ActivateAccountOTPRequest"
-			description: "Request to activate an account"
-		}
-    };
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema : {
+      title : "ActivateAccountOTPRequest"
+      description : "Request to activate an account"
+    }
+  };
 
-	string account_id = 1 [(google.api.field_behavior) = REQUIRED];
-	string otp = 2 [(google.api.field_behavior) = REQUIRED];
+  string account_id = 1 [ (google.api.field_behavior) = REQUIRED ];
+  string otp = 2 [ (google.api.field_behavior) = REQUIRED ];
 }

@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -31,31 +32,31 @@ func fixPhone(phone string) string {
 }
 
 func (accountAPI *accountAPIServer) CreateAccount(
-	ctx context.Context, createReq *account.CreateAccountRequest,
+	ctx context.Context, req *account.CreateAccountRequest,
 ) (*account.CreateAccountResponse, error) {
 	// Request should not be nil
-	if createReq == nil {
-		return nil, errs.NilObject("CreateAccountRequest")
+	if req == nil {
+		return nil, errs.MissingField("create request")
 	}
 
 	var err error
 
-	accountPB := createReq.GetAccount()
-	if accountPB == nil {
-		return nil, errs.NilObject("Account")
+	pb := req.GetAccount()
+	if pb == nil {
+		return nil, errs.MissingField("account")
 	}
 
 	// Validation
 	switch {
-	case createReq.ProjectId == "":
+	case req.ProjectId == "":
 		err = errs.MissingField("project id")
-	case accountPB.Group == "":
+	case pb.Group == "":
 		err = errs.MissingField("group")
-	case accountPB.Names == "":
+	case pb.Names == "":
 		err = errs.MissingField("names")
-	case accountPB.Phone == "" && accountPB.Email == "":
+	case pb.Phone == "" && pb.Email == "":
 		err = errs.MissingField("phone and email and hiduma id")
-	case createReq.GetByAdmin() && createReq.AdminId == "":
+	case req.GetByAdmin() && req.AdminId == "":
 		err = errs.MissingField("admin id")
 	}
 	if err != nil {
@@ -64,9 +65,9 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 	// Check if account already exists
 	existRes, err := accountAPI.ExistAccount(ctx, &account.ExistAccountRequest{
-		Email:     accountPB.Email,
-		Phone:     accountPB.Phone,
-		ProjectId: createReq.ProjectId,
+		Email:     pb.Email,
+		Phone:     pb.Phone,
+		ProjectId: req.ProjectId,
 	})
 	if err != nil {
 		return nil, err
@@ -81,46 +82,59 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		)
 	}
 
-	accountDB, err := GetAccountDB(accountPB)
+	db, err := AccountModel(pb)
 	if err != nil {
 		return nil, err
 	}
 
 	// Fix phone number
-	accountDB.Phone = fixPhone(accountDB.Phone)
+	db.Phone = fixPhone(db.Phone)
 
 	accountState := account.AccountState_INACTIVE
 
-	if createReq.GetByAdmin() {
-		// Authenticate the admin
-		p, err := accountAPI.AuthAPI.AuthorizeGroup(ctx, accountAPI.AuthAPI.AdminGroups()...)
+	if req.GetByAdmin() {
+		err = func() (_err error) {
+			defer func() {
+				if err := recover(); err != nil {
+					_err = errs.WrapError(errors.New(fmt.Sprint(err)))
+				}
+			}()
+
+			// Authenticate the admin
+			p, err := accountAPI.AuthAPI.AuthorizeGroup(ctx, accountAPI.AuthAPI.AdminGroups()...)
+			if err != nil {
+				return err
+			}
+			if p.ID != req.AdminId {
+				dev := (os.Getenv("MODE") == "development")
+				if !dev {
+					return errs.WrapMessage(codes.Unauthenticated, "token id and admin id do not match")
+				}
+			}
+			accountState = account.AccountState_ACTIVE
+
+			return nil
+		}()
 		if err != nil {
 			return nil, err
 		}
-		if p.ID != createReq.AdminId {
-			dev := (os.Getenv("MODE") == "development")
-			if !dev {
-				return nil, errs.WrapMessage(codes.Unauthenticated, "token id and admin id do not match")
-			}
-		}
-		accountState = account.AccountState_ACTIVE
 	}
 
-	accountDB.AccountState = accountState.String()
+	db.AccountState = accountState.String()
 
-	accountDB.ProjectID = createReq.ProjectId
+	db.ProjectID = req.ProjectId
 
-	accountPrivate := createReq.GetPrivateAccount()
+	accountPrivate := req.GetPrivateAccount()
 	if accountPrivate != nil {
-		accountDB.SecurityAnswer = accountPrivate.GetSecurityQuestion()
+		db.SecurityAnswer = accountPrivate.GetSecurityQuestion()
 		// Store password as encrypted
-		accountDB.SecurityAnswer = accountPrivate.GetSecurityAnswer()
+		db.SecurityAnswer = accountPrivate.GetSecurityAnswer()
 		if accountPrivate.Password != "" {
 			newPass, err := genHash(accountPrivate.GetPassword())
 			if err != nil {
 				return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate hash password")
 			}
-			accountDB.Password = newPass
+			db.Password = newPass
 		}
 	}
 
@@ -139,25 +153,25 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.FailedToBeginTx(err)
 	}
 
-	err = tx.Create(accountDB).Error
+	err = tx.Create(db).Error
 	switch {
 	case err == nil:
 	default:
 		emailOrPhone := func(err error) (string, string) {
 			if strings.Contains(strings.ToLower(err.Error()), "email") {
-				return "email", accountDB.Email
+				return "email", db.Email
 			}
 			if strings.Contains(strings.ToLower(err.Error()), "phone") {
-				return "phone", accountDB.Phone
+				return "phone", db.Phone
 			}
-			return "id", fmt.Sprint(accountDB.AccountID)
+			return "id", fmt.Sprint(db.AccountID)
 		}
 
 		if dbutil.IsDuplicate(err) {
 			// Upsert must be true
-			if createReq.GetUpdateOnly() && createReq.GetByAdmin() {
+			if req.GetUpdateOnly() && req.GetByAdmin() {
 				// Update account instead
-				err = accountAPI.SQLDBWrites.Table(accountsTable).Updates(accountDB).Error
+				err = accountAPI.SQLDBWrites.Table(accountsTable).Updates(db).Error
 				if err != nil {
 					tx.Rollback()
 					return nil, errs.FailedToUpdate("account", err)
@@ -173,7 +187,7 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.SQLQueryFailed(err, "CREATE")
 	}
 
-	accountID := fmt.Sprint(accountDB.AccountID)
+	accountID := fmt.Sprint(db.AccountID)
 
 	// Commit transaction
 	if err = tx.Commit().Error; err != nil {
@@ -181,13 +195,13 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		return nil, errs.FailedToCommitTx(err)
 	}
 
-	if !createReq.GetUpdateOnly() && createReq.Notify {
+	if !req.GetUpdateOnly() && req.Notify {
 		// Generate jwt token with expiration of 6 hours
 		jwtToken, err := accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,
-			Names:        accountPB.Names,
-			PhoneNumber:  accountPB.Phone,
-			EmailAddress: accountPB.Email,
+			Names:        pb.Names,
+			PhoneNumber:  pb.Phone,
+			EmailAddress: pb.Email,
 		}, time.Now().Add(time.Duration(6*time.Hour)))
 		if err != nil {
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to generate token")
@@ -195,35 +209,35 @@ func (accountAPI *accountAPIServer) CreateAccount(
 
 		// Send method
 		sendMethods := func() []messaging.SendMethod {
-			if accountPB.Email != "" {
+			if pb.Email != "" {
 				return []messaging.SendMethod{messaging.SendMethod_EMAIL}
 			}
-			if accountPB.Phone != "" {
+			if pb.Phone != "" {
 				return []messaging.SendMethod{messaging.SendMethod_SMSV2}
 			}
 			return []messaging.SendMethod{messaging.SendMethod_EMAIL, messaging.SendMethod_SMSV2}
 		}()
 
-		appName := firstVal(createReq.GetSender().GetAppName(), createReq.GetSmsAuth().GetAppName(), accountAPI.AppName)
+		appName := firstVal(req.GetSender().GetAppName(), req.GetSmsAuth().GetAppName(), accountAPI.AppName)
 
 		// CreateAccount message
 		messagePB := &messaging.Message{
 			UserId:      accountID,
 			Title:       fmt.Sprintf("%s Account created successfully", appName),
-			Data:        fmt.Sprintf("Hello %s. Your %s account was created successfully, but you'll need to verify and activate the account", accountDB.Names, appName),
+			Data:        fmt.Sprintf("Hello %s. Your %s account was created successfully, but you'll need to verify and activate the account", db.Names, appName),
 			Link:        fmt.Sprintf("%s?token=%s?&account_id=%s", accountAPI.activationURL, jwtToken, accountID),
 			Save:        true,
 			Type:        messaging.MessageType_REMINDER,
 			SendMethods: sendMethods,
 		}
 
-		if createReq.GetByAdmin() {
+		if req.GetByAdmin() {
 			messagePB = &messaging.Message{
 				UserId: accountID,
 				Title:  fmt.Sprintf("%s Account created successfully by Admin", appName),
 				Data: fmt.Sprintf(
 					"Hello %s. %s account has been created successfully by the administrator. You can now sign in to your account.",
-					accountDB.Names, appName,
+					db.Names, appName,
 				),
 				Save:        true,
 				Type:        messaging.MessageType_REMINDER,
@@ -239,8 +253,8 @@ func (accountAPI *accountAPIServer) CreateAccount(
 		// Send message
 		_, err = accountAPI.MessagingClient.SendMessage(mdutil.AddMD(ctx, md), &messaging.SendMessageRequest{
 			Message: messagePB,
-			SmsAuth: createReq.GetSmsAuth(),
-			Sender:  createReq.GetSender(),
+			SmsAuth: req.GetSmsAuth(),
+			Sender:  req.GetSender(),
 		})
 		if err != nil {
 			accountAPI.Logger.Errorf("error while sending account creation message: %v", err)

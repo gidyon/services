@@ -2,8 +2,10 @@ package subscriber
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"google.golang.org/grpc"
@@ -12,7 +14,6 @@ import (
 	"github.com/gidyon/micro/v2/utils/errs"
 	"github.com/gidyon/micro/v2/utils/mdutil"
 	"github.com/gidyon/services/pkg/api/account"
-	"github.com/speps/go-hashids"
 	"gorm.io/gorm"
 
 	"github.com/gidyon/services/pkg/api/channel"
@@ -32,12 +33,11 @@ type subscriberAPIServer struct {
 
 // Options are parameters passed while calling NewSubscriberAPIServer
 type Options struct {
-	SQLDB            *gorm.DB
-	Logger           grpclog.LoggerV2
-	ChannelClient    channel.ChannelAPIClient
-	AccountClient    account.AccountAPIClient
-	PaginationHasher *hashids.HashID
-	AuthAPI          auth.API
+	SQLDB         *gorm.DB
+	Logger        grpclog.LoggerV2
+	ChannelClient channel.ChannelAPIClient
+	AccountClient account.AccountAPIClient
+	AuthAPI       auth.API
 }
 
 // NewSubscriberAPIServer factory creates a subscriber API server
@@ -47,8 +47,6 @@ func NewSubscriberAPIServer(
 	// Validation
 	var err error
 	switch {
-	case ctx == nil:
-		err = errs.NilObject("context")
 	case opt == nil:
 		err = errs.NilObject("options")
 	case opt.SQLDB == nil:
@@ -59,8 +57,6 @@ func NewSubscriberAPIServer(
 		err = errs.NilObject("channel client")
 	case opt.AccountClient == nil:
 		err = errs.NilObject("accounts client")
-	case opt.PaginationHasher == nil:
-		err = errs.MissingField("pagination PaginationHasher")
 	case opt.AuthAPI == nil:
 		err = errs.MissingField("authentication API")
 	}
@@ -210,11 +206,15 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	var ID uint
 	pageToken := req.GetPageToken()
 	if pageToken != "" {
-		ids, err := subscriberAPI.PaginationHasher.DecodeInt64WithError(req.GetPageToken())
+		bs, err := base64.StdEncoding.DecodeString(req.GetPageToken())
 		if err != nil {
-			return nil, errs.WrapMessage(codes.InvalidArgument, "bad page token value")
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to parse page token")
 		}
-		ID = uint(ids[0])
+		v, err := strconv.ParseUint(string(bs), 10, 64)
+		if err != nil {
+			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "incorrect page token")
+		}
+		ID = uint(v)
 	}
 
 	db := subscriberAPI.SQLDB.Model(&Subscriber{}).Limit(int(pageSize) + 1).Order("id DESC")
@@ -257,7 +257,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 		}
 
 		// Lets get the user
-		accountPB, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
+		pb, err := subscriberAPI.AccountClient.GetAccount(ctxGet, &account.GetAccountRequest{
 			AccountId:  subscriberDB.UserID,
 			Priviledge: subscriberAPI.AuthAPI.IsAdmin(payload.Group),
 		})
@@ -277,7 +277,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 			return nil, errs.WrapErrorWithCodeAndMsg(codes.Internal, err, "failed to get subcriber channels")
 		}
 
-		subscriberPB, err := GetSubscriberPB(accountPB, channels)
+		subscriberPB, err := GetSubscriberPB(pb, channels)
 		if err != nil {
 			return nil, err
 		}
@@ -290,10 +290,7 @@ func (subscriberAPI *subscriberAPIServer) ListSubscribers(
 	var token string
 	if len(subscriberDBs) > int(pageSize) {
 		// Next page token
-		token, err = subscriberAPI.PaginationHasher.EncodeInt64([]int64{int64(ID)})
-		if err != nil {
-			return nil, errs.WrapErrorWithCodeAndMsg(codes.InvalidArgument, err, "failed to generate page token")
-		}
+		token = base64.StdEncoding.EncodeToString([]byte(fmt.Sprint(ID)))
 	}
 
 	return &subscriber.ListSubscribersResponse{
@@ -331,7 +328,7 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 	defer cancel()
 
 	// Get account details
-	accountPB, err := subscriberAPI.AccountClient.GetAccount(ctx, &account.GetAccountRequest{
+	pb, err := subscriberAPI.AccountClient.GetAccount(ctx, &account.GetAccountRequest{
 		AccountId:  req.SubscriberId,
 		Priviledge: subscriberAPI.AuthAPI.IsAdmin(payload.Group),
 	}, grpc.WaitForReady(true))
@@ -339,5 +336,5 @@ func (subscriberAPI *subscriberAPIServer) GetSubscriber(
 		return nil, errs.WrapErrorWithMsg(err, "failed to get susbcriber profile")
 	}
 
-	return GetSubscriberPB(accountPB, channels)
+	return GetSubscriberPB(pb, channels)
 }

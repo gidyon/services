@@ -150,7 +150,7 @@ func (projectAPI *projectAPIServer) ListProjectMembers(
 	}
 
 	if !projectAPI.AuthAPI.IsAdmin(actor.Group) {
-		if fmt.Sprint(prDB.ID) != actor.ID {
+		if fmt.Sprint(prDB.OwnerId) != actor.ID {
 			return nil, errs.WrapMessage(codes.PermissionDenied, "not allowed to view project members")
 		}
 	}
@@ -179,7 +179,7 @@ func (projectAPI *projectAPIServer) ListProjectMembers(
 		ID = uint(v)
 	}
 
-	db := projectAPI.SqlDb.Unscoped().Model(&ProjectMember{}).Limit(int(pageSize+1)).Order("id DESC").Where("project_id = ?", projectId)
+	db := projectAPI.SqlDb.Model(&ProjectMember{}).Limit(int(pageSize+1)).Order("id DESC").Where("project_id = ?", projectId)
 	if ID != 0 {
 		db = db.Where("id<?", ID)
 	}

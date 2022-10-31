@@ -3,7 +3,6 @@ package account
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/gidyon/micro/v2/utils/errs"
@@ -17,6 +16,8 @@ const accountsTable = "accounts"
 type Account struct {
 	AccountID        uint   `gorm:"primaryKey;autoIncrement"`
 	ProjectID        string `gorm:"index;type:varchar(50);not null"`
+	GroupID          string `gorm:"index;type:varchar(50)"`
+	ParentID         string `gorm:"index;type:varchar(50)"`
 	Email            string `gorm:"index;type:varchar(50);not null"`
 	Phone            string `gorm:"index;type:varchar(50);not null"`
 	DeviceToken      string `gorm:"type:varchar(256)"`
@@ -36,17 +37,17 @@ type Account struct {
 	SecondaryGroups  []byte `gorm:"type:json"`
 	AccountState     string `gorm:"index;type:enum('BLOCKED','ACTIVE', 'INACTIVE');not null;default:'INACTIVE'"`
 	LastLogin        *time.Time
-	CreatedAt        time.Time `gorm:"autoCreateTime"`
-	UpdatedAt        time.Time `gorm:"autoUpdateTime"`
+	CreatedAt        time.Time `gorm:"index;type:datetime(6);not null"`
+	UpdatedAt        time.Time `gorm:"type:datetime(6)"`
 	DeletedAt        gorm.DeletedAt
 }
 
 // TableName is the name of the tables
 func (u *Account) TableName() string {
-	tableName := os.Getenv("ACCOUNTS_TABLE")
-	if tableName != "" {
-		return tableName
-	}
+	// tableName := os.Getenv("ACCOUNTS_TABLE")
+	// if tableName != "" {
+	// 	return tableName
+	// }
 	return accountsTable
 }
 
@@ -92,107 +93,111 @@ func (u *Account) AfterFind(tx *gorm.DB) (err error) {
 	return
 }
 
-// GetAccountPB converts account db model to protobuf Account message
-func GetAccountPB(accountDB *Account) (*account.Account, error) {
-	if accountDB == nil {
+// AccountProto converts account db model to protobuf Account message
+func AccountProto(db *Account) (*account.Account, error) {
+	if db == nil {
 		return nil, errs.NilObject("account")
 	}
 
-	accountState := account.AccountState(account.AccountState_value[accountDB.AccountState])
+	accountState := account.AccountState(account.AccountState_value[db.AccountState])
 
-	if accountDB.DeletedAt.Valid {
+	if db.DeletedAt.Valid {
 		accountState = account.AccountState_DELETED
 	}
 
 	// Secondary groups
 	secondaryGroups := make([]string, 0)
-	if len(accountDB.SecondaryGroups) != 0 {
-		err := json.Unmarshal(accountDB.SecondaryGroups, &secondaryGroups)
+	if len(db.SecondaryGroups) != 0 {
+		err := json.Unmarshal(db.SecondaryGroups, &secondaryGroups)
 		if err != nil {
 			return nil, errs.WrapErrorWithMsg(err, "failed to json unmarshal")
 		}
 	}
 
-	accountPB := &account.Account{
-		AccountId:       fmt.Sprint(accountDB.AccountID),
-		ProjectId:       accountDB.ProjectID,
-		Email:           accountDB.Email,
-		Phone:           accountDB.Phone,
-		DeviceToken:     accountDB.DeviceToken,
-		Names:           accountDB.Names,
-		BirthDate:       accountDB.BirthDate,
-		Gender:          account.Account_Gender(account.Account_Gender_value[accountDB.Gender]),
-		Nationality:     accountDB.Nationality,
-		Residence:       accountDB.Residence,
-		Profession:      accountDB.Profession,
-		IdNumber:        accountDB.IDNumber,
-		ProfileUrl:      accountDB.ProfileURL,
-		LinkedAccounts:  accountDB.LinkedAccounts,
-		CreatedAt:       accountDB.CreatedAt.Format(time.RFC3339),
-		Group:           accountDB.PrimaryGroup,
+	pb := &account.Account{
+		AccountId:       fmt.Sprint(db.AccountID),
+		ProjectId:       db.ProjectID,
+		Email:           db.Email,
+		Phone:           db.Phone,
+		DeviceToken:     db.DeviceToken,
+		Names:           db.Names,
+		BirthDate:       db.BirthDate,
+		Gender:          account.Account_Gender(account.Account_Gender_value[db.Gender]),
+		Nationality:     db.Nationality,
+		Residence:       db.Residence,
+		Profession:      db.Profession,
+		IdNumber:        db.IDNumber,
+		ProfileUrl:      db.ProfileURL,
+		LinkedAccounts:  db.LinkedAccounts,
+		CreatedAt:       db.CreatedAt.Format(time.RFC3339),
+		Group:           db.PrimaryGroup,
 		State:           accountState,
 		SecondaryGroups: secondaryGroups,
+		GroupId:         db.GroupID,
+		ParentId:        db.ParentID,
 	}
 
-	if accountDB.LastLogin != nil {
-		accountPB.LastLogin = accountDB.LastLogin.Format(time.RFC3339)
+	if db.LastLogin != nil {
+		pb.LastLogin = db.LastLogin.Format(time.RFC3339)
 	}
 
-	return accountPB, nil
+	return pb, nil
 }
 
-// GetAccountDB converts protobuf Account message to account db model
-func GetAccountDB(accountPB *account.Account) (*Account, error) {
-	if accountPB == nil {
+// AccountModel converts protobuf Account message to account db model
+func AccountModel(pb *account.Account) (*Account, error) {
+	if pb == nil {
 		return nil, errs.NilObject("account")
 	}
 
-	accountDB := &Account{
-		ProjectID:      accountPB.ProjectId,
-		Email:          accountPB.Email,
-		Phone:          accountPB.Phone,
-		DeviceToken:    accountPB.DeviceToken,
-		Names:          accountPB.Names,
-		BirthDate:      accountPB.BirthDate,
-		Gender:         accountPB.Gender.String(),
-		Nationality:    accountPB.Nationality,
-		Residence:      accountPB.Residence,
-		IDNumber:       accountPB.IdNumber,
-		Profession:     accountPB.Profession,
-		ProfileURL:     accountPB.ProfileUrl,
-		LinkedAccounts: accountPB.LinkedAccounts,
-		PrimaryGroup:   accountPB.Group,
-		AccountState:   accountPB.State.String(),
+	db := &Account{
+		ProjectID:      pb.ProjectId,
+		Email:          pb.Email,
+		Phone:          pb.Phone,
+		DeviceToken:    pb.DeviceToken,
+		Names:          pb.Names,
+		BirthDate:      pb.BirthDate,
+		Gender:         pb.Gender.String(),
+		Nationality:    pb.Nationality,
+		Residence:      pb.Residence,
+		IDNumber:       pb.IdNumber,
+		Profession:     pb.Profession,
+		ProfileURL:     pb.ProfileUrl,
+		LinkedAccounts: pb.LinkedAccounts,
+		PrimaryGroup:   pb.Group,
+		AccountState:   pb.State.String(),
+		ParentID:       pb.ParentId,
+		GroupID:        pb.GroupId,
 	}
 
-	if len(accountPB.SecondaryGroups) > 0 {
-		bs, err := json.Marshal(accountPB.SecondaryGroups)
+	if len(pb.SecondaryGroups) > 0 {
+		bs, err := json.Marshal(pb.SecondaryGroups)
 		if err != nil {
 			return nil, errs.FromJSONMarshal(err, "secondary group")
 		}
-		accountDB.SecondaryGroups = bs
+		db.SecondaryGroups = bs
 	}
 
-	return accountDB, nil
+	return db, nil
 }
 
-// GetAccountPBView returns the appropriate view
-func GetAccountPBView(accountPB *account.Account, view account.AccountView) *account.Account {
-	if accountPB == nil {
-		return accountPB
+// AccountProtoView returns the appropriate view
+func AccountProtoView(pb *account.Account, view account.AccountView) *account.Account {
+	if pb == nil {
+		return pb
 	}
 	switch view {
 	case account.AccountView_SEARCH_VIEW, account.AccountView_LIST_VIEW:
 		return &account.Account{
-			AccountId: accountPB.AccountId,
-			Email:     accountPB.Email,
-			Phone:     accountPB.Phone,
-			ProjectId: accountPB.ProjectId,
-			Names:     accountPB.Names,
-			Group:     accountPB.Group,
-			State:     accountPB.State,
+			AccountId: pb.AccountId,
+			Email:     pb.Email,
+			Phone:     pb.Phone,
+			ProjectId: pb.ProjectId,
+			Names:     pb.Names,
+			Group:     pb.Group,
+			State:     pb.State,
 		}
 	default:
-		return accountPB
+		return pb
 	}
 }

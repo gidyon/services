@@ -4,12 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Pallinder/go-randomdata"
 	"gorm.io/gorm"
 
 	"github.com/gidyon/micro/v2"
 	"github.com/gidyon/micro/v2/pkg/conn"
-	"github.com/gidyon/micro/v2/utils/encryption"
 
 	micro_mock "github.com/gidyon/micro/v2/pkg/mocks"
 	"github.com/gidyon/services/pkg/api/subscriber"
@@ -65,18 +63,14 @@ var _ = BeforeSuite(func() {
 	channelClient := mocks.ChannelAPI
 	accountClient := mocks.AccountAPI
 
-	paginationHasher, err := encryption.NewHasher(string([]byte(randomdata.RandStringRunes(32))))
-	Expect(err).ShouldNot(HaveOccurred())
-
 	authAPI := micro_mock.AuthAPI
 
 	opt := &Options{
-		SQLDB:            db,
-		Logger:           logger,
-		ChannelClient:    channelClient,
-		AccountClient:    accountClient,
-		AuthAPI:          authAPI,
-		PaginationHasher: paginationHasher,
+		SQLDB:         db,
+		Logger:        logger,
+		ChannelClient: channelClient,
+		AccountClient: accountClient,
+		AuthAPI:       authAPI,
 	}
 
 	// Inject stubs to the service
@@ -114,15 +108,6 @@ var _ = BeforeSuite(func() {
 	opt.AuthAPI = nil
 	_, err = NewSubscriberAPIServer(ctx, opt)
 	Expect(err).Should(HaveOccurred())
-
-	opt.AuthAPI = authAPI
-	opt.PaginationHasher = nil
-	_, err = NewSubscriberAPIServer(ctx, opt)
-	Expect(err).Should(HaveOccurred())
-
-	opt.PaginationHasher = paginationHasher
-	_, err = NewSubscriberAPIServer(ctx, opt)
-	Expect(err).ShouldNot(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {

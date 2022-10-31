@@ -160,6 +160,26 @@
             "collectionFormat": "multi"
           },
           {
+            "name": "listCriteria.groupIds",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "listCriteria.parentIds",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "name": "view",
             "in": "query",
             "required": false,
@@ -633,6 +653,26 @@
           },
           {
             "name": "searchCriteria.emails",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "searchCriteria.groupIds",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "searchCriteria.parentIds",
             "in": "query",
             "required": false,
             "type": "array",
@@ -1569,7 +1609,7 @@
     "apisAccount": {
       "type": "object",
       "example": {
-        "email": "gkamai@onfonmedia.com",
+        "email": "gkamau@onfonmedia.com",
         "phone": "xxxx",
         "names": "Full Names",
         "birth_date": "Feb 03 1990",
@@ -1621,6 +1661,12 @@
           "type": "string"
         },
         "linkedAccounts": {
+          "type": "string"
+        },
+        "groupId": {
+          "type": "string"
+        },
+        "parentId": {
           "type": "string"
         },
         "lastLogin": {
@@ -1953,6 +1999,18 @@
           "items": {
             "type": "string"
           }
+        },
+        "groupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "Filtering criteria for fetching collection of accounts",
@@ -2083,6 +2141,9 @@
           "type": "string"
         },
         "confirmPassword": {
+          "type": "string"
+        },
+        "oldPassword": {
           "type": "string"
         },
         "securityQuestion": {
@@ -2400,7 +2461,9 @@
         "CHANGE_GROUP",
         "ADMIN_ACTIVATE",
         "PASSWORD_RESET",
-        "CHANGE_PRIMARY_GROUP"
+        "CHANGE_PRIMARY_GROUP",
+        "GROUP_ID",
+        "PARENT_ID"
       ],
       "default": "UPDATE_OPERATION_INSPECIFIED",
       "title": "UpdateOperation"

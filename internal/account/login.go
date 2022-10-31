@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -24,21 +25,21 @@ func refreshTokenSet() string {
 }
 
 func (accountAPI *accountAPIServer) SignIn(
-	ctx context.Context, signInReq *account.SignInRequest,
+	ctx context.Context, req *account.SignInRequest,
 ) (*account.SignInResponse, error) {
 	// Request should not be nil
-	if signInReq == nil {
+	if req == nil {
 		return nil, errs.NilObject("SignInRequest")
 	}
 
 	// Validation
 	var err error
 	switch {
-	case signInReq.Username == "":
+	case req.Username == "":
 		err = errs.MissingField("username")
-	case signInReq.Password == "":
+	case req.Password == "":
 		err = errs.MissingField("password")
-	case signInReq.ProjectId == "":
+	case req.ProjectId == "":
 		err = errs.MissingField("project id")
 	}
 	if err != nil {
@@ -46,23 +47,23 @@ func (accountAPI *accountAPIServer) SignIn(
 	}
 
 	// Check whtether account exist
-	accountDB := &Account{}
+	db := &Account{}
 
 	// Query for user with email or phone or huduma id
 	err = accountAPI.SQLDBWrites.First(
-		accountDB, "(phone=? OR email=?) AND project_id=?", signInReq.Username, signInReq.Username, signInReq.ProjectId,
+		db, "(phone=? OR email=?) AND project_id=?", req.Username, req.Username, req.ProjectId,
 	).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		emailOrPhone := func() string {
-			if strings.Contains(signInReq.Username, "@") {
-				return "email " + signInReq.Username
+			if strings.Contains(req.Username, "@") {
+				return "email " + req.Username
 			}
-			if strings.Contains(signInReq.Username, "+") {
-				return "phone " + signInReq.Username
+			if strings.Contains(req.Username, "+") {
+				return "phone " + req.Username
 			}
-			return "username " + signInReq.Username
+			return "username " + req.Username
 		}
 		return nil, errs.WrapMessagef(codes.NotFound, "account with %s not found", emailOrPhone())
 	default:
@@ -70,42 +71,42 @@ func (accountAPI *accountAPIServer) SignIn(
 	}
 
 	// If no password set in account
-	if accountDB.Password == "" {
+	if db.Password == "" {
 		return nil, errs.WrapMessage(
 			codes.PermissionDenied, "account has no password; please request new password",
 		)
 	}
 
-	accountPB, err := GetAccountPB(accountDB)
+	pb, err := AccountProto(db)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check that account is not blocked
-	if accountPB.State == account.AccountState_BLOCKED {
+	if pb.State == account.AccountState_BLOCKED {
 		return nil, errs.WrapMessage(codes.FailedPrecondition, "account blocked")
 	}
 
 	// Check if password match if they logged in with Phone or Email
-	err = compareHash(accountDB.Password, signInReq.Password)
+	err = compareHash(db.Password, req.Password)
 	if err != nil {
 		return nil, errs.WrapMessage(codes.Internal, "wrong password")
 	}
 
 	// Update last login
-	err = accountAPI.SQLDBWrites.Model(accountDB).Update("last_login", time.Now()).Error
+	err = accountAPI.SQLDBWrites.Model(db).Update("last_login", time.Now()).Error
 	if err != nil {
 		return nil, errs.WrapMessage(codes.Internal, "failed to update last login")
 	}
 
-	return accountAPI.updateSession(ctx, accountDB, signInReq.GetGroup())
+	return accountAPI.updateSession(ctx, db, req.GetGroup())
 }
 
 func (accountAPI *accountAPIServer) updateSession(
-	ctx context.Context, accountDB *Account, signInGroup string,
+	ctx context.Context, db *Account, signInGroup string,
 ) (*account.SignInResponse, error) {
 	var (
-		accountID    = fmt.Sprint(accountDB.AccountID)
+		accountID    = fmt.Sprint(db.AccountID)
 		refreshToken = uuid.New().String()
 		token        string
 		err          error
@@ -113,8 +114,8 @@ func (accountAPI *accountAPIServer) updateSession(
 
 	// Secondary groups
 	secondaryGroups := make([]string, 0)
-	if len(accountDB.SecondaryGroups) != 0 {
-		err = json.Unmarshal(accountDB.SecondaryGroups, &secondaryGroups)
+	if len(db.SecondaryGroups) != 0 {
+		err = json.Unmarshal(db.SecondaryGroups, &secondaryGroups)
 		if err != nil {
 			return nil, errs.WrapErrorWithMsg(err, "failed to json unmarshal")
 		}
@@ -130,18 +131,18 @@ func (accountAPI *accountAPIServer) updateSession(
 
 	if signInGroup != "" {
 		var found bool
-		for _, group := range append(secondaryGroups, accountDB.PrimaryGroup) {
+		for _, group := range append(secondaryGroups, db.PrimaryGroup) {
 			group := strings.ToUpper(strings.TrimSpace(group))
 			if group == signInGroup {
 				found = true
 				// Generates JWT
 				token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
-					ID:           fmt.Sprint(accountDB.AccountID),
-					Names:        accountDB.Names,
+					ID:           fmt.Sprint(db.AccountID),
+					Names:        db.Names,
 					Group:        signInGroup,
-					ProjectID:    accountDB.ProjectID,
-					EmailAddress: accountDB.Email,
-					PhoneNumber:  accountDB.Phone,
+					ProjectID:    db.ProjectID,
+					EmailAddress: db.Email,
+					PhoneNumber:  db.Phone,
 					Roles:        secondaryGroups,
 				}, time.Now().Add(time.Duration(dur)*time.Minute))
 				if err != nil {
@@ -156,15 +157,15 @@ func (accountAPI *accountAPIServer) updateSession(
 				errs.WrapMessagef(codes.InvalidArgument, "group %s not associated with the account", signInGroup)
 		}
 	} else {
-		signInGroup = accountDB.PrimaryGroup
+		signInGroup = db.PrimaryGroup
 		// Generate JWT
 		token, err = accountAPI.AuthAPI.GenToken(ctx, &auth.Payload{
 			ID:           accountID,
-			Names:        accountDB.Names,
-			Group:        accountDB.PrimaryGroup,
-			ProjectID:    accountDB.ProjectID,
-			EmailAddress: accountDB.Email,
-			PhoneNumber:  accountDB.Phone,
+			Names:        db.Names,
+			Group:        db.PrimaryGroup,
+			ProjectID:    db.ProjectID,
+			EmailAddress: db.Email,
+			PhoneNumber:  db.Phone,
 			Roles:        secondaryGroups,
 		}, time.Now().Add(time.Duration(dur)*time.Minute))
 		if err != nil {
@@ -180,9 +181,46 @@ func (accountAPI *accountAPIServer) updateSession(
 	}
 
 	// Get account
-	accountPB, err := GetAccountPB(accountDB)
+	pb, err := AccountProto(db)
 	if err != nil {
 		return nil, err
+	}
+
+	// Set Cookie in response header
+	encoded, err := accountAPI.cookier.Encode(auth.JWTCookie(), token)
+	if err == nil {
+		// JWT cookie
+		cookie := &http.Cookie{
+			Name:     auth.JWTCookie(),
+			Value:    encoded,
+			Path:     "/",
+			HttpOnly: true,
+			Expires:  time.Now().Add(time.Hour * 8760),
+			SameSite: http.SameSiteNoneMode,
+			Secure:   true,
+		}
+		err = accountAPI.setCookie(ctx, cookie.String())
+		if err != nil {
+			return nil, err
+		}
+
+		// Refresh token
+		cookie.Name = auth.RefreshCookie()
+		cookie.Value = refreshToken
+		cookie.HttpOnly = false
+		err = accountAPI.setCookie(ctx, cookie.String())
+		if err != nil {
+			return nil, err
+		}
+
+		// Acccount ID Cookie
+		cookie.Name = auth.AccountIDCookie()
+		cookie.Value = accountID
+		cookie.HttpOnly = false
+		err = accountAPI.setCookie(ctx, cookie.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Return token
@@ -190,9 +228,9 @@ func (accountAPI *accountAPIServer) updateSession(
 		AccountId:       accountID,
 		Token:           token,
 		RefreshToken:    refreshToken,
-		State:           account.AccountState(account.AccountState_value[accountDB.AccountState]),
+		State:           account.AccountState(account.AccountState_value[db.AccountState]),
 		Group:           signInGroup,
 		SecondaryGroups: secondaryGroups,
-		Account:         accountPB,
+		Account:         pb,
 	}, nil
 }

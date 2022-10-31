@@ -32,7 +32,8 @@ type AccountAPIClient interface {
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*CreateAccountResponse, error)
 	// Activates an account to being active
 	ActivateAccount(ctx context.Context, in *ActivateAccountRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error)
-	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	// Requests for an OTP to activate an account, usually happens after login and
+	// account not ACTIVE
 	RequestActivateAccountOTP(ctx context.Context, in *RequestActivateAccountOTPRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Activates the account by passing along the OTP code sent and token
 	ActivateAccountOTP(ctx context.Context, in *ActivateAccountOTPRequest, opts ...grpc.CallOption) (*ActivateAccountResponse, error)
@@ -288,7 +289,8 @@ type AccountAPIServer interface {
 	CreateAccount(context.Context, *CreateAccountRequest) (*CreateAccountResponse, error)
 	// Activates an account to being active
 	ActivateAccount(context.Context, *ActivateAccountRequest) (*ActivateAccountResponse, error)
-	// Requests for an OTP to activate an account, usually happens after login and account not ACTIVE
+	// Requests for an OTP to activate an account, usually happens after login and
+	// account not ACTIVE
 	RequestActivateAccountOTP(context.Context, *RequestActivateAccountOTPRequest) (*empty.Empty, error)
 	// Activates the account by passing along the OTP code sent and token
 	ActivateAccountOTP(context.Context, *ActivateAccountOTPRequest) (*ActivateAccountResponse, error)

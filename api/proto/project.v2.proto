@@ -1,0 +1,249 @@
+syntax = "proto3";
+
+option go_package="github.com/gidyon/services/pkg/api/project/v1";
+
+import "google/protobuf/empty.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/api/field_behaviour.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+	info: {
+        title: "Projects API";
+        description: "API for managing projects, project members and project/member scopes"
+		version: "v1";
+		contact: {
+			name: "Github <Gideon Kamau>";
+			url: "https://github.com/gidyon/services/blob/master/api/proto/project/v1.proto";
+			email: "gideonhacer@gmail.com";
+        };
+        license: {
+			name: "MIT License";
+			url: "https://github.com/gidyon/services/blob/master/LICENSE";
+		};
+    };
+	schemes: HTTPS;
+	schemes: HTTP;
+	consumes: "application/json";
+	produces: "application/json";
+	security_definitions: {
+		security: {
+		  key: "bearer"
+		  value: {
+			type: TYPE_API_KEY
+			in: IN_HEADER
+			name: "Authorization"
+			description: "Authentication token, prefixed by Bearer: Bearer <token>"
+		  }
+		}
+	}
+	security: {
+		security_requirement: {
+		  key: "bearer"
+		}
+	}
+};
+
+service ProjectAPI {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+		description: "CRUD API for managing projects, project members and scopes!"
+		external_docs: {
+			url: "https://github.com/gidyon/services/blob/master";
+			description: "Find more about project API";
+		}
+    };
+
+    rpc CreateProject (CreateProjectRequest) returns (Project) {
+        option (google.api.http) = {
+            post: "/v1/{parent=projects}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "parent,project";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Creates a new project";
+		};
+    };
+
+    rpc UpdateProject (UpdateProjectRequest) returns (Project) {
+        option (google.api.http) = {
+            patch: "/v1/{project.name=projects/*}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "project";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Updates a project (use this to update project scopes)";
+		};
+    };
+
+    rpc GetProject (GetProjectRequest) returns (Project) {
+        option (google.api.http) = {
+            get: "/v1/{name=projects/*}"
+        };
+        option (google.api.method_signature) = "name";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Retrieves information about a project";
+		};
+    };
+
+    rpc DeleteProject (DeleteProjectRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/{name=projects/*}"
+        };
+        option (google.api.method_signature) = "name";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Removes a project";
+		};
+    };
+
+    rpc ListProjects (ListProjectsRequest) returns (ListProjectsResponse) {
+        option (google.api.http) = {
+            get: "/v1/{parent=projects}"
+        };
+        option (google.api.method_signature) = "parent";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Fetches a collection of project resource";
+		};
+    };
+
+    rpc CreateProjectMember (CreateProjectMemberRequest) returns (ProjectMember) {
+        option (google.api.http) = {
+        post: "/v1/{parent=projects/*/members}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "parent,project_member";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Add a member into the project";
+		};
+    };
+
+    rpc UpdateProjectMember (UpdateProjectMemberRequest) returns (ProjectMember) {
+        option (google.api.http) = {
+        patch: "/v1/{project_member.name=projects/*/members/*}"
+            body: "*"
+        };
+        option (google.api.method_signature) = "project_member";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Updates a project member (use this to update member scopes)";
+		};
+    };
+
+    rpc DeleteProjectMember (DeleteProjectMemberRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/{name=projects/*/members/*}"
+        };
+        option (google.api.method_signature) = "name";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Removes member from project";
+		};
+    };
+
+    rpc ListProjectMembers (ListProjectMembersRequest) returns (ListProjectMembersResponse) {
+        option (google.api.http) = {
+        get: "/v1/{parent=projects/*/members}"
+        };
+        option (google.api.method_signature) = "parent";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Fetches a collection of project members";
+		};
+    };
+}
+
+message Project {
+    string name = 1;
+    string project_id = 2;
+    string owner_id = 3;
+    string owner_email = 4;
+    string owner_names = 5;
+    string project_name = 6;
+    string description = 7;
+    string status = 8;
+    repeated ProjectScope scopes = 9;
+    string create_date = 10;
+}
+
+message ProjectScope {
+    string service = 1;
+    bool read = 2;
+    bool write = 3;
+}
+
+message CreateProjectRequest {
+    string parent = 1 [(google.api.field_behavior) = REQUIRED];
+    Project project = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateProjectRequest {
+    Project project = 1;
+}
+
+message GetProjectRequest {
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteProjectRequest {
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+    bool force = 2;
+}
+
+message ListProjectsFilter {
+    int64 created_from_timestamp = 1;
+    int64 created_until_timestamp = 2;
+    repeated string owner_ids = 3;
+    repeated string statuses = 4;
+}
+
+message ListProjectsRequest {
+    string parent = 1 [(google.api.field_behavior) = REQUIRED];
+    string page_token = 2;
+    int32 page_size = 3;
+    ListProjectsFilter filter = 4;
+}
+
+message ListProjectsResponse {
+    string next_page_token = 1;
+    repeated Project projects = 2;
+    int32 collection_count = 3;
+}
+
+message ProjectMember {
+    string name = 1;
+    string member_id = 2;
+    string user_id = 3;
+    string project_id = 4;
+    string join_date = 5;
+    string status = 6;
+    repeated ProjectScope scopes = 7;
+}
+
+message CreateProjectMemberRequest {
+    string parent = 1 [(google.api.field_behavior) = REQUIRED];
+    ProjectMember project_member = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdateProjectMemberRequest {
+    ProjectMember project_member = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteProjectMemberRequest {
+    string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListProjectsMemberFilter {
+    int64 created_from_timestamp = 1;
+    int64 created_until_timestamp = 2;
+    repeated string statuses = 3;
+}
+
+message ListProjectMembersRequest {
+    string parent = 1 [(google.api.field_behavior) = REQUIRED];
+    string page_token = 2;
+    int32 page_size = 3;
+    ListProjectsMemberFilter filter = 4;
+}
+
+message ListProjectMembersResponse {
+    string next_page_token = 1;
+    repeated ProjectMember project_members = 2;
+    int32 collection_count = 3;
+}

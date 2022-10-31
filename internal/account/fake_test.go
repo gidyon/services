@@ -17,24 +17,24 @@ func fakePhone() string {
 }
 
 func createAdmin(accountState account.AccountState) (string, error) {
-	accountPB := fakeAccount()
-	accountPB.Group = auth.DefaultAdminGroup()
-	accountPB.State = accountState
+	pb := fakeAccount()
+	pb.Group = auth.DefaultAdminGroup()
+	pb.State = accountState
 
 	// Get admin model
-	accountDB, err := GetAccountDB(accountPB)
+	db, err := AccountModel(pb)
 	if err != nil {
 		return "", err
 	}
 
 	// Save to database
-	err = AccountAPIServer.SQLDBWrites.Create(accountDB).Error
+	err = AccountAPIServer.SQLDBWrites.Create(db).Error
 	if err != nil {
 		return "", err
 	}
 
 	// Return account ID
-	return fmt.Sprint(accountDB.AccountID), nil
+	return fmt.Sprint(db.AccountID), nil
 }
 
 // creates a fake account

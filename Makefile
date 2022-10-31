@@ -36,6 +36,11 @@ protoc_account:
 	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account account.proto
 	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) account.proto
 
+protoc_account.v1:
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/account/v1 --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/account/v1 account.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/account/v1 account.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=$(API_IN_PATH)/messaging -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) account.v1.proto
+
 protoc_messaging:
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --go-grpc_out=$(API_OUT_PATH)/messaging --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/messaging messaging.proto
 	@protoc -I=$(API_IN_PATH)/messaging -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/messaging messaging.proto
@@ -76,13 +81,18 @@ protoc_settings:
 	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/settings settings.proto
 	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) settings.proto
 
+protoc_project.v1:
+	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/project/v1 --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/project/v1 project.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --grpc-gateway_out=logtostderr=true,paths=source_relative:$(API_OUT_PATH)/project/v1 project.v1.proto
+	@protoc -I=$(API_IN_PATH) -I=third_party --openapiv2_out=logtostderr=true,repeated_path_param_separator=ssv:$(OPEN_APIV2_OUT_PATH) project.v1.proto
+
 protoc_error:
 	@protoc -I=$(API_IN_PATH) -I=third_party --go-grpc_out=$(API_OUT_PATH)/usererror --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative --go_out=$(API_OUT_PATH)/usererror error.proto
 
 copy_apidoc:
 	@cp -r $(OPEN_APIV2_OUT_PATH)/ cmd/webapp/apidoc
 
-protoc_all: protoc_account protoc_messaging protoc_emailing protoc_pusher protoc_sms protoc_call protoc_channel protoc_subscriber protoc_settings protoc_longrunning copy_apidoc
+protoc_all: protoc_account protoc_messaging protoc_emailing protoc_pusher protoc_sms protoc_call protoc_channel protoc_subscriber protoc_settings protoc_longrunning protoc_account.v1 protoc_project.v1 copy_apidoc
 	
 gen_api_doc: protoc_all cp_doc
 

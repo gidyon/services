@@ -166,14 +166,14 @@ var _ = Describe("Updating private account @updateprivate", func() {
 
 	Describe("Create account first", func() {
 		var (
-			accountPB *account.Account
+			pb        *account.Account
 			accountID string
 			token     string
 		)
 		It("should create account without error", func() {
-			accountPB = fakeAccount()
+			pb = fakeAccount()
 			createRes, err := AccountAPI.CreateAccount(ctx, &account.CreateAccountRequest{
-				Account:        accountPB,
+				Account:        pb,
 				PrivateAccount: fakePrivateAccount(),
 				ProjectId:      "1",
 			})
@@ -190,7 +190,7 @@ var _ = Describe("Updating private account @updateprivate", func() {
 		Context("Asking for update token", func() {
 			It("should request for token", func() {
 				reqReq := &account.RequestChangePrivateAccountRequest{
-					Payload:     accountPB.Email,
+					Payload:     pb.Email,
 					FallbackUrl: randomdata.MacAddress(),
 					SendMethod:  messaging.SendMethod_EMAIL,
 				}

@@ -33,6 +33,7 @@ import (
 
 	"github.com/gidyon/micro/v2/pkg/config"
 	app_grpc_middleware "github.com/gidyon/micro/v2/pkg/middleware/grpc"
+	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 )
 
 func main() {
@@ -61,6 +62,11 @@ func main() {
 	logginUIs, loggingSIs := app_grpc_middleware.AddLogging(zaplogger.Log)
 	app.AddGRPCUnaryServerInterceptors(logginUIs...)
 	app.AddGRPCStreamServerInterceptors(loggingSIs...)
+
+	// Payload interceptor
+	alwaysLoggingDeciderServer := func(ctx context.Context, fullMethodName string, servingObject interface{}) bool { return true }
+	app.AddGRPCUnaryServerInterceptors(grpc_zap.PayloadUnaryServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
+	app.AddGRPCStreamServerInterceptors(grpc_zap.PayloadStreamServerInterceptor(zaplogger.Log, alwaysLoggingDeciderServer))
 
 	jwtKey := []byte(strings.TrimSpace(os.Getenv("JWT_SIGNING_KEY")))
 

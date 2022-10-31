@@ -82,8 +82,8 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 	}
 
 	// Get user
-	accountDB := &Account{}
-	err = accountAPI.SQLDBWrites.Unscoped().First(accountDB, "account_id=?", ID2).Error
+	db := &Account{}
+	err = accountAPI.SQLDBWrites.Unscoped().First(db, "account_id=?", ID2).Error
 	switch {
 	case err == nil:
 	case errors.Is(err, gorm.ErrRecordNotFound):
@@ -92,20 +92,20 @@ func (accountAPI *accountAPIServer) validateAdminUpdateAccountRequest(
 		return nil, errs.SQLQueryFailed(err, "SELECT")
 	}
 
-	return accountDB, nil
+	return db, nil
 }
 
 func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	ctx context.Context, req *account.AdminUpdateAccountRequest,
 ) (*empty.Empty, error) {
 	// Validate the request, super admin credentials and account owner
-	accountDB, err := accountAPI.validateAdminUpdateAccountRequest(ctx, req)
+	db, err := accountAPI.validateAdminUpdateAccountRequest(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	var (
-		fullName    = accountDB.Names
+		fullName    = db.Names
 		messageType messaging.MessageType
 		title       string
 		data        string
@@ -154,7 +154,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_UNBLOCK:
 		// The state must be blocked in order to unblock it
-		if accountDB.AccountState != account.AccountState_BLOCKED.String() {
+		if db.AccountState != account.AccountState_BLOCKED.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account is not blocked")
 		}
@@ -171,7 +171,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_BLOCK:
 		// The state must be active in order to block it
-		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
+		if db.AccountState != account.AccountState_ACTIVE.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account is not active")
 		}
@@ -188,7 +188,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_CHANGE_GROUP:
 		// The state must be active in order to change group it
-		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
+		if db.AccountState != account.AccountState_ACTIVE.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account to change group is not active")
 		}
@@ -211,7 +211,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 
 	case account.UpdateOperation_CHANGE_PRIMARY_GROUP:
 		// The state must be active in order to change group it
-		if accountDB.AccountState != account.AccountState_ACTIVE.String() {
+		if db.AccountState != account.AccountState_ACTIVE.String() {
 			tx.Rollback()
 			return nil, errs.WrapMessage(codes.FailedPrecondition, "account to change group is not active")
 		}
@@ -263,7 +263,7 @@ func (accountAPI *accountAPIServer) AdminUpdateAccount(
 	if req.Notify {
 		// Email template
 		emailContent := templateutil.EmailData{
-			Names:        accountDB.Names,
+			Names:        db.Names,
 			AccountID:    req.AccountId,
 			AppName:      firstVal(req.GetSender().GetAppName(), accountAPI.AppName),
 			Reason:       req.Reason,
