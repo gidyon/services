@@ -30,6 +30,7 @@ type Options struct {
 	SQLDB      *gorm.DB
 	AuthAPI    auth.API
 	HTTPClient *http.Client
+	SendSMSUrl string
 }
 
 // NewSMSAPIServer creates a new sms API server
@@ -49,6 +50,8 @@ func NewSMSAPIServer(ctx context.Context, opt *Options) (sms.SMSAPIServer, error
 		err = errs.MissingField("sql db")
 	case opt.HTTPClient == nil:
 		opt.HTTPClient = http.DefaultClient
+	case opt.SendSMSUrl == "":
+		err = errs.MissingField("send sms url")
 	}
 	if err != nil {
 		return nil, err

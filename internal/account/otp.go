@@ -76,11 +76,29 @@ func (accountAPI *accountAPIServer) RequestSignInOTP(
 	// Outgoing context
 	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
 
-	data := fmt.Sprintf("Login OTP is %v \n\nExpires in 10 minutes", uniqueNumber)
+	data := fmt.Sprintf(`Login OTP is %v \n\nExpires in 10 minutes`, uniqueNumber)
 
 	if req.Project != "" {
-		data = fmt.Sprintf("Login OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", req.Project, uniqueNumber)
+		data = fmt.Sprintf(`Login OTP for %s. \n\nOTP is %d \nExpires in 10 minutes`, req.Project, uniqueNumber)
 	}
+
+	// // Send message
+	// _, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
+	// 	Message: &messaging.Message{
+	// 		UserId:      accountID,
+	// 		Title:       "OTP Login",
+	// 		Data:        data,
+	// 		Save:        true,
+	// 		Type:        messaging.MessageType_INFO,
+	// 		SendMethods: []messaging.SendMethod{messaging.SendMethod_SMSV2},
+	// 	},
+	// 	SmsAuth:         req.GetSmsAuth(),
+	// 	SmsCredentialId: req.SmsCredentialId,
+	// 	FetchSmsAuth:    req.FetchSmsAuth,
+	// })
+	// if err != nil {
+	// 	return nil, errs.WrapErrorWithMsg(err, "failed to send otp to phone")
+	// }
 
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{
@@ -256,7 +274,7 @@ func (accountAPI *accountAPIServer) RequestActivateAccountOTP(
 	// Outgoing context
 	ctxExt := metadata.NewOutgoingContext(ctx, metadata.Pairs(auth.Header(), fmt.Sprintf("Bearer %s", jwt)))
 
-	data := fmt.Sprintf("Account verification OTP for %s. \n\nOTP is %d \nExpires in 10 minutes", db.ProjectID, uniqueNumber)
+	data := fmt.Sprintf(`Account verification OTP for %s. \n\nOTP is %d \nExpires in 10 minutes`, db.ProjectID, uniqueNumber)
 
 	// Send message
 	_, err = accountAPI.MessagingClient.SendMessage(ctxExt, &messaging.SendMessageRequest{

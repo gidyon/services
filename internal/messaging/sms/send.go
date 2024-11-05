@@ -23,7 +23,8 @@ func firstVal(vals ...string) string {
 }
 
 func (smsAPI *smsAPIServer) sendSmsOnfon(ctx context.Context, sendRequest *sms.SendSMSRequest) {
-	url := firstVal(sendRequest.GetAuth().GetApiUrl(), "https://api.onfonmedia.co.ke/v1/sms/SendBulkSMS")
+	// url := firstVal(sendRequest.GetAuth().GetApiUrl(), "https://api.onfonmedia.co.ke/v1/sms/SendBulkSMS")
+	url := smsAPI.SendSMSUrl
 	method := "POST"
 
 	errChan := make(chan error, len(sendRequest.GetSms().GetDestinationPhones()))

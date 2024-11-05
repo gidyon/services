@@ -182,10 +182,10 @@ func main() {
 	})
 
 	apiHashKey, err := encryption.ParseKey([]byte(os.Getenv("API_HASH_KEY")))
-	errs.Panic(err)
+	// errs.Panic(err)
 
 	apiBlockKey, err := encryption.ParseKey([]byte(os.Getenv("API_BLOCK_KEY")))
-	errs.Panic(err)
+	// errs.Panic(err)
 
 	sc := securecookie.New(apiHashKey, apiBlockKey)
 

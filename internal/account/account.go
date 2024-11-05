@@ -518,9 +518,9 @@ func (accountAPI *accountAPIServer) RequestChangePrivateAccount(
 			req.FallbackUrl, jwtToken, uniqueNumber, firstVal(db.Email, db.Phone),
 		)
 	} else if req.Project != "" {
-		data = fmt.Sprintf("Password reset token for %s \n\nReset Token is %d \nExpires in 10 minutes", req.Project, uniqueNumber)
+		data = fmt.Sprintf("Password reset token for %s. Reset Token is %d. Expires in 10 minutes", req.Project, uniqueNumber)
 	} else {
-		data = fmt.Sprintf("Password reset token is %d \n\nExpires in 10 minutes", uniqueNumber)
+		data = fmt.Sprintf("Password reset token is %d. Expires in 10 minutes", uniqueNumber)
 	}
 
 	// Create an outgoing context

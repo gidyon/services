@@ -114,9 +114,10 @@ func main() {
 		// Create sms API instance
 		smsAPI, err := sms_app.NewSMSAPIServer(ctx, &sms_app.Options{
 			Logger:     app.Logger(),
+			SQLDB:      app.GormDB(),
 			AuthAPI:    authAPI,
 			HTTPClient: httpClient,
-			SQLDB:      app.GormDB(),
+			SendSMSUrl: os.Getenv("SMS_API_URL"),
 		})
 		errs.Panic(err)
 
