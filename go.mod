@@ -11,9 +11,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/RediSearch/redisearch-go v1.1.0 // indirect
 	github.com/appleboy/go-fcm v0.1.5
-	github.com/gidyon/micro v1.12.0
 	github.com/gidyon/micro/v2 v2.4.8
-	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-redis/redis/v8 v8.4.11
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.3
@@ -31,7 +29,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.opencensus.io v0.22.6 // indirect
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.1.0
 	golang.org/x/oauth2 v0.0.0-20210201163806-010130855d6c // indirect
 	google.golang.org/api v0.38.0
 	google.golang.org/genproto v0.0.0-20210203152818-3206188e46ba
